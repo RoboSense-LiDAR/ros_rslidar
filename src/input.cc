@@ -49,7 +49,6 @@ InputSocket::InputSocket(ros::NodeHandle private_nh, uint16_t port):
 {
 
     port_dest = 6677;
-      //send_IP = "192.168.2.103";
     send_IP = "192.168.1.200";
     port_local = 6699;
     sockfd_ = -1;

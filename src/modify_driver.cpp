@@ -109,10 +109,11 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node,
     output_ =
             node.advertise<rslidar::rslidarScan>("rslidar_packets", 10);
 
-
     /// 读参数文件 2017-02-27
     FILE *inIntenCal = fopen("./src/rslidar/data/curves.csv", "r");   // path
     FILE *inPwrCurve = fopen("./src/rslidar/data/pwrCurves.csv","r");
+     FILE *angleID = fopen("./src/rslidar/data/angle.csv","r");
+     FILE *channel=fopen("./src/rslidar/data/ChannelNum.csv","r");
     int loopi=0;
     int loopj = 0;
     while (~feof(inIntenCal)) {
@@ -134,9 +135,36 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node,
         //ROS_INFO("in2: %f", inPwrCurveDat[loopi]);
         //fprintf(outCalVfy, "%d\n", inPwrCurveDat[loopi] );
     }
+    /*********read veat_angle data******/
+    float b[16];
+    int loopk=0;
+    int loopn=0;
+    while(~feof(angleID))
+    {
+        fscanf(angleID,"%f",&b[loopk]);
+        loopk++;
+        if(loopk>15) break;
+    }
+    for(loopn=0;loopn<16;loopn++)
+    {
+        VERT_ANGLE[loopn]=b[loopn]/180*3.1415926;
+    }
+    /*********read veat_angle data******/
+    int loopl=0;
+  //  int c[16];
+    while(~feof(channel))
+    {
+        fscanf(channel,"%d",&g_ChannelNum[loopl]);
+       // ln[loopl]=g_ChannelNum[loopl];
+      //  ROS_INFO(" %d",g_ChannelNum[loopk]);
+        loopl++;
+        if(loopl>15) break;
+    }
+    /**********************************/
     ///End of Initial for the Calibration ROM
     fclose(inIntenCal);
     fclose(inPwrCurve);
+    fclose(angleID);
 }
 
 /** poll the device

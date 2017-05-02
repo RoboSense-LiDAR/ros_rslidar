@@ -7,34 +7,37 @@
 #include <rslidar/rslidarScan.h>
 #include "myparam.h"
 #include "lidar_robosense.h"
+#include "std_msgs/String.h"
 int fullscan = 0;
 ros::Publisher pic_output;
 ros::Publisher pc_output;
 rslidar::rslidarPic pic;
 //int correct[16] = {0, 2, 4, 6, 8, 10, 12, 14, 15, 13, 11, 9, 7, 5, 3, 1};
 int correct[16] = {0, 1, 2, 3, 4, 5, 6, 7, 15, 14, 13, 12, 11, 10, 9, 8};
-const float VERT_ANGLE[] = {
-    -15.326621/180*3.1415926,      //-15
-    -13.213839/180*3.1415926,    //-13
-    -11.101057/180*3.1415926,    //-11
-    -9.059895/180*3.1415926,    //-9
-    -7.018733/180*3.1415926,    //-7
-    -4.977571/180*3.1415926,    //-5
-    -2.972219/180*3.1415926,    //-3
-    -0.966866/180*3.1415926,  //-1
-    1.038486/180*3.1415926,   //1
-    3.008028/180*3.1415926,     //3
-    5.013381/180*3.1415926,     //5
-    7.054543/180*3.1415926,     //7
-    9.059895/180*3.1415926,     //9
-    11.136867/180*3.1415926,     //11
-    13.226015/180*3.1415926,     //13
-    15.352404/180*3.1415926  //15
-};
+//const float VERT_ANGLE[] = {
+//    -14.8355/180*3.1415926,      //-15
+//    -12.98/180*3.1415926,    //-13
+//    -10.9928/180*3.1415926,    //-11
+//    -9.0134/180*3.1415926,    //-9
+//    -6.9769/180*3.1415926,    //-7
+//    -4.9935/180*3.1415926,    //-5
+//    -2.9981/180*3.1415926,    //-3
+//    -1.0097/180*3.1415926,  //-1
+//    0.9954/180*3.1415926,   //1
+//    3.0481/180*3.1415926,     //3
+//    5.0078/180*3.1415926,     //5
+//    6.9910/180*3.1415926,     //7
+//    8.9925/180*3.1415926,     //9
+//    10.9721/180*3.1415926,     //11
+//    12.9596/180*3.1415926,     //13
+//    15.0161/180*3.1415926  //15
+//};
 
 /*
 
 */
+//int ln[16];
+ float VERT_ANGLE[16];
 //光衰信息表
 float inIntenCalDat[1600][16];
 //充能时间-实际功率对应表
@@ -95,7 +98,8 @@ void unpack(const rslidar::rslidarPacket &pkt)
         azimuth = (float)(256*raw->blocks[block].rotation_1+raw->blocks[block].rotation_2)*1;
 	int tempAzimuth;
 	tempAzimuth = int(azimuth);
-	tempAzimuth = (36000+18000 - int(azimuth)%36000); 
+    //tempAzimuth = (36000+18000 - int(azimuth + 13000)%36000);
+    tempAzimuth = (36000+18000 - int(azimuth)%36000);
 
 	tempAzimuth = (tempAzimuth + 18000)%36000;
 
@@ -136,14 +140,6 @@ void unpack(const rslidar::rslidarPacket &pkt)
                         point.intensity = intensity;
                         //ROS_INFO("inten: %f", intensity);
                         pointcloud->points.push_back(point);
-			// Tony add for debug start
-			/*pcl::PointXYZI point_zero;
-			point_zero.x = 0;
-			point_zero.y = 0;
-			point_zero.z = 0;
-			point.intensity = intensity;
-			pointcloud->points.push_back(point_zero);*/
-			// Tony add for debug end
                     }
                 }
             }
@@ -171,12 +167,11 @@ void unpack(const rslidar::rslidarPacket &pkt)
                 float refPwr = 0;
                 float tempInten = 0;
                 float iInten = 0;
-                int showPwrs =0 ;
-                int showInten = 0;
+               // int showPwrs =0 ;
+               // int showInten = 0;
 
-                //azimuth_corrected_f = azimuth + (azimuth_diff * ((dsr*VLP16_DSR_TOFFSET) + (firing*VLP16_FIRING_TOFFSET)) / VLP16_BLOCK_TDURATION);// 2.304f    55.296f   110.592f
-                azimuth_corrected_f = azimuth - (azimuth_diff * ((dsr*VLP16_DSR_TOFFSET) + (firing*VLP16_FIRING_TOFFSET)) / VLP16_BLOCK_TDURATION);
-		azimuth_corrected = ((int)round(azimuth_corrected_f)) % 36000;//convert to integral value...
+                azimuth_corrected_f = azimuth - (azimuth_diff * ((dsr*VLP16_DSR_TOFFSET) + (firing*VLP16_FIRING_TOFFSET)) / VLP16_BLOCK_TDURATION);// 2.304f    55.296f   110.592f
+                azimuth_corrected = ((int)round(azimuth_corrected_f)) % 36000;//convert to integral value...
                 pic.azimuthforeachP[pic.col*32+k/3]=azimuth_corrected;
 
                 union two_bytes tmp;
@@ -228,8 +223,6 @@ void unpack(const rslidar::rslidarPacket &pkt)
 
     }
 }
-
-
 #endif
 
 

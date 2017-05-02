@@ -88,12 +88,15 @@ Usefulmessage UsefulData;
 
 
 int g_ChannelNum[16] = {                        //-----------------------------FDQ_change--------------------
-        179, 191, 178, 180,
-        175, 183, 170, 168,
-        174, 190, 174, 186,
-        177, 177, 180, 190};
+        177, 180, 175, 167,
+        173, 168, 173, 174,
+        185, 180, 183, 187,
+        179, 187, 187, 193};
 float PI=3.1415926535897;
 
+/*     
+ *
+ */
 namespace lidar_robosense {
 void growpcl(pcl::PointCloud<pcl::PointXYZ> const& cloudin, pcl::PointCloud<pcl::PointXYZ> &cloudout)
 {
@@ -141,6 +144,7 @@ int BinTenToSum(unsigned int data[2])
     return Sum;
 }
 
+//used
 float PixelToDistance(float pixelValue, int passageway, double temperature)
 {
     float DistanceValue = 0;

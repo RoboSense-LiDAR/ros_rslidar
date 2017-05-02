@@ -47,13 +47,18 @@ Input::Input(ros::NodeHandle private_nh, uint16_t port):
 InputSocket::InputSocket(ros::NodeHandle private_nh, uint16_t port):
     Input(private_nh, port)
 {
-    port_dest = 6677;
-    port_local = 0;
-    //send_IP = "192.168.2.103";
-    send_IP = "192.168.1.200";
-    sockfd_ = -1;
 
+    port_dest = 6677;
+      //send_IP = "192.168.2.103";
+    send_IP = "192.168.1.200";
+    port_local = 6699;
+    sockfd_ = -1;
+//    if (!devip_str_.empty())
+//    {
+//          inet_aton(devip_str_.c_str(),&devip_);
+//    }
     ROS_INFO_STREAM("Opening UDP socket: port " << port);
+   // ROS_INFO("ip: %s", devip_str_.c_str());
     sockfd_ = socket(PF_INET, SOCK_DGRAM, 0);
     if (sockfd_ == -1)
     {
@@ -67,6 +72,7 @@ InputSocket::InputSocket(ros::NodeHandle private_nh, uint16_t port):
     my_addr.sin_port = htons(port_local);          // port in network byte order
     my_addr.sin_addr.s_addr = INADDR_ANY;    // automatically fill in my IP
 
+
     memset(&sender_address, 0, sizeof(sender_address));
     sender_address.sin_family = AF_INET;
     sender_address.sin_port = htons(port_dest);
@@ -78,11 +84,17 @@ InputSocket::InputSocket(ros::NodeHandle private_nh, uint16_t port):
         perror("bind");                 // TODO: ROS_ERROR errno
         return;
     }
+
     connect(sockfd_, (sockaddr *)&sender_address, sizeof(sender_address));
 
     char * sendData = "sssssssssssssssss";
     sendto(sockfd_, sendData, strlen(sendData), 0, (sockaddr *)&sender_address, sender_address_len);
 
+//    if (fcntl(sockfd_,F_SETFL, O_NONBLOCK|FASYNC) < 0)
+//    {
+//       perror("non-block");
+//       return;
+//    }
 }
 
 /** @brief destructor */
@@ -95,9 +107,34 @@ InputSocket::~InputSocket(void)
 int InputSocket::getPacket(rslidar::rslidarPacket *pkt, const double time_offset)
 {
     double time1 = ros::Time::now().toSec();
-
+//    struct pollfd fds[1];
+//    fds[0].fd=sockfd_;
+//    fds[0].events=POLLIN;
+//    static const int POLL_TIMEOUT = 1000; // one second (in msec)
+//    sockaddr_in sender_address;
+//    socklen_t sender_address_len = sizeof(sender_address);
     while (true)
     {
+//        do
+//        {
+//            int retval = poll(fds, 1, POLL_TIMEOUT);
+//            if(retval<0)
+//            {
+//               if (errno != EINTR)
+//                   ROS_ERROR("poll() error: %s", strerror(errno));
+//               return 1;
+//            }
+//            if(retval==0)
+//            {
+//                ROS_WARN("Velodyne poll() timeout");
+//                return 1;
+//            }
+//           if ((fds[0].revents & POLLERR) ||  (fds[0].revents & POLLHUP) ||  (fds[0].revents & POLLNVAL)) // device error
+//           {
+//               ROS_ERROR("poll() reports Rslidar error");
+//               return 1;
+//           }
+//        }while ((fds[0].revents & POLLIN) == 0);
         // Receive packets that should now be available from the
         // socket using a blocking read.
         ssize_t nbytes = recvfrom(sockfd_, &pkt->data[0],

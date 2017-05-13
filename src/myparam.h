@@ -1,23 +1,33 @@
 #ifndef MY_PARAM_H
-#define MY_PARAM_H 1
+#define MY_PARAM_H
+/** @file
+ *
+ *  @brief Interfaces for interpreting raw packets from the rslidar
+ *
+ *  @author
+ *  @author
+ *
+ */
+namespace rs_driver {
 
 
-static const float ROTATION_SOLUTION_ = 0.2;  //水平角分辨率
-static const int POINT_PER_CIRCLE_ = (int) (360/ROTATION_SOLUTION_)+700;//2000
-static const int DATA_NUMBER_PER_SCAN = POINT_PER_CIRCLE_ * 16 * 2; //64000
-static const int SIZE_BLOCK = 100;
-static const int RAW_SCAN_SIZE = 3;
-static const int SCANS_PER_BLOCK = 32;
-static const int BLOCK_DATA_SIZE = (SCANS_PER_BLOCK * RAW_SCAN_SIZE); //96
+static const float  ROTATION_SOLUTION_ = 0.2f;  //水平角分辨率 10hz
+static const int    POINT_PER_CIRCLE_ =  2000;
+static const int    DATA_NUMBER_PER_SCAN = POINT_PER_CIRCLE_ * 16 * 2 ; //32000
+static const int    SIZE_BLOCK = 100;
+static const int    RAW_SCAN_SIZE = 3;
+static const int    SCANS_PER_BLOCK = 32;
+static const int    BLOCK_DATA_SIZE = (SCANS_PER_BLOCK * RAW_SCAN_SIZE); //96
 
-static const float ROTATION_RESOLUTION = 0.01f; /**< degrees */
+static const float  ROTATION_RESOLUTION = 0.01f; /**< degrees 旋转角分辨率*/
 static const uint16_t ROTATION_MAX_UNITS = 36000; /**< hundredths of degrees */
 
 /** According to Bruce Hall DISTANCE_MAX is 65.0, but we noticed
  *  valid packets with readings up to 130.0. */
-static const float DISTANCE_MAX = 130.0f;        /**< meters */
-static const float DISTANCE_RESOLUTION = 0.002f; /**< meters */
-static const float DISTANCE_MAX_UNITS = (DISTANCE_MAX
+static const float  DISTANCE_MAX = 130.0f;        /**< meters */
+static const float  DISTANCE_MIN = 0.2f;        /**< meters */
+static const float  DISTANCE_RESOLUTION = 0.002f; /**< meters */
+static const float  DISTANCE_MAX_UNITS = (DISTANCE_MAX
                                          / DISTANCE_RESOLUTION + 1.0);
 /** @todo make this work for both big and little-endian machines */
 static const uint16_t UPPER_BANK = 0xeeff; //
@@ -42,11 +52,11 @@ static const float  VLP16_FIRING_TOFFSET    =  50.0f;   // [µs]
 // block
 typedef struct raw_block
 {
-  uint16_t header;        ///< UPPER_BANK or LOWER_BANK
-  uint8_t rotation_1;
-  uint8_t rotation_2;
-  //uint16_t rotation;      ///< 0-35999, divide by 100 to get degrees
-  uint8_t  data[BLOCK_DATA_SIZE]; //96
+    uint16_t header;        ///< UPPER_BANK or LOWER_BANK
+    uint8_t rotation_1;
+    uint8_t rotation_2;
+    //uint16_t rotation;      ///< 0-35999, divide by 100 to get degrees
+    uint8_t  data[BLOCK_DATA_SIZE]; //96
 } raw_block_t;
 
 /** used for unpacking the first two data bytes in a block
@@ -56,11 +66,11 @@ typedef struct raw_block
  */
 union two_bytes
 {
-  uint16_t uint;
-  uint8_t  bytes[2];
+    uint16_t uint;
+    uint8_t  bytes[2];
 };
 
-static const int PACKET_SIZE = 1206;
+static const int PACKET_SIZE = 1248;
 static const int BLOCKS_PER_PACKET = 12;
 static const int PACKET_STATUS_SIZE = 4;
 static const int SCANS_PER_PACKET = (SCANS_PER_BLOCK * BLOCKS_PER_PACKET);
@@ -79,10 +89,10 @@ static const int SCANS_PER_PACKET = (SCANS_PER_BLOCK * BLOCKS_PER_PACKET);
  */
 typedef struct raw_packet
 {
-  raw_block_t blocks[BLOCKS_PER_PACKET];
-  uint16_t revolution;
-  uint8_t status[PACKET_STATUS_SIZE];
+    raw_block_t   blocks[BLOCKS_PER_PACKET];
+    uint16_t      revolution;
+    uint8_t       status[PACKET_STATUS_SIZE];
 } raw_packet_t;
 
-
+}
 #endif

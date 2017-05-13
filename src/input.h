@@ -1,5 +1,27 @@
-#ifndef __RSLIDAR_INPUT_H
-#define __RSLIDAR_INPUT_H
+/* -*- mode: C++ -*- */
+/*
+ *  Copyright (C) 2017 robosense technology, guoleiming
+ *
+ *  License: Modified BSD Software License Agreement
+ *
+ *  $Id$
+ */
+/** \file
+ *
+ *  Input classes for the RSlidar 3D LIDAR:
+ *
+ *     Input -- base class used to access the data independently of
+ *              its source
+ *
+ *     InputSocket -- derived class reads live data from the device
+ *              via a UDP socket
+ *
+ *     InputPCAP -- derived class provides a similar interface from a
+ *              PCAP dump
+ */
+
+#ifndef __RSLIDAR_INPUT_H_
+#define __RSLIDAR_INPUT_H_
 
 #include <unistd.h>
 #include <stdio.h>
@@ -7,39 +29,48 @@
 #include <netinet/in.h>
 #include <ros/ros.h>
 #include <rslidar/rslidarPacket.h>
+#include <string>
+#include <sstream>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <poll.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <sys/file.h>
 
-namespace rslidar_driver
+
+namespace rs_driver
 {
-  static uint16_t DATA_PORT_NUMBER = 6677;     // rslidar default data port
+static uint16_t DATA_PORT_NUMBER = 6677;     // rslidar default data port
 
-  /** @brief rslidar input base class */
-  class Input
-  {
-  public:
-    Input(ros::NodeHandle private_nh, uint16_t port);
-    virtual ~Input() {}
-
-    /** @brief Read one rslidar packet.
+/**
+ *  从在线的网络数据或离线的网络抓包数据（pcap文件）中提取出lidar的原始数据，即packet数据包
+ * @brief The Input class,
      *
-     * @param pkt points to rslidarPacket message
-     *
+     * @param private_nh  一个NodeHandled,用于通过节点传递参数
+     * @param port
      * @returns 0 if successful,
      *          -1 if end of file
-     *          > 0 if incomplete packet (is this possible?)
-     */
+     *          >0 if incomplete packet (is this possible?)
+ */
+class Input
+{
+public:
+    Input(ros::NodeHandle private_nh, uint16_t port);
+    virtual ~Input() {}
     virtual int getPacket(rslidar::rslidarPacket *pkt,
                           const double time_offset) = 0;
 
-  protected:
+protected:
     ros::NodeHandle private_nh_;
     uint16_t port_;
     std::string devip_str_;
-  };
+};
 
-  /** @brief Live rslidar input from socket. */
-  class InputSocket: public Input
-  {
-  public:
+/** @brief Live rslidar input from socket. */
+class InputSocket: public Input
+{
+public:
     InputSocket(ros::NodeHandle private_nh,
                 uint16_t port = DATA_PORT_NUMBER);
     virtual ~InputSocket();
@@ -47,9 +78,9 @@ namespace rslidar_driver
     virtual int getPacket(rslidar::rslidarPacket *pkt,
                           const double time_offset);
     void setDeviceIP( const std::string& ip );
-  private:
+private:
 
-  private:
+private:
     int sockfd_;
     in_addr devip_;
 
@@ -60,16 +91,16 @@ namespace rslidar_driver
     int len;
     sockaddr_in sender_address;
     socklen_t sender_address_len;
-  };
+};
 
 
-  /** @brief rslidar input from PCAP dump file.
+/** @brief rslidar input from PCAP dump file.
    *
    * Dump files can be grabbed by libpcap
    */
-  class InputPCAP: public Input
-  {
-  public:
+class InputPCAP: public Input
+{
+public:
     InputPCAP(ros::NodeHandle private_nh,
               uint16_t port = DATA_PORT_NUMBER,
               double packet_rate = 0.0,
@@ -83,7 +114,7 @@ namespace rslidar_driver
                           const double time_offset);
     void setDeviceIP( const std::string& ip );
 
-  private:
+private:
     ros::Rate packet_rate_;
     std::string filename_;
     pcap_t *pcap_;
@@ -93,7 +124,7 @@ namespace rslidar_driver
     bool read_once_;
     bool read_fast_;
     double repeat_delay_;
-  };
+};
 
 }
 

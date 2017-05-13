@@ -118,7 +118,7 @@ float pixelToDistance(float pixelValue, int passageway)
     }
     else
     {
-        DistanceValue = (((float)pixelValue - g_ChannelNum[passageway - 1] + deta));
+        DistanceValue = (float)pixelValue - g_ChannelNum[passageway];
 
     }
     return DistanceValue;
@@ -210,7 +210,7 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
                 // int showPwrs =0 ;
                 // int showInten = 0;
 
-                azimuth_corrected_f = azimuth + (azimuth_diff * ((dsr*VLP16_DSR_TOFFSET) + (firing * VLP16_FIRING_TOFFSET)) / VLP16_BLOCK_TDURATION);// 2.304f    55.296f   110.592f
+                azimuth_corrected_f = azimuth + (azimuth_diff * ((dsr*VLP16_DSR_TOFFSET) + (firing * VLP16_FIRING_TOFFSET)) / VLP16_BLOCK_TDURATION);
                 azimuth_corrected = ((int)round(azimuth_corrected_f)) % 36000;//convert to integral value...
                 pic.azimuthforeachP[pic.col*32+k/3]=azimuth_corrected;
 
@@ -237,7 +237,7 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
         }
 
 
-        if((pic.col>=100) && (abs(azimuth)<100)) //旋转完整一圈
+        if((pic.col>=100) && (abs(azimuth-pic.azimuth[0])<100)) //旋转完整一圈
         {
             //std::cout<<"pic.col: "<<pic.col<<std::endl;
             //std::cout<<"abs(azimuth-pic.azimuth[0]: "<<azimuth-pic.azimuth[0]<<std::endl;

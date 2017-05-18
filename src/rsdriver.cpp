@@ -23,7 +23,7 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
     //不同型号的产品
   if (config_.model == "RS16")
     {
-        packet_rate = 754;
+        packet_rate = 834;
         model_full_name = "RS_16";
     }
     else
@@ -90,7 +90,7 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
     output_ = node.advertise<rslidar::rslidarScan>("rslidar_packets", 10);
 
     pc_output = node.advertise<sensor_msgs::PointCloud2>("fullscan", 10);
-    pc_output_remove = node.advertise<sensor_msgs::PointCloud2>("remove", 10);
+    //pc_output_remove = node.advertise<sensor_msgs::PointCloud2>("remove", 10);
 
     init_setup();
     loadConfigFile();
@@ -136,10 +136,10 @@ bool rslidarDriver::poll(void)
     pcl::toROSMsg(*pointcloud, out);
     pc_output.publish(out);
 
-    sensor_msgs::PointCloud2 out2;
-    std::cout << "PCloudRemove.size " << PCloudRemove->size() <<std::endl;
-    pcl::toROSMsg(*PCloudRemove, out2);
-    pc_output_remove.publish(out2);
+    //sensor_msgs::PointCloud2 out2;
+    //std::cout << "PCloudRemove.size " << PCloudRemove->size() <<std::endl;
+    //pcl::toROSMsg(*PCloudRemove, out2);
+    //pc_output_remove.publish(out2);
 
     // notify diagnostics that a message has been published, updating its status
     diag_topic_->tick(scan->header.stamp);

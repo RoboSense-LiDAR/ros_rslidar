@@ -11,9 +11,9 @@
 namespace rs_driver {
 
 
-static const float  ROTATION_SOLUTION_ = 0.2f;  //水平角分辨率 10hz
+//static const float  ROTATION_SOLUTION_ = 0.2f;  //水平角分辨率 10hz
 static const int    POINT_PER_CIRCLE_ =  2000;
-static const int    DATA_NUMBER_PER_SCAN =  34000; //Set large enough to store the data 
+static const int    DATA_NUMBER_PER_SCAN = 40000 ; //Set 40000 to be large enough
 static const int    SIZE_BLOCK = 100;
 static const int    RAW_SCAN_SIZE = 3;
 static const int    SCANS_PER_BLOCK = 32;

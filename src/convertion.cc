@@ -24,14 +24,14 @@ void loadConfigFile()
             loopi++;
             if (loopi > 1600)
                 break;
-            for (int j = 0; j < 16; j++)
-            {
-                fscanf(f_inten, "%f", &aIntensityCal[loopi - 1][j]);
-                // aIntensityCal[loopi - 1][loopj] = a[loopj];
+	    fscanf(f_inten, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
+               &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10], &a[11], &a[12], &a[13], &a[14], &a[15]);
+            for (loopj = 0; loopj < 16; loopj++){
+                aIntensityCal[loopi - 1][loopj] = a[loopj];
             }
-        }
+	}
         fclose(f_inten);
-    }
+     }
     //=============================================================
     filePath = pkgPath +  "/data/pwrCurves.csv";
     FILE *f_power = fopen(filePath.c_str(),"r");
@@ -110,7 +110,6 @@ void init_setup()
 float pixelToDistance(float pixelValue, int passageway)
 {
     float DistanceValue = 0;
-    double  deta = 0;
 
     if (pixelValue < 200 || pixelValue > 11670)
     {
@@ -133,13 +132,6 @@ float calibrateIntensity(float intensity,int calIdx, int distance)
     float   refPwr = 0;
     float   tempInten = 0;
 
-    //---------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------------------
-    //limt intensity data and make it doubled(in FPGA this data is divided by 2)
-    /*   intensity = (intensity>3) ? intensity * 2 : 6;
-                   realPwr = intensity;*/
-    //-------------------------------------------------------------------------------------------------
-    //tempInten=intensity ;
     realPwr= intensity;
     if(int(realPwr)<126)
         realPwr=realPwr * 4;
@@ -175,11 +167,10 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
 
     for (int block = 0; block < BLOCKS_PER_PACKET; block++, ++pic.col)  //12
     {
-        //std::cout<<"block1: "<<block<<std::endl;
-        //std::cout<<"pic.col1: "<<pic.col<<std::endl;
+
         if(UPPER_BANK != raw->blocks[block].header)
         {
-            ROS_WARN_STREAM_THROTTLE(60, "skipping invalid VLP-16 packet: block "
+            ROS_WARN_STREAM_THROTTLE(60, "skipping invalid RSLIDAR packet: block "
                                      << block << " header value is "
                                      << raw->blocks[block].header);
             return ;
@@ -207,9 +198,6 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
             for (int dsr = 0; dsr < VLP16_SCANS_PER_FIRING; dsr++, k += RAW_SCAN_SIZE)//16   3
             {
 
-                // int showPwrs =0 ;
-                // int showInten = 0;
-
                 azimuth_corrected_f = azimuth + (azimuth_diff * ((dsr*VLP16_DSR_TOFFSET) + (firing * VLP16_FIRING_TOFFSET)) / VLP16_BLOCK_TDURATION);
                 azimuth_corrected = ((int)round(azimuth_corrected_f)) % 36000;//convert to integral value...
                 pic.azimuthforeachP[pic.col*32+k/3]=azimuth_corrected;
@@ -222,7 +210,8 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
 
                 // 读强度数据
                 intensity = raw->blocks[block].data[k+2];
-                //  intensity = calibrateIntensity(intensity,dsr,distance);
+                intensity = calibrateIntensity(intensity,dsr,distance);
+		
 
                 float distance2 = pixelToDistance(distance, dsr);
                 distance2 = 0.01* distance2;
@@ -239,15 +228,13 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
 
         if((pic.col>=100) && (abs(azimuth-pic.azimuth[0])<100)) //旋转完整一圈
         {
-            //std::cout<<"pic.col: "<<pic.col<<std::endl;
-            //std::cout<<"abs(azimuth-pic.azimuth[0]: "<<azimuth-pic.azimuth[0]<<std::endl;
             pointcloud->clear();
             pointcloud->height = VLP16_SCANS_PER_FIRING;
             pointcloud->width = 2 * pic.col;
             pointcloud->is_dense = true;
             pointcloud->resize(pointcloud->height * pointcloud->width);
             mat_depth = cv::Mat(cv::Size( 2 * pic.col,VLP16_SCANS_PER_FIRING), CV_32FC1, cv::Scalar(0));
-            mat_inten = cv::Mat(cv::Size(2 * pic.col ,VLP16_SCANS_PER_FIRING ), CV_8UC1, cv::Scalar(0));;
+            mat_inten = cv::Mat(cv::Size(2 * pic.col ,VLP16_SCANS_PER_FIRING ), CV_8UC1, cv::Scalar(0));
             pointcloud->header.frame_id = "rslidar";
             for (int block = 0; block < pic.col; block++)
             {
@@ -288,28 +275,8 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
                 }
             }
              removeOutlier(pointcloud); //去除脏数据
-            //std::cout<<"pointcloud->width: "<<pointcloud->width<<std::endl;
-            //std::cout<<"pic.col: "<<pic.col<<std::endl;
-/*
-            debug_a++;
-            if(debug_a%100 == 0)
-            {   std::string name;
-                std::stringstream strStream;
-                strStream <<"/home/guoleiming/"<< (debug_a);
 
-                name = strStream.str() +".bmp";
-                if( cv::imwrite(name,mat_inten))
-                {
-                    std::cout << "save file " << name << std::endl;
-                }
-                name = strStream.str() +".pcd";
-                pcl::io::savePCDFileASCII(name,*pointcloud);
-
-            }
-
-*/
             init_setup();
-            //std::cout<<"pic.col: "<<pic.col<<std::endl;S
             pic.header.stamp = pkt.stamp;
         }
 
@@ -378,16 +345,14 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
 void removeOutlier(pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud )
 {
 
-  // std::map<cv::Point,float> map_outlier;
    cv::Mat matMask = cv::Mat::zeros(mat_depth.size(), CV_8UC1);   //创建一个空白区域，填充为黑色
-   //cv::Mat matDiff = cv::Mat(mat_depth.size(), CV_32FC1, cv::Scalar(0));
-int removeNum =0;
+   int removeNum =0;
    for(int row = 1; row < mat_depth.rows-1; row++)  //mask 3*3
      {
         for(int col = 1 ; col < mat_depth.cols-1 ; col++ )
        {
           float d = mat_depth.at<float>(row,col);
-          if( d > 30 || d <0.2)
+          if( d > 5 || d <0.2)
           {
               matMask.at<uchar>(row,col) = (uchar)255;
               continue;
@@ -414,9 +379,6 @@ int removeNum =0;
 
         }
       }
-
-    std::cout << "remove " << removeNum << " outlier" <<std::endl;
-
 
 }
 }//namespace rs_driver

@@ -107,7 +107,7 @@ void init_setup()
     pic.azimuthforeachP.resize(DATA_NUMBER_PER_SCAN);
 }
 
-float pixelToDistance(float pixelValue, int passageway)
+float pixelToDistance(int pixelValue, int passageway)
 {
     float DistanceValue = 0;
 
@@ -117,7 +117,7 @@ float pixelToDistance(float pixelValue, int passageway)
     }
     else
     {
-        DistanceValue = (float)pixelValue - g_ChannelNum[passageway];
+        DistanceValue = (float)(pixelValue - g_ChannelNum[passageway]);
 
     }
     return DistanceValue;
@@ -184,8 +184,8 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
         if (block < (BLOCKS_PER_PACKET-1))//12
         {
             int azi1, azi2;
-            azi1 = (float)(256*raw->blocks[block+1].rotation_1 + raw->blocks[block+1].rotation_2);
-            azi2 = (float)(256*raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2);
+	    azi1 = 256*raw->blocks[block+1].rotation_1 + raw->blocks[block+1].rotation_2;
+            azi2 = 256*raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
             azimuth_diff = (float)((36000 + azi1 - azi2)%36000);
             last_azimuth_diff = azimuth_diff;
         }else
@@ -225,8 +225,8 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
             }
         }
 
-
-        if((pic.col>=100) && (abs(azimuth-pic.azimuth[0])<100)) //旋转完整一圈
+  	int azimuth_error = (36000 + (int)round(azimuth - pic.azimuth[0]))%36000;
+        if((pic.col>=100) && (azimuth_error<100)) //旋转完整一圈
         {
             pointcloud->clear();
             pointcloud->height = VLP16_SCANS_PER_FIRING;

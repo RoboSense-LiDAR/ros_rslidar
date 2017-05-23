@@ -165,7 +165,7 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
 
     const raw_packet_t *raw = (const raw_packet_t *) &pkt.data[42];
 
-    for (int block = 0; block < BLOCKS_PER_PACKET; block++, ++pic.col)  //12
+    for (int block = 0; block < BLOCKS_PER_PACKET; block++)  //12
     {
 
         if(UPPER_BANK != raw->blocks[block].header)
@@ -175,12 +175,8 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
                                      << raw->blocks[block].header);
             return ;
         }
-
         azimuth = (float)(256*raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2);
-
-
-
-
+   
         if (block < (BLOCKS_PER_PACKET-1))//12
         {
             int azi1, azi2;
@@ -207,7 +203,6 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
                 tmp.bytes[0] = raw->blocks[block].data[k+1];
                 int distance = tmp.uint;// * DISTANCE_RESOLUTION;
 
-
                 // 读强度数据
                 intensity = raw->blocks[block].data[k+2];
                 intensity = calibrateIntensity(intensity,dsr,distance);
@@ -221,9 +216,10 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
                 pic.intensity[pic.col*32+k/3] = intensity;
                 pic.intensitynum++;
 
-
             }
         }
+	pic.azimuth[pic.col] = azimuth;
+        pic.col++;
 
   	int azimuth_error = (36000 + (int)round(azimuth - pic.azimuth[0]))%36000;
         if((pic.col>=100) && (azimuth_error<100)) //旋转完整一圈
@@ -236,15 +232,15 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
             mat_depth = cv::Mat(cv::Size( 2 * pic.col,VLP16_SCANS_PER_FIRING), CV_32FC1, cv::Scalar(0));
             mat_inten = cv::Mat(cv::Size(2 * pic.col ,VLP16_SCANS_PER_FIRING ), CV_8UC1, cv::Scalar(0));
             pointcloud->header.frame_id = "rslidar";
-            for (int block = 0; block < pic.col; block++)
+            for (int block_num = 0; block_num < pic.col; block_num++)
             {
                 for (int firing = 0; firing < VLP16_FIRINGS_PER_BLOCK; firing++)
                 {
                     for (int channel = 0; channel < VLP16_SCANS_PER_FIRING; channel++)
                     {
-                        float dis = pic.distance[block * 32 + a_channelOrder[channel] + 16*firing];
-                        float arg_horiz = pic.azimuthforeachP[block*32 + a_channelOrder[channel] + 16*firing] /18000*CV_PI;
-                        float intensity = pic.intensity[block*32 + a_channelOrder[channel] + 16*firing];
+                        float dis = pic.distance[block_num * 32 + a_channelOrder[channel] + 16*firing];
+                        float arg_horiz = pic.azimuthforeachP[block_num*32 + a_channelOrder[channel] + 16*firing] /18000*CV_PI;
+                        float intensity = pic.intensity[block_num*32 + a_channelOrder[channel] + 16*firing];
                         float arg_vert = VERT_ANGLE[channel];
                         pcl::PointXYZI point;
                         if(dis > DISTANCE_MAX || dis < DISTANCE_MIN)  //invalid data
@@ -255,33 +251,29 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
                             point.intensity = 0;
                             //ROS_INFO("inten: %f", intensity);
                             //pointcloud->push_back(point);
-                            pointcloud->at(2*block + firing, channel) = point;
-                            mat_depth.at<float>(channel,2*block + firing) = 0;
-                            mat_inten.at<uchar>(channel,2*block + firing) = (uchar)0;
+                            pointcloud->at(2*block_num + firing, channel) = point;
+                            mat_depth.at<float>(channel,2*block_num + firing) = 0;
+                            mat_inten.at<uchar>(channel,2*block_num + firing) = (uchar)0;
                         }else
                         {
                             point.x = dis * cos(arg_vert) * sin(arg_horiz);
                             point.y = dis * cos(arg_vert) * cos(arg_horiz);
                             point.z = dis * sin(arg_vert);
                             point.intensity = intensity;
-                            //ROS_INFO("inten: %f", intensity);
-                            //pointcloud->push_back(point);
-                            pointcloud->at(2*block + firing, channel) = point;
-                            mat_depth.at<float>(channel,2*block + firing) = dis;
-                            mat_inten.at<uchar>(channel,2*block + firing) = (uchar)intensity;
+                            pointcloud->at(2*block_num + firing, channel) = point;
+                            mat_depth.at<float>(channel,2*block_num + firing) = dis;
+                            mat_inten.at<uchar>(channel,2*block_num + firing) = (uchar)intensity;
+                            
                         }
 
                     }
                 }
             }
-             removeOutlier(pointcloud); //去除脏数据
+            removeOutlier(pointcloud); //去除脏数据
 
             init_setup();
             pic.header.stamp = pkt.stamp;
         }
-
-        pic.azimuth[pic.col] = azimuth;
-
     }
 }
 

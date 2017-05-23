@@ -110,7 +110,7 @@ bool rslidarDriver::poll(void)
     scan->packets.resize(config_.npackets);
     // Since the rslidar delivers data at a very high rate, keep
     // reading and publishing scans as fast as possible.
-    for (int i = 0; i < config_.npackets; ++i)
+    for (int i = 0; i < config_.npackets; i++)
     {
         while (true)
         {
@@ -126,8 +126,8 @@ bool rslidarDriver::poll(void)
     scan->header.stamp = scan->packets[config_.npackets - 1].stamp;
     scan->header.frame_id = config_.frame_id;
    // output_.publish(scan);
-   ;
-    for(size_t i=0; i<scan->packets.size(); ++i)
+   
+    for(size_t i=0; i<scan->packets.size(); i++)
     {
         unpack(scan->packets[i],pointcloud);
 
@@ -135,11 +135,6 @@ bool rslidarDriver::poll(void)
     sensor_msgs::PointCloud2 out;
     pcl::toROSMsg(*pointcloud, out);
     pc_output.publish(out);
-
-    //sensor_msgs::PointCloud2 out2;
-    //std::cout << "PCloudRemove.size " << PCloudRemove->size() <<std::endl;
-    //pcl::toROSMsg(*PCloudRemove, out2);
-    //pc_output_remove.publish(out2);
 
     // notify diagnostics that a message has been published, updating its status
     diag_topic_->tick(scan->header.stamp);

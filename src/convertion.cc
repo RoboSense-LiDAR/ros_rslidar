@@ -5,7 +5,6 @@ namespace rs_driver
 
 void loadConfigFile()
 {
-    /// 读参数文件 2017-02-27
     std::string pkgPath = ros::package::getPath("rslidar");
     std::string filePath = pkgPath +  "/data/curves.csv";
     FILE *f_inten = fopen(filePath.c_str(), "r");   // path
@@ -99,8 +98,6 @@ void loadConfigFile()
 void init_setup()
 {
     pic.col=0;
-    pic.distancenum=0;
-    pic.intensitynum=0;
     pic.azimuth.resize(POINT_PER_CIRCLE_);
     pic.distance.resize(DATA_NUMBER_PER_SCAN);
     pic.intensity.resize(DATA_NUMBER_PER_SCAN);
@@ -212,9 +209,9 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
                 distance2 = 0.01* distance2;
 
                 pic.distance[pic.col*32+k/3] = distance2;
-                pic.distancenum++;
+                //pic.distancenum++;
                 pic.intensity[pic.col*32+k/3] = intensity;
-                pic.intensitynum++;
+                //pic.intensitynum++;
 
             }
         }

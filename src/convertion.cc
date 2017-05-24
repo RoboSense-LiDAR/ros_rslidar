@@ -180,7 +180,7 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
         if (block < (BLOCKS_PER_PACKET-1))//12
         {
             int azi1, azi2;
-	    azi1 = 256*raw->blocks[block+1].rotation_1 + raw->blocks[block+1].rotation_2;
+            azi1 = 256*raw->blocks[block+1].rotation_1 + raw->blocks[block+1].rotation_2;
             azi2 = 256*raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
             azimuth_diff = (float)((36000 + azi1 - azi2)%36000);
             last_azimuth_diff = azimuth_diff;
@@ -218,10 +218,10 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
 
             }
         }
-	pic.azimuth[pic.col] = azimuth;
+        pic.azimuth[pic.col] = azimuth;
         pic.col++;
-
-  	int azimuth_error = (36000 + (int)round(azimuth - pic.azimuth[0]))%36000;
+        
+        int azimuth_error = (36000 + (int)round(azimuth - pic.azimuth[0]))%36000;
         if((pic.col>=100) && (azimuth_error<100)) //旋转完整一圈
         {
             pointcloud->clear();

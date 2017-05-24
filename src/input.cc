@@ -1,5 +1,6 @@
 
 #include "input.h"
+extern volatile sig_atomic_t flag;
 namespace rs_driver
 {
 static const size_t packet_size =
@@ -54,6 +55,13 @@ InputSocket::InputSocket(ros::NodeHandle private_nh, uint16_t port):
         return;
     }
 
+	int opt=1;
+	if(setsockopt(sockfd_,SOL_SOCKET,SO_REUSEADDR,(const void *)&opt,sizeof(opt)))
+	{
+		perror("setsockopt error!\n");
+		return ;
+	}
+	
     sockaddr_in my_addr;                     // my address information
     memset(&my_addr, 0, sizeof(my_addr));    // initialize to zeros
     my_addr.sin_family = AF_INET;            // host byte order
@@ -73,7 +81,7 @@ InputSocket::InputSocket(ros::NodeHandle private_nh, uint16_t port):
         return;
     }
 
-    connect(sockfd_, (sockaddr *)&sender_address, sizeof(sender_address));
+    //connect(sockfd_, (sockaddr *)&sender_address, sizeof(sender_address));
 
     char * sendData = "sssssssssssssssss";
     sendto(sockfd_, sendData, strlen(sendData), 0, (sockaddr *)&sender_address, sender_address_len);
@@ -95,10 +103,38 @@ InputSocket::~InputSocket(void)
 int InputSocket::getPacket(rslidar::rslidarPacket *pkt, const double time_offset)
 {
     double time1 = ros::Time::now().toSec();
-
-    while (true)
+	struct pollfd fds[1];
+	fds[0].fd = sockfd_;
+	fds[0].events = POLLIN;
+	static const int POLL_TIMEOUT = 1000; // one second (in msec)
+	
+	sockaddr_in sender_address;
+	socklen_t sender_address_len = sizeof(sender_address);
+    while (flag == 1)
     {
-
+		// Receive packets that should now be available from the
+		// socket using a blocking read.
+		// poll() until input available
+		do
+		{
+			int retval = poll(fds, 1, POLL_TIMEOUT);
+			if (retval < 0)             // poll() error?
+			{
+				if (errno != EINTR)
+					ROS_ERROR("poll() error: %s", strerror(errno));
+				return 1;
+			}
+			if (retval == 0)            // poll() timeout?
+			{
+				ROS_WARN("Rslidar poll() timeout");
+				return 1;
+			}
+			if ((fds[0].revents & POLLERR) || (fds[0].revents & POLLHUP) || (fds[0].revents & POLLNVAL)) // device error?
+			{
+				ROS_ERROR("poll() reports Rslidar error");
+				return 1;
+			}
+		}while ((fds[0].revents & POLLIN) == 0);
         ssize_t nbytes = recvfrom(sockfd_, &pkt->data[0],
                 packet_size,  0,
                 (sockaddr*) &sender_address,
@@ -122,6 +158,10 @@ int InputSocket::getPacket(rslidar::rslidarPacket *pkt, const double time_offset
                          << nbytes << " bytes");
     }
 
+	if(flag==0)
+	{
+		abort();
+	}
     // Average the times at which we begin and end reading.  Use that to
     // estimate when the scan occurred. Add the time offset.
     double time2 = ros::Time::now().toSec();

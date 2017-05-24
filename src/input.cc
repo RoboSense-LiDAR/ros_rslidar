@@ -235,7 +235,7 @@ int InputPCAP::getPacket(rslidar::rslidarPacket *pkt, const double time_offset)
     struct pcap_pkthdr *header;
     const u_char *pkt_data;
 
-    while (true)
+    while (flag==1)
     {
         int res;
         if ((res = pcap_next_ex(pcap_, &header, &pkt_data)) >= 0)
@@ -286,6 +286,10 @@ int InputPCAP::getPacket(rslidar::rslidarPacket *pkt, const double time_offset)
         pcap_ = pcap_open_offline(filename_.c_str(), errbuf_);
         empty_ = true;              // maybe the file disappeared?
     } // loop back and try again
+    if(flag==0)
+	{
+		abort();
+	}
 }
 
 }

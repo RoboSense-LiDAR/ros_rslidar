@@ -119,7 +119,7 @@ float pixelToDistance(int pixelValue, int passageway)
     }
     return DistanceValue;
 }
-//校准反射强度值
+//calibrate intensity
 float calibrateIntensity(float intensity,int calIdx, int distance)
 {
 
@@ -186,12 +186,12 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
             azimuth_diff = last_azimuth_diff;
         }
 
-        for(int firing = 0 ,k = 0;firing < VLP16_FIRINGS_PER_BLOCK; firing++)//2
+        for(int firing = 0 ,k = 0;firing < RS16_FIRINGS_PER_BLOCK; firing++)//2
         {
-            for (int dsr = 0; dsr < VLP16_SCANS_PER_FIRING; dsr++, k += RAW_SCAN_SIZE)//16   3
+            for (int dsr = 0; dsr < RS16_SCANS_PER_FIRING; dsr++, k += RAW_SCAN_SIZE)//16   3
             {
 
-                azimuth_corrected_f = azimuth + (azimuth_diff * ((dsr*VLP16_DSR_TOFFSET) + (firing * VLP16_FIRING_TOFFSET)) / VLP16_BLOCK_TDURATION);
+                azimuth_corrected_f = azimuth + (azimuth_diff * ((dsr * RS16_DSR_TOFFSET) + (firing * RS16_FIRING_TOFFSET)) / RS16_BLOCK_TDURATION);
                 azimuth_corrected = ((int)round(azimuth_corrected_f)) % 36000;//convert to integral value...
                 pic.azimuthforeachP[pic.col*32+k/3]=azimuth_corrected;
 
@@ -200,7 +200,7 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
                 tmp.bytes[0] = raw->blocks[block].data[k+1];
                 int distance = tmp.uint;// * DISTANCE_RESOLUTION;
 
-                // 读强度数据
+                // read intensity
                 intensity = raw->blocks[block].data[k+2];
                 intensity = calibrateIntensity(intensity,dsr,distance);
 		
@@ -209,9 +209,7 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
                 distance2 = 0.01* distance2;
 
                 pic.distance[pic.col*32+k/3] = distance2;
-                //pic.distancenum++;
                 pic.intensity[pic.col*32+k/3] = intensity;
-                //pic.intensitynum++;
 
             }
         }
@@ -219,21 +217,21 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
         pic.col++;
         
         int azimuth_error = (36000 + (int)round(azimuth - pic.azimuth[0]))%36000;
-        if((pic.col>=100) && (azimuth_error<100)) //旋转完整一圈
+        if((pic.col>=100) && (azimuth_error<100)) //rotate a full circle
         {
             pointcloud->clear();
-            pointcloud->height = VLP16_SCANS_PER_FIRING;
+            pointcloud->height = RS16_SCANS_PER_FIRING;
             pointcloud->width = 2 * pic.col;
             pointcloud->is_dense = true;
             pointcloud->resize(pointcloud->height * pointcloud->width);
-            mat_depth = cv::Mat(cv::Size( 2 * pic.col,VLP16_SCANS_PER_FIRING), CV_32FC1, cv::Scalar(0));
-            mat_inten = cv::Mat(cv::Size(2 * pic.col ,VLP16_SCANS_PER_FIRING ), CV_8UC1, cv::Scalar(0));
+            mat_depth = cv::Mat(cv::Size( 2 * pic.col,RS16_SCANS_PER_FIRING), CV_32FC1, cv::Scalar(0));
+            mat_inten = cv::Mat(cv::Size(2 * pic.col ,RS16_SCANS_PER_FIRING ), CV_8UC1, cv::Scalar(0));
             pointcloud->header.frame_id = "rslidar";
             for (int block_num = 0; block_num < pic.col; block_num++)
             {
-                for (int firing = 0; firing < VLP16_FIRINGS_PER_BLOCK; firing++)
+                for (int firing = 0; firing < RS16_FIRINGS_PER_BLOCK; firing++)
                 {
-                    for (int channel = 0; channel < VLP16_SCANS_PER_FIRING; channel++)
+                    for (int channel = 0; channel < RS16_SCANS_PER_FIRING; channel++)
                     {
                         float dis = pic.distance[block_num * 32 + a_channelOrder[channel] + 16*firing];
                         float arg_horiz = pic.azimuthforeachP[block_num*32 + a_channelOrder[channel] + 16*firing] /18000*CV_PI;
@@ -266,7 +264,7 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
                     }
                 }
             }
-            removeOutlier(pointcloud); //去除脏数据
+            removeOutlier(pointcloud); //remove noise point
 
             init_setup();
             pic.header.stamp = pkt.stamp;

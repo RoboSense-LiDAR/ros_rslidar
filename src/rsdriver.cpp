@@ -20,7 +20,7 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
     std::string model_full_name;
 
 
-    //不同型号的产品
+    // different model
   if (config_.model == "RS16")
     {
         packet_rate = 834;
@@ -105,7 +105,7 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
  */
 bool rslidarDriver::poll(void)
 {
-    // Allocate a new shared pointer for zero-copy sharing with other nodelets.//一次处理一个360扫描
+    // Allocate a new shared pointer for zero-copy sharing with other nodelets.
     rslidar::rslidarScanPtr scan(new rslidar::rslidarScan);
     scan->packets.resize(config_.npackets);
     // Since the rslidar delivers data at a very high rate, keep

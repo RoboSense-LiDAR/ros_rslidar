@@ -292,7 +292,7 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
 
         //生长方向顺序数据
         int DIR[8][2] = {{-1,-1}, {0,-1}, {1,-1}, {1,0}, {1,1}, {0,1}, {-1,1}, {-1,0}};
-        cv::Vector<cv::Point2i> vcGrowPt;                     //生长点栈
+        std::vector<cv::Point2i> vcGrowPt;                     //生长点栈
         vcGrowPt.push_back(pt);                         //将生长点压入栈中
        // matDst.at<uchar>(pt) = 255;               //标记生长点
         nSrcValue = src.at<float>(pt);            //记录生长点的灰度值

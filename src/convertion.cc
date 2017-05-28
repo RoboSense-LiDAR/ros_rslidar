@@ -180,6 +180,13 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
             azi1 = 256*raw->blocks[block+1].rotation_1 + raw->blocks[block+1].rotation_2;
             azi2 = 256*raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
             azimuth_diff = (float)((36000 + azi1 - azi2)%36000);
+            //Debug start by Tony 20170523
+            if(azimuth_diff <= 0.0 || azimuth_diff > 70.0){
+            	//ROS_INFO("Error: %d  %d", azi2, azi1);
+            	azimuth_diff = 40.0;
+            	azimuth = pic.azimuth[pic.col-1] + azimuth_diff;
+            }
+            //Debug end by Tony 20170523
             last_azimuth_diff = azimuth_diff;
         }else
         {

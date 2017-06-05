@@ -24,7 +24,7 @@ namespace rs_driver
 	
 	float   VERT_ANGLE[16];
 	cv::Mat mat_depth;// = cv::Mat::zeros(16,2100,cv::CV_32F); // 10HZ 2000 points per circle
-	cv::Mat mat_inten;// = cv::Mat::zeros(16,2100,cv::CV_U8C);
+	//cv::Mat mat_inten;// = cv::Mat::zeros(16,2100,cv::CV_U8C);
 
 	float   aIntensityCal[1600][16];
     float   inPwrCurveDat[495];

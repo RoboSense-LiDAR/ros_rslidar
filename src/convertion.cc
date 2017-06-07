@@ -341,7 +341,7 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
                              matDst.at<uchar>(pt) += 1;
                           }
 
-                          if(matDst.at<uchar>(pt)>=5)           //
+                          if(matDst.at<uchar>(pt)>=3)           //
                            {
                                matDst.at<uchar>(pt)=255;                 //标记为白色,空间上的非孤立
                                return;
@@ -354,7 +354,7 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
                             matDst.at<uchar>(pt) += 1;
                          }
 
-                         if(matDst.at<uchar>(pt)>=3)           //
+                         if(matDst.at<uchar>(pt)>=2)           //
                           {
                               matDst.at<uchar>(pt)=255;                 //标记为白色,空间上的非孤立
                               return;
@@ -394,7 +394,7 @@ void removeOutlier(pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud )
         for(int col = 0 ; col < mat_depth.cols ; col++ )
        {
           float d = mat_depth.at<float>(row,col);
-          if( d > 10)
+          if( d > 8)
           {
               matMask.at<uchar>(row,col) = (uchar)255;
               continue;
@@ -415,7 +415,7 @@ void removeOutlier(pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud )
         {
             if(matMask.at<uchar>(row,col) != 255)
             {
-               //removeNum++;
+               removeNum++;
                PCloudRemove->push_back(pointcloud->at(col,row));
                pointcloud->at(col,row).x =NAN;
                pointcloud->at(col,row).y =NAN;
@@ -425,7 +425,7 @@ void removeOutlier(pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud )
 
         }
       }
-  //ROS_INFO("PCloudRemove: %d", removeNum);
+ // ROS_INFO("PCloudRemove: %d", removeNum);
 
 }
 }//namespace rs_driver

@@ -415,7 +415,7 @@ void removeOutlier(pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud )
         {
             if(matMask.at<uchar>(row,col) != 255)
             {
-               removeNum++;
+               //removeNum++;
                PCloudRemove->push_back(pointcloud->at(col,row));
                pointcloud->at(col,row).x =NAN;
                pointcloud->at(col,row).y =NAN;

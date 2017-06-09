@@ -16,8 +16,7 @@
  */
 namespace rs_driver
 {
-	int   a_channelOrder[16] = {0, 1, 2, 3, 4, 5, 6, 7, 15, 14, 13, 12, 11, 10, 9, 8};
-	int    debug_a = 0;
+	int     debug_a = 0;
 	void    init_setup();
 	void    loadConfigFile();
 	void    unpack(const rslidar::rslidarPacket &pkt, pcl::PointCloud<pcl::PointXYZI>::Ptr);

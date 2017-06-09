@@ -240,9 +240,9 @@ void unpack(const rslidar::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::P
                 {
                     for (int channel = 0; channel < RS16_SCANS_PER_FIRING; channel++)
                     {
-                        float dis = pic.distance[block_num * 32 + a_channelOrder[channel] + 16*firing];
-                        float arg_horiz = pic.azimuthforeachP[block_num*32 + a_channelOrder[channel] + 16*firing] /18000*CV_PI;
-                        float intensity = pic.intensity[block_num*32 + a_channelOrder[channel] + 16*firing];
+                        float dis = pic.distance[block_num * 32 + channel + 16*firing];
+                        float arg_horiz = pic.azimuthforeachP[block_num*32 + channel + 16*firing] /18000*CV_PI;
+                        float intensity = pic.intensity[block_num*32 + channel + 16*firing];
                         float arg_vert = VERT_ANGLE[channel];
                         pcl::PointXYZI point;
                         if(dis > DISTANCE_MAX || dis < DISTANCE_MIN)  //invalid data

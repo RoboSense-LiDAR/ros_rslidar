@@ -9,6 +9,8 @@ target_link_libraries(rslidar_driver
     ${catkin_LIBRARIES})
 
 add_executable(rslidar_node rslidar_node.cpp)
+
+add_dependencies(rslidar_input rslidar_generate_messages_cpp)
 target_link_libraries(rslidar_node
     rslidar_driver
     rslidar_input

@@ -106,19 +106,21 @@ void init_setup()
 
 float pixelToDistance(int pixelValue, int passageway)
 {
-    float DistanceValue = 0;
-
-    if (pixelValue < 200 || pixelValue > 11670)
+    float DistanceValue;
+    
+    if(pixelValue <= g_ChannelNum[passageway])
     {
-        DistanceValue = 0;
+    	DistanceValue = 0.0;
     }
     else
     {
-        DistanceValue = (float)(pixelValue - g_ChannelNum[passageway]);
-
+    	DistanceValue = (float)(pixelValue - g_ChannelNum[passageway]);
     }
+
+    
     return DistanceValue;
 }
+
 //calibrate intensity
 float calibrateIntensity(float intensity,int calIdx, int distance)
 {

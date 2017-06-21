@@ -23,13 +23,14 @@ void loadConfigFile()
             loopi++;
             if (loopi > 1600)
                 break;
-	    fscanf(f_inten, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
-               &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10], &a[11], &a[12], &a[13], &a[14], &a[15]);
+            fscanf(f_inten, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
+            &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10], &a[11], &a[12], &a[13], &a[14], &a[15]);
             for (loopj = 0; loopj < 16; loopj++){
                 aIntensityCal[loopi - 1][loopj] = a[loopj];
             }
-	}
+		}
         fclose(f_inten);
+        
      }
     //=============================================================
     filePath = pkgPath +  "/data/pwrCurves.csv";
@@ -124,31 +125,33 @@ float pixelToDistance(int pixelValue, int passageway)
 //calibrate intensity
 float calibrateIntensity(float intensity,int calIdx, int distance)
 {
-
-    int     algDist = 0;
-    int     sDist = 0;
-    float   realPwr = 0;
-    float   refPwr = 0;
-    float   tempInten = 0;
-
-    realPwr= intensity;
-    if(int(realPwr)<126)
-        realPwr=realPwr * 4;
+	int algDist;
+    int sDist;
+    int uplimitDist;
+    float realPwr;
+    float refPwr;
+    float tempInten;
+	
+	uplimitDist = g_ChannelNum[calIdx] + 1400;
+	realPwr = intensity;
+	
+    if((int)realPwr<126)
+        realPwr = realPwr * 4.0;
     else
-        realPwr=(realPwr-125)*16+500;
+        realPwr = (realPwr-125.0) * 16.0 + 500.0;
 
     //-------------------------------------------------------------------------------------------------
     //limit sDist belongs to [200,1600] in unit cm
-    sDist = (int(distance) > 200) ? int(distance) : 201;
-    sDist = (sDist < 1800) ? sDist : 1800;
+    sDist = (distance > g_ChannelNum[calIdx]) ? distance : g_ChannelNum[calIdx];
+    sDist = (sDist < uplimitDist) ? sDist : uplimitDist;
     //minus the static offset (this data is For the intensity cal useage only)
-    algDist = int(sDist - 200) ;
-    algDist = algDist < 1400? algDist : 1399;
+    algDist = sDist - g_ChannelNum[calIdx] ;
+    //algDist = algDist < 1400? algDist : 1399;
     refPwr = aIntensityCal[algDist][calIdx];
-    tempInten = refPwr / float(realPwr)	;
-    tempInten = tempInten * 200		;
-    tempInten = tempInten>255?255:tempInten;
-    return float(tempInten);
+    tempInten = refPwr / realPwr;
+    tempInten = tempInten * 200.0;
+    tempInten = (int)tempInten > 255 ? 255.0 : tempInten;
+    return tempInten;
     //------------------------------------------------------------
 }
 

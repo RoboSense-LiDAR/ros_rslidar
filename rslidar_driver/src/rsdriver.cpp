@@ -3,9 +3,7 @@
 namespace rs_driver
 {
 
-rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
-    :pointcloud(new pcl::PointCloud<pcl::PointXYZI>)
-
+rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)    
 {
     // use private node handle to get parameters
     private_nh.param("frame_id", config_.frame_id, std::string("rslidar"));
@@ -20,8 +18,8 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
     std::string model_full_name;
 
 
-    //不同型号的产品
-  if (config_.model == "RS16")
+    //product model
+    if (config_.model == "RS16")
     {
         packet_rate = 834;
         model_full_name = "RS_16";
@@ -34,7 +32,6 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
     std::string deviceName(std::string("rslidar ") + model_full_name);
 
     private_nh.param("rpm", config_.rpm, 600.0);
-    //ROS_INFO_STREAM(deviceName << " rotating at " << config_.rpm << " RPM");
     double frequency = (config_.rpm / 60.0);     // expected Hz rate
 
     // default number of packets for each scan is a single revolution
@@ -95,7 +92,7 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
  */
 bool rslidarDriver::poll(void)
 {
-    // Allocate a new shared pointer for zero-copy sharing with other nodelets.//一次处理一个360扫描
+    // Allocate a new shared pointer for zero-copy sharing with other nodelets. 
     rslidar_msgs::rslidarScanPtr scan(new rslidar_msgs::rslidarScan);
     scan->packets.resize(config_.npackets);
     // Since the rslidar delivers data at a very high rate, keep
@@ -110,21 +107,12 @@ bool rslidarDriver::poll(void)
             if (rc < 0) return false; // end of file reached?
         }
     }
-   // ROS_INFO("poll2");
+
     // publish message using time of last packet read
     ROS_DEBUG("Publishing a full rslidar scan.");
     scan->header.stamp = scan->packets[config_.npackets - 1].stamp;
     scan->header.frame_id = config_.frame_id;
     output_.publish(scan);
-   
-    /*for(size_t i=0; i<scan->packets.size(); i++)
-    {
-        unpack(scan->packets[i],pointcloud);
-
-    }
-    sensor_msgs::PointCloud2 out;
-    pcl::toROSMsg(*pointcloud, out);
-    pc_output.publish(out);*/
 
     // notify diagnostics that a message has been published, updating its status
     diag_topic_->tick(scan->header.stamp);

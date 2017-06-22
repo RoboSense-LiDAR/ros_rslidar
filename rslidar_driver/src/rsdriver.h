@@ -54,9 +54,6 @@ private:
 
   boost::shared_ptr<Input> input_;
   ros::Publisher output_;
-  ros::Publisher pc_output;  //point cloud publisher
-  ros::Publisher pc_output_remove;
-  pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud;
   //Converter convtor_;
   /** diagnostics updater */
   diagnostic_updater::Updater diagnostics_;

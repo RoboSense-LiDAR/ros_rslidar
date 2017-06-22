@@ -58,19 +58,16 @@ void Convert::callback(rslidar_pointcloud::CloudNodeConfig &config,
   /** @brief Callback for raw scan messages. */
   void Convert::processScan( const rslidar_msgs::rslidarScan::ConstPtr &scanMsg)
   {
-  	pcl::PointCloud<pcl::PointXYZI>::Ptr outPoint(new pcl::PointCloud<pcl::PointXYZI>);
-  	outPoint->header.stamp = pcl_conversions::toPCL(scanMsg->header).stamp;
-  	outPoint->header.frame_id = scanMsg->header.frame_id;
+  	pcl::PointCloud<pcl::PointXYZI>::Ptr outPoints(new pcl::PointCloud<pcl::PointXYZI>);
+  	outPoints->header.stamp = pcl_conversions::toPCL(scanMsg->header).stamp;
+  	outPoints->header.frame_id = scanMsg->header.frame_id;
     // process each packet provided by the driver
     for (size_t i = 0; i < scanMsg->packets.size(); ++i)
     {
-       data_->unpack(scanMsg->packets[i], outPoint);
+       data_->unpack(scanMsg->packets[i], outPoints);
     }
-    
-    //ROS_DEBUG_STREAM("Publishing height" << outPoint->height<<"width" << outPoint->width
-                     //<< " Rslidar points, time: " << outPoint->header.stamp);
     sensor_msgs::PointCloud2 outMsg;
-    pcl::toROSMsg(*outPoint, outMsg);
+    pcl::toROSMsg(*outPoints, outMsg);
     output_.publish(outMsg);
   }
 } // namespace velodyne_pointcloud

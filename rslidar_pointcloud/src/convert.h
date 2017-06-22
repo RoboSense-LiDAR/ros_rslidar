@@ -27,7 +27,6 @@ namespace rslidar_pointcloud
     boost::shared_ptr<rslidar_rawdata::RawData> data_;
     ros::Subscriber rslidar_scan_;
     ros::Publisher output_;
-    ros::Publisher pc_output;
     /// configuration parameters
     struct
     {

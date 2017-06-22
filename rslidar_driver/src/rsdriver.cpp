@@ -20,7 +20,7 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
     std::string model_full_name;
 
 
-    // different model
+    //不同型号的产品
   if (config_.model == "RS16")
     {
         packet_rate = 834;
@@ -53,9 +53,9 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
     private_nh.param("port", udp_port, (int) DATA_PORT_NUMBER);
 
     // Initialize dynamic reconfigure
-    srv_ = boost::make_shared <dynamic_reconfigure::Server<rslidar::
+    srv_ = boost::make_shared <dynamic_reconfigure::Server<rslidar_driver::
             rslidarNodeConfig> > (private_nh);
-    dynamic_reconfigure::Server<rslidar::rslidarNodeConfig>::
+    dynamic_reconfigure::Server<rslidar_driver::rslidarNodeConfig>::
             CallbackType f;
     f = boost::bind (&rslidarDriver::callback, this, _1, _2);
     srv_->setCallback (f); // Set callback function und call initially
@@ -87,26 +87,16 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
     }
 
     // raw packet output topic
-    output_ = node.advertise<rslidar::rslidarScan>("rslidar_packets", 10);
-
-    pc_output = node.advertise<sensor_msgs::PointCloud2>("fullscan", 10);
-    //pc_output_remove = node.advertise<sensor_msgs::PointCloud2>("remove", 10);
-
-    init_setup();
-    loadConfigFile();
-
+    output_ = node.advertise<rslidar_msgs::rslidarScan>("rslidar_packets", 10);
 }
-
-
-
 /** poll the device
  *
  *  @returns true unless end of file reached
  */
 bool rslidarDriver::poll(void)
 {
-    // Allocate a new shared pointer for zero-copy sharing with other nodelets.
-    rslidar::rslidarScanPtr scan(new rslidar::rslidarScan);
+    // Allocate a new shared pointer for zero-copy sharing with other nodelets.//一次处理一个360扫描
+    rslidar_msgs::rslidarScanPtr scan(new rslidar_msgs::rslidarScan);
     scan->packets.resize(config_.npackets);
     // Since the rslidar delivers data at a very high rate, keep
     // reading and publishing scans as fast as possible.
@@ -125,16 +115,16 @@ bool rslidarDriver::poll(void)
     ROS_DEBUG("Publishing a full rslidar scan.");
     scan->header.stamp = scan->packets[config_.npackets - 1].stamp;
     scan->header.frame_id = config_.frame_id;
-   // output_.publish(scan);
+    output_.publish(scan);
    
-    for(size_t i=0; i<scan->packets.size(); i++)
+    /*for(size_t i=0; i<scan->packets.size(); i++)
     {
         unpack(scan->packets[i],pointcloud);
 
     }
     sensor_msgs::PointCloud2 out;
     pcl::toROSMsg(*pointcloud, out);
-    pc_output.publish(out);
+    pc_output.publish(out);*/
 
     // notify diagnostics that a message has been published, updating its status
     diag_topic_->tick(scan->header.stamp);
@@ -143,7 +133,7 @@ bool rslidarDriver::poll(void)
     return true;
 }
 
-void rslidarDriver::callback(rslidar::rslidarNodeConfig &config,
+void rslidarDriver::callback(rslidar_driver::rslidarNodeConfig &config,
                               uint32_t level)
 {
     ROS_INFO("Reconfigure Request");

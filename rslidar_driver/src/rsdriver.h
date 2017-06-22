@@ -7,8 +7,10 @@
 #include <diagnostic_updater/diagnostic_updater.h>
 #include <diagnostic_updater/publisher.h>
 #include <dynamic_reconfigure/server.h>
-#include <rslidar/rslidarNodeConfig.h>
-#include "convertion.h"
+#include <rslidar_driver/rslidarNodeConfig.h>
+#include <pcl/point_types.h>
+#include <pcl_ros/impl/transforms.hpp>
+#include <pcl_conversions/pcl_conversions.h>
 #include "input.h"
 /** \file
  *
@@ -35,10 +37,10 @@ public:
 private:
 
   ///Callback for dynamic reconfigure
-  void callback(rslidar::rslidarNodeConfig &config,uint32_t level);
+  void callback(rslidar_driver::rslidarNodeConfig &config,uint32_t level);
 
   ///Pointer to dynamic reconfigure service srv_
-  boost::shared_ptr<dynamic_reconfigure::Server<rslidar::rslidarNodeConfig> > srv_;
+  boost::shared_ptr<dynamic_reconfigure::Server<rslidar_driver::rslidarNodeConfig> > srv_;
 
   // configuration parameters
   struct

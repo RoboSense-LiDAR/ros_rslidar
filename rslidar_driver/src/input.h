@@ -28,7 +28,8 @@
 #include <pcap.h>
 #include <netinet/in.h>
 #include <ros/ros.h>
-#include <rslidar/rslidarPacket.h>
+#include <rslidar_msgs/rslidarPacket.h>
+#include <rslidar_msgs/rslidarScan.h>
 #include <string>
 #include <sstream>
 #include <sys/socket.h>
@@ -59,7 +60,7 @@ class Input
 public:
     Input(ros::NodeHandle private_nh, uint16_t port);
     virtual ~Input() {}
-    virtual int getPacket(rslidar::rslidarPacket *pkt,
+    virtual int getPacket(rslidar_msgs::rslidarPacket *pkt,
                           const double time_offset) = 0;
 
 protected:
@@ -76,7 +77,7 @@ public:
                 uint16_t port = DATA_PORT_NUMBER);
     virtual ~InputSocket();
 
-    virtual int getPacket(rslidar::rslidarPacket *pkt,
+    virtual int getPacket(rslidar_msgs::rslidarPacket *pkt,
                           const double time_offset);
     void setDeviceIP( const std::string& ip );
 private:
@@ -111,7 +112,7 @@ public:
               double repeat_delay=0.0);
     virtual ~InputPCAP();
 
-    virtual int getPacket(rslidar::rslidarPacket *pkt,
+    virtual int getPacket(rslidar_msgs::rslidarPacket *pkt,
                           const double time_offset);
     void setDeviceIP( const std::string& ip );
 

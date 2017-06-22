@@ -1,5 +1,5 @@
-#ifndef MY_PARAM_H
-#define MY_PARAM_H
+#ifndef __MY_PARAM_H
+#define __MY_PARAM_H
 /** @file
  *
  *  @brief Interfaces for interpreting raw packets from the rslidar
@@ -8,10 +8,10 @@
  *  @author
  *
  */
-namespace rs_driver {
+namespace rslidar_rawdata {
 
 
-//static const float  ROTATION_SOLUTION_ = 0.2f;  //水平角分辨率 10hz
+//static const float  ROTATION_SOLUTION_ = 0.18f;  //水平角分辨率 10hz
 static const int    POINT_PER_CIRCLE_ =  2000;
 static const int    DATA_NUMBER_PER_SCAN = 40000 ; //Set 40000 to be large enough
 static const int    SIZE_BLOCK = 100;
@@ -22,6 +22,8 @@ static const int    BLOCK_DATA_SIZE = (SCANS_PER_BLOCK * RAW_SCAN_SIZE); //96
 static const float  ROTATION_RESOLUTION = 0.01f; /**< degrees 旋转角分辨率*/
 static const uint16_t ROTATION_MAX_UNITS = 36000; /**< hundredths of degrees */
 
+/** According to Bruce Hall DISTANCE_MAX is 65.0, but we noticed
+ *  valid packets with readings up to 130.0. */
 static const float  DISTANCE_MAX = 150.0f;        /**< meters */
 static const float  DISTANCE_MIN = 0.2f;        /**< meters */
 static const float  DISTANCE_RESOLUTION = 0.002f; /**< meters */

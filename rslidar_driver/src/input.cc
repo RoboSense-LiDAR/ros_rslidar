@@ -4,7 +4,7 @@ extern volatile sig_atomic_t flag;
 namespace rs_driver
 {
 static const size_t packet_size =
-        sizeof(rslidar::rslidarPacket().data);
+        sizeof(rslidar_msgs::rslidarPacket().data);
 
 ////////////////////////////////////////////////////////////////////////
 // Input base class implementation
@@ -68,7 +68,6 @@ InputSocket::InputSocket(ros::NodeHandle private_nh, uint16_t port):
     my_addr.sin_port = htons(port_local);          // port in network byte order
     my_addr.sin_addr.s_addr = INADDR_ANY;    // automatically fill in my IP
 
-
     memset(&sender_address, 0, sizeof(sender_address));
     sender_address.sin_family = AF_INET;
     sender_address.sin_port = htons(port_dest);
@@ -82,10 +81,8 @@ InputSocket::InputSocket(ros::NodeHandle private_nh, uint16_t port):
     }
 
     //connect(sockfd_, (sockaddr *)&sender_address, sizeof(sender_address));
-
-    char * sendData = "sssssssssssssssss";
+char * sendData = "sssssssssssssssss";
     sendto(sockfd_, sendData, strlen(sendData), 0, (sockaddr *)&sender_address, sender_address_len);
-
 //    if (fcntl(sockfd_,F_SETFL, O_NONBLOCK|FASYNC) < 0)
 //    {
 //       perror("non-block");
@@ -100,7 +97,7 @@ InputSocket::~InputSocket(void)
 }
 
 /** @brief Get one rslidar packet. */
-int InputSocket::getPacket(rslidar::rslidarPacket *pkt, const double time_offset)
+int InputSocket::getPacket(rslidar_msgs::rslidarPacket *pkt, const double time_offset)
 {
     double time1 = ros::Time::now().toSec();
 	struct pollfd fds[1];
@@ -230,7 +227,7 @@ InputPCAP::~InputPCAP(void)
 }
 
 /** @brief Get one rslidar packet. */
-int InputPCAP::getPacket(rslidar::rslidarPacket *pkt, const double time_offset)
+int InputPCAP::getPacket(rslidar_msgs::rslidarPacket *pkt, const double time_offset)
 {
     struct pcap_pkthdr *header;
     const u_char *pkt_data;

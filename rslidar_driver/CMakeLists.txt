@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(rslidar)
+project(rslidar_driver)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -12,7 +12,8 @@ set(${PROJECT_NAME}_CATKIN_DEPS
     sensor_msgs
     tf
     dynamic_reconfigure
-    diagnostic_updater
+    diagnostic_updater 
+    rslidar_msgs
 )
 
 set(libpcap_LIBRARIES -lpcap)
@@ -42,25 +43,16 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 
 generate_dynamic_reconfigure_options(cfg/rslidarNode.cfg)
 
-add_message_files(
-  FILES
-  rslidarPic.msg
-  rslidarPacket.msg
-  rslidarScan.msg
-)
-generate_messages(DEPENDENCIES std_msgs)
-
 catkin_package(
     CATKIN_DEPENDS ${${PROJECT_NAME}_CATKIN_DEPS}
     DEPENDS yaml-cpp python-yaml
     INCLUDE_DIRS include
-    LIBRARIES rslidar_rawdata rslidar_input
     CATKIN_DEPENDS message_runtime std_msgs
     )
 
-#add_subdirectory(src/fullscan)
-#add_subdirectory(src/segmentation)
 add_subdirectory(src)
+#add_subdirectory(src/lib)
+#add_subdirectory(src/driver)
 
 
  #install(TARGETS my_signal

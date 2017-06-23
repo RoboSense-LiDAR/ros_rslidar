@@ -3,19 +3,33 @@ namespace rslidar_rawdata
 {
 
 RawData::RawData() {}
-void RawData::loadConfigFile()
+void RawData::loadConfigFile(ros::NodeHandle private_nh)
 {
-    /// 读参数文件 2017-02-27
+    std::string curvesPath;//yulinjun-add
+    std::string anglePath;
+    std::string channelPath;
+    std::string pwrPath;
     std::string pkgPath = ros::package::getPath("rslidar_pointcloud");
-    //std::cout<<pkgPath<<std::endl;
-    std::string filePath = pkgPath+"/data/curves.csv";
-    FILE *f_inten = fopen(filePath.c_str(), "r");   // path
+    
+    private_nh.param("curves_path", curvesPath, std::string(""));//yulinjun-add
+    private_nh.param("angle_path", anglePath,std::string(""));
+    private_nh.param("channel_path", channelPath,std::string(""));
+    private_nh.param("pwr_path", pwrPath,std::string(""));
+    
+    curvesPath = pkgPath + curvesPath;
+    anglePath = pkgPath + anglePath;
+    channelPath = pkgPath + channelPath;
+    pwrPath = pkgPath + pwrPath;
+    //std::cout<<"hello,girl!"<<curvesPath<<std::endl;
+    
+    /// 读参数文件 2017-02-27
+    FILE *f_inten = fopen(curvesPath.c_str(), "r");   
     int loopi=0;
     int loopj = 0;
 
     if(!f_inten)
     {
-        ROS_ERROR_STREAM(filePath <<" does not exist");
+        ROS_ERROR_STREAM(curvesPath <<" does not exist");
     }
     else
     {
@@ -25,20 +39,19 @@ void RawData::loadConfigFile()
             loopi++;
             if (loopi > 1600)
                 break;
-            fscanf(f_inten, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
-            &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10], &a[11], &a[12], &a[13], &a[14], &a[15]);
+	    fscanf(f_inten, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
+               &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10], &a[11], &a[12], &a[13], &a[14], &a[15]);
             for (loopj = 0; loopj < 16; loopj++){
                 aIntensityCal[loopi - 1][loopj] = a[loopj];
             }
-		}
+	}
         fclose(f_inten);
      }
     //=============================================================
-    filePath = pkgPath+"/data/pwrCurves.csv";
-    FILE *f_power = fopen(filePath.c_str(),"r");
+    FILE *f_power = fopen(pwrPath.c_str(),"r");
     if(!f_power)
     {
-        ROS_ERROR_STREAM(filePath <<" does not exist");
+        ROS_ERROR_STREAM(pwrPath <<" does not exist");
 
     }
     else
@@ -51,11 +64,10 @@ void RawData::loadConfigFile()
         fclose(f_power);
     }
     //=============================================================
-    filePath = pkgPath+"/data/angle.csv";
-    FILE *f_angel = fopen(filePath.c_str(),"r");
-    if(!f_angel)
+    FILE *f_angle = fopen(anglePath.c_str(),"r");
+    if(!f_angle)
     {
-        ROS_ERROR_STREAM(filePath <<" does not exist");
+        ROS_ERROR_STREAM(anglePath <<" does not exist");
 
     }
     else
@@ -63,9 +75,9 @@ void RawData::loadConfigFile()
         float b[16];
         int loopk=0;
         int loopn=0;
-        while(~feof(f_angel))
+        while(~feof(f_angle))
         {
-            fscanf(f_angel,"%f",&b[loopk]);
+            fscanf(f_angle,"%f",&b[loopk]);
             loopk++;
             if(loopk>15) break;
         }
@@ -73,15 +85,14 @@ void RawData::loadConfigFile()
         {
             VERT_ANGLE[loopn]=b[loopn]/180 * CV_PI;
         }
-        fclose(f_angel);
+        fclose(f_angle);
     }
 
     //=============================================================
-    filePath = pkgPath+"/data/ChannelNum.csv";
-    FILE *f_channel=fopen(filePath.c_str(),"r");
+    FILE *f_channel = fopen(channelPath.c_str(),"r");
     if(!f_channel)
     {
-        ROS_ERROR_STREAM(filePath <<" does not exist");
+        ROS_ERROR_STREAM(channelPath <<" does not exist");
     }
     else
     {

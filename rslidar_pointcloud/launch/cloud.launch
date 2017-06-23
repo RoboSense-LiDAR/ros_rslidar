@@ -1,10 +1,34 @@
 <launch>
+<group ns="ns1">
     <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
-    <param name="pcap" value="/home/tony-sti/lidar_data/lm75-170616-roadtest.pcap" />
+    <!--param name="pcap" value="/home/tony-sti/lidar_data/lm75-170616-roadtest.pcap" -->
+    <param name="device_ip" value="192.168.1.200" />
+	<param name="port_local" value="6699"/>
+    <param name="port_dest" value="6677"/>
 	</node>
 
      <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
+      <param name="pwr_path" value="/data/LM79/pwrCurves.csv" />
+	 <param name="curves_path" value="/data/LM79/curves.csv" />
+	 <param name="angle_path" value="/data/LM79/angle.csv" />
+	 <param name="channel_path" value="/data/LM79/ChannelNum.csv" />
 	  </node>
+</group>
 
+<group ns="ns2">
+    <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
+    <!--param name="pcap" value="/home/tony-sti/lidar_data/lm75-170616-roadtest.pcap" -->
+    <param name="device_ip" value="192.168.1.201" />
+	<param name="port_local" value="9966"/>
+    <param name="port_dest" value="7766"/>
+	</node>
+	
+     <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
+      <param name="pwr_path" value="/data/LM84/pwrCurves.csv" />
+	 <param name="curves_path" value="/data/LM84/curves.csv" />
+	 <param name="angle_path" value="/data/LM84/angle.csv" />
+	 <param name="channel_path" value="/data/LM84/ChannelNum.csv" />
+	  </node>
+</group>
 </launch>
 

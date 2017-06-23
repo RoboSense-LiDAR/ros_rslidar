@@ -37,17 +37,11 @@ Input::Input(ros::NodeHandle private_nh, uint16_t port):
 InputSocket::InputSocket(ros::NodeHandle private_nh, uint16_t port):
     Input(private_nh, port)
 {
-
-    port_dest = 6677;
-    send_IP = "192.168.1.200";
-    port_local = 6699;
     sockfd_ = -1;
-//    if (!devip_str_.empty())
-//    {
-//          inet_aton(devip_str_.c_str(),&devip_);
-//    }
-    ROS_INFO_STREAM("Opening UDP socket: port " << port);
-   // ROS_INFO("ip: %s", devip_str_.c_str());
+    private_nh.param<int>("port_dest",port_dest,6677);
+    private_nh.param<int>("port_local",port_local,6699);
+    ROS_INFO_STREAM("Opening UDP socket: port " << port_local);
+    ROS_INFO("ip: %s", devip_str_.c_str());
     sockfd_ = socket(PF_INET, SOCK_DGRAM, 0);
     if (sockfd_ == -1)
     {
@@ -68,10 +62,11 @@ InputSocket::InputSocket(ros::NodeHandle private_nh, uint16_t port):
     my_addr.sin_port = htons(port_local);          // port in network byte order
     my_addr.sin_addr.s_addr = INADDR_ANY;    // automatically fill in my IP
 
+
     memset(&sender_address, 0, sizeof(sender_address));
     sender_address.sin_family = AF_INET;
     sender_address.sin_port = htons(port_dest);
-    sender_address.sin_addr.s_addr = inet_addr(send_IP);
+    sender_address.sin_addr.s_addr = inet_addr(devip_str_.c_str());
     sender_address_len = sizeof(sender_address);
 
     if (bind(sockfd_, (sockaddr *)&my_addr, sizeof(sockaddr)) == -1)
@@ -81,13 +76,9 @@ InputSocket::InputSocket(ros::NodeHandle private_nh, uint16_t port):
     }
 
     //connect(sockfd_, (sockaddr *)&sender_address, sizeof(sender_address));
-char * sendData = "sssssssssssssssss";
+
+    char * sendData = "sssssssssssssssss";
     sendto(sockfd_, sendData, strlen(sendData), 0, (sockaddr *)&sender_address, sender_address_len);
-//    if (fcntl(sockfd_,F_SETFL, O_NONBLOCK|FASYNC) < 0)
-//    {
-//       perror("non-block");
-//       return;
-//    }
 }
 
 /** @brief destructor */

@@ -7,7 +7,7 @@ namespace rslidar_pointcloud
   Convert::Convert(ros::NodeHandle node, ros::NodeHandle private_nh):
       data_(new rslidar_rawdata::RawData())
   {
-    data_->loadConfigFile();   			//load lidar parameters
+    data_->loadConfigFile(private_nh);   			//load lidar parameters
     data_->init_setup();
     // get model name, validate string, determine packet rate
     private_nh.param("model", config_.model, std::string("RS16")); //lidar model

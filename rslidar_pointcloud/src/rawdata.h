@@ -44,7 +44,7 @@ namespace rslidar_rawdata
         ~RawData() {}
 
         void    init_setup();
-        void    loadConfigFile();
+        void    loadConfigFile(ros::NodeHandle private_nh);
         void    unpack(const rslidar_msgs::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud);
         float   pixelToDistance(int pixelValue, int passageway);
 

@@ -3,8 +3,7 @@
     <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
     <!--param name="pcap" value="/home/tony-sti/lidar_data/lm75-170616-roadtest.pcap" -->
     <param name="device_ip" value="192.168.1.200" />
-	<param name="port_local" value="6699"/>
-    <param name="port_dest" value="6677"/>
+	<param name="port" value="6699"/>
 	</node>
 
      <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
@@ -18,9 +17,8 @@
 <group ns="ns2">
     <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
     <!--param name="pcap" value="/home/tony-sti/lidar_data/lm75-170616-roadtest.pcap" -->
-    <param name="device_ip" value="192.168.1.201" />
-	<param name="port_local" value="9966"/>
-    <param name="port_dest" value="7766"/>
+    <param name="device_ip" value="192.168.1.201"/>
+	<param name="port" value="9966"/>
 	</node>
 	
      <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >

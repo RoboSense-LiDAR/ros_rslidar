@@ -38,10 +38,13 @@ InputSocket::InputSocket(ros::NodeHandle private_nh, uint16_t port):
     Input(private_nh, port)
 {
     sockfd_ = -1;
-    private_nh.param<int>("port_dest",port_dest,6677);
-    private_nh.param<int>("port_local",port_local,6699);
-    ROS_INFO_STREAM("Opening UDP socket: port " << port_local);
-    ROS_INFO("ip: %s", devip_str_.c_str());
+    
+    if (!devip_str_.empty())
+    {
+        inet_aton(devip_str_.c_str(),&devip_);
+    }
+    
+    ROS_INFO_STREAM("Opening UDP socket: port " << port);
     sockfd_ = socket(PF_INET, SOCK_DGRAM, 0);
     if (sockfd_ == -1)
     {
@@ -59,26 +62,22 @@ InputSocket::InputSocket(ros::NodeHandle private_nh, uint16_t port):
     sockaddr_in my_addr;                     // my address information
     memset(&my_addr, 0, sizeof(my_addr));    // initialize to zeros
     my_addr.sin_family = AF_INET;            // host byte order
-    my_addr.sin_port = htons(port_local);          // port in network byte order
+    my_addr.sin_port = htons(port);          // port in network byte order
     my_addr.sin_addr.s_addr = INADDR_ANY;    // automatically fill in my IP
 
-
-    memset(&sender_address, 0, sizeof(sender_address));
-    sender_address.sin_family = AF_INET;
-    sender_address.sin_port = htons(port_dest);
-    sender_address.sin_addr.s_addr = inet_addr(devip_str_.c_str());
-    sender_address_len = sizeof(sender_address);
 
     if (bind(sockfd_, (sockaddr *)&my_addr, sizeof(sockaddr)) == -1)
     {
         perror("bind");                 // TODO: ROS_ERROR errno
         return;
     }
+    
+    if (fcntl(sockfd_,F_SETFL, O_NONBLOCK|FASYNC) < 0)
+    {
+       perror("non-block");
+       return;
+    }
 
-    //connect(sockfd_, (sockaddr *)&sender_address, sizeof(sender_address));
-
-    char * sendData = "sssssssssssssssss";
-    sendto(sockfd_, sendData, strlen(sendData), 0, (sockaddr *)&sender_address, sender_address_len);
 }
 
 /** @brief destructor */
@@ -139,7 +138,10 @@ int InputSocket::getPacket(rslidar_msgs::rslidarPacket *pkt, const double time_o
         }
         else if ((size_t) nbytes == packet_size)
         {
-            break; //done
+            if(devip_str_ != "" && sender_address.sin_addr.s_addr != devip_.s_addr)
+                continue;
+            else
+                break; //done
         }
 
         ROS_DEBUG_STREAM("incomplete rslidar packet read: "

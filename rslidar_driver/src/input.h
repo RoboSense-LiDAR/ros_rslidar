@@ -43,8 +43,7 @@
 
 namespace rs_driver
 {
-static uint16_t DATA_PORT_NUMBER = 6677;     // rslidar default data port
-
+static uint16_t DATA_PORT_NUMBER = 6699;     // rslidar default data port on PC
 /**
  *  从在线的网络数据或离线的网络抓包数据（pcap文件）中提取出lidar的原始数据，即packet数据包
  * @brief The Input class,
@@ -86,13 +85,8 @@ private:
     int sockfd_;
     in_addr devip_;
 
-    char *send_IP;
-    int port_dest;
-    int port_local;
     int Ret ;
     int len;
-    sockaddr_in sender_address;
-    socklen_t sender_address_len;
 };
 
 

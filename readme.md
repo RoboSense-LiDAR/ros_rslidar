@@ -22,7 +22,7 @@ catkin_make
 By default, the RSLIDAR is configured to **192.168.1.200** as its device IP and **192.168.1.102** as PC IP that it would communicate. The default port is 6677 as RSLIDAR tele port number, while 6699 as the data port on the PC.
 So you need configure your PC IP as a static one **192.168.1.102**.
 
-###4. Run and view realtime data
+#### 4. Run and view realtime data
 We have provide an exmaple launch file under rslidar_pointclodu/launch, we can run the launch file to view the point cloud data.
 (1). Open a new terminal and run:
 

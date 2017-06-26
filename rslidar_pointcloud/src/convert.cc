@@ -9,27 +9,7 @@ namespace rslidar_pointcloud
   {
     data_->loadConfigFile(private_nh);   			//load lidar parameters
     data_->init_setup();
-    // get model name, validate string, determine packet rate
-    private_nh.param("model", config_.model, std::string("RS16")); //lidar model
-    double packet_rate;                   // packet frequency (Hz)
-    std::string model_full_name;
-  if (config_.model == "RS16")
-    {
-        packet_rate = 834;
-        model_full_name = "RS_16";
-    }
-    else
-    {
-        ROS_ERROR_STREAM("unknown LIDAR model: " << config_.model);
-        packet_rate = 2600.0;
-    }
-   private_nh.param("rpm", config_.rpm, 600.0);
-      //ROS_INFO_STREAM(deviceName << " rotating at " << config_.rpm << " RPM");
-   double frequency = (config_.rpm / 60.0);     // expected Hz rate
-
-   int npackets = (int) ceil(packet_rate / frequency);
-   private_nh.param("npackets", config_.npackets, npackets);
-    // std::string deviceName(std::string("rslidar ") + model_full_name);
+    
     // advertise output point cloud (before subscribing to input data)
     output_ =
       node.advertise<sensor_msgs::PointCloud2>("rslidar_points", 10);
@@ -41,7 +21,7 @@ namespace rslidar_pointcloud
     f = boost::bind (&Convert::callback, this, _1, _2);
     srv_->setCallback (f);
 
-    // subscribe to VelodyneScan packets
+    // subscribe to rslidarScan packets
     rslidar_scan_ =
       node.subscribe("rslidar_packets", 10,
                      &Convert::processScan, (Convert *) this,
@@ -70,4 +50,4 @@ void Convert::callback(rslidar_pointcloud::CloudNodeConfig &config,
     pcl::toROSMsg(*outPoints, outMsg);
     output_.publish(outMsg);
   }
-} // namespace velodyne_pointcloud
+} // namespace rslidar_pointcloud

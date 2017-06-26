@@ -34,7 +34,7 @@ static const uint16_t UPPER_BANK = 0xeeff; //
 static const uint16_t LOWER_BANK = 0xddff;
 
 
-/** Special Defines for VLP16 support **/
+/** Special Defines for RS16 support **/
 static const int    RS16_FIRINGS_PER_BLOCK =   2;
 static const int    RS16_SCANS_PER_FIRING  =  16;
 static const float  RS16_BLOCK_TDURATION   = 100.0f;   // [µs]
@@ -42,7 +42,7 @@ static const float  RS16_DSR_TOFFSET       =   3.0f;   // [µs]
 static const float  RS16_FIRING_TOFFSET    =  50.0f;   // [µs]
 
 
-/** \brief Raw Velodyne data block.
+/** \brief Raw rslidar data block.
  *
  *  Each block contains data from either the upper or lower laser
  *  bank.  The device returns three times as many upper bank blocks.
@@ -75,7 +75,7 @@ static const int BLOCKS_PER_PACKET = 12;
 static const int PACKET_STATUS_SIZE = 4;
 static const int SCANS_PER_PACKET = (SCANS_PER_BLOCK * BLOCKS_PER_PACKET);
 
-/** \brief Raw Velodyne packet.
+/** \brief Raw Rsldar packet.
  *
  *  revolution is described in the device manual as incrementing
  *    (mod 65536) for each physical turn of the device.  Our device

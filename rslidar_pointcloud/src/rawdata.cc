@@ -410,7 +410,6 @@ void removeOutlier(pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud )
        }
     }
    //ROS_INFO("NAN: %d", nannum);
-   PCloudRemove->clear();
     for(int row = 0; row < matMask.rows; row++)
      {
         for(int col = 0 ; col < matMask.cols ; col++ )
@@ -418,7 +417,6 @@ void removeOutlier(pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud )
             if(matMask.at<uchar>(row,col) != 255)
             {
                //removeNum++;
-               PCloudRemove->push_back(pointcloud->at(col,row));
                pointcloud->at(col,row).x =NAN;
                pointcloud->at(col,row).y =NAN;
                pointcloud->at(col,row).z =NAN;
@@ -427,7 +425,6 @@ void removeOutlier(pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud )
 
         }
       }
- // ROS_INFO("PCloudRemove: %d", removeNum);
 
 }
 }//namespace rs_pointcloud

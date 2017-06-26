@@ -14,7 +14,7 @@
 #include "input.h"
 /** \file
  *
- *  ROS driver interface for the Velodyne 3D LIDARs
+ *  ROS driver interface for the RSLIDAR 3D LIDARs
  *  output topic name :rslidar_packets
  *  node: output node
  */

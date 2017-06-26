@@ -1,21 +1,3 @@
-/* -*- mode: C++ -*-
- *
- *  Copyright (C) 2007 Austin Robot Technology, Yaxin Liu, Patrick Beeson
- *  Copyright (C) 2009, 2010, 2012 Austin Robot Technology, Jack O'Quin
- *
- *  License: Modified BSD Software License Agreement
- *
- *  $Id$
- */
-
-/** @file
- *
- *  @brief Interfaces for interpreting raw packets from the Velodyne 3D LIDAR.
- *
- *  @author yulinjun
- *  @author George
- */
-
 #ifndef _RAWDATA_H
 #define _RAWDATA_H
 
@@ -59,15 +41,11 @@ namespace rslidar_rawdata
     float   aIntensityCal[1600][16];
     int     g_ChannelNum[16];
 
-
-
     void   removeOutlier(pcl::PointCloud<pcl::PointXYZI>::Ptr);
-
-    pcl::PointCloud<pcl::PointXYZI>::Ptr PCloudRemove(new pcl::PointCloud<pcl::PointXYZI>);
     
     rslidar_msgs::rslidarPic pic;
 
 
-} // namespace velodyne_rawdata
+} // namespace rslidar_rawdata
 
 #endif // __RAWDATA_H

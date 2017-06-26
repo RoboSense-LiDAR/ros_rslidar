@@ -1,4 +1,3 @@
-
 #include "input.h"
 extern volatile sig_atomic_t flag;
 namespace rs_driver

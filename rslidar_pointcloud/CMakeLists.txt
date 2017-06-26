@@ -18,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
              ${${PROJECT_NAME}_CATKIN_DEPS} pcl_conversions)
 find_package(Boost COMPONENTS signals)
 find_package(PkgConfig REQUIRED)
-include_directories(include ${catkin_INCLUDE_DIRS} 
+include_directories(${catkin_INCLUDE_DIRS} 
   ${dynamic_reconfigure_PACKAGE_PATH}/cmake/cfgbuild.cmake
 )
     

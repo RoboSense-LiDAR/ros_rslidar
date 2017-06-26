@@ -5,22 +5,18 @@ namespace rslidar_rawdata
 RawData::RawData() {}
 void RawData::loadConfigFile(ros::NodeHandle private_nh)
 {
-    std::string curvesPath;//yulinjun-add
+    std::string curvesPath;
     std::string anglePath;
     std::string channelPath;
-    std::string pwrPath;
     std::string pkgPath = ros::package::getPath("rslidar_pointcloud");
     
-    private_nh.param("curves_path", curvesPath, std::string(""));//yulinjun-add
+    private_nh.param("curves_path", curvesPath, std::string(""));
     private_nh.param("angle_path", anglePath,std::string(""));
     private_nh.param("channel_path", channelPath,std::string(""));
-    private_nh.param("pwr_path", pwrPath,std::string(""));
     
     curvesPath = pkgPath + curvesPath;
     anglePath = pkgPath + anglePath;
     channelPath = pkgPath + channelPath;
-    pwrPath = pkgPath + pwrPath;
-    //std::cout<<"hello,girl!"<<curvesPath<<std::endl;
     
     /// 读参数文件 2017-02-27
     FILE *f_inten = fopen(curvesPath.c_str(), "r");   
@@ -47,22 +43,6 @@ void RawData::loadConfigFile(ros::NodeHandle private_nh)
 	}
         fclose(f_inten);
      }
-    //=============================================================
-    FILE *f_power = fopen(pwrPath.c_str(),"r");
-    if(!f_power)
-    {
-        ROS_ERROR_STREAM(pwrPath <<" does not exist");
-
-    }
-    else
-    {
-        for (loopi = 0; loopi <495; loopi++)
-        {
-            fscanf(f_power, "%f\n", &inPwrCurveDat[loopi]);
-        }
-
-        fclose(f_power);
-    }
     //=============================================================
     FILE *f_angle = fopen(anglePath.c_str(),"r");
     if(!f_angle)
@@ -207,7 +187,7 @@ float RawData::calibrateIntensity(float intensity,int calIdx, int distance)
              //Debug start by Tony 20170523
             if(azimuth_diff <= 0.0 || azimuth_diff > 70.0){
             	//ROS_INFO("Error: %d  %d", azi2, azi1);
-            	azimuth_diff = 36.0;
+            	azimuth_diff = 40.0;
             	azimuth = pic.azimuth[pic.col-1] + azimuth_diff;
             }
             //Debug end by Tony 20170523

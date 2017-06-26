@@ -56,10 +56,7 @@ namespace rslidar_rawdata
     cv::Mat mat_depth;// = cv::Mat::zeros(16,2100,cv::CV_32F); // 10HZ 2000 points per circle
     //cv::Mat mat_inten;// = cv::Mat::zeros(16,2100,cv::CV_U8C);
     float   VERT_ANGLE[16];
-    //光衰信息表
     float   aIntensityCal[1600][16];
-    //充能时间-实际功率对应表
-    float   inPwrCurveDat[495];
     int     g_ChannelNum[16];
 
 

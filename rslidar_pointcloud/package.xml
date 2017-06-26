@@ -1,11 +1,12 @@
 <package>
 
   <name>rslidar_pointcloud</name>
-  <version>1.2.0</version>
+  <version>1.0.0</version>
   <description>
     Point cloud conversions for rslidar 3D LIDARs.
   </description>
-  <maintainer email="yulinjun74@126.com">George</maintainer>
+  <maintainer email="tony.zhang@robosense.cn">Tony</maintainer>
+  <author>Tony Zhang</author>
   <author>George Wang</author>
   <author>Piyush Khandelwal</author>
   <author>Jesse Vera</author>

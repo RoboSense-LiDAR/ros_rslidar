@@ -1,12 +1,12 @@
 <package>
 
   <name>rslidar_msgs</name>
-  <version>1.2.0</version>
+  <version>1.0.0</version>
   <description>
     ROS message definitions for Rslidar 3D LIDARs.
   </description>
-  <maintainer email="yulinjun_sti@126.com">George Wang</maintainer>
-  <author>George Wang</author>
+  <maintainer email="tony.zhang@robosense.cn">Tony Zhang</maintainer>
+  <author>Tony Zhang</author>
   <license>BSD</license>
 
 

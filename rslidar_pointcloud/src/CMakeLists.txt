@@ -9,6 +9,11 @@ target_link_libraries(rslidar_point
     ${catkin_LIBRARIES})
 
 add_executable(cloud_node cloud_node.cc)
+
+if(catkin_EXPORTED_TARGETS)
+  add_dependencies(rslidar_data ${catkin_EXPORTED_TARGETS})
+endif()
+
 target_link_libraries(cloud_node
     rslidar_point
     rslidar_input

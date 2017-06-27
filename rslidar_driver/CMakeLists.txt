@@ -19,15 +19,13 @@ set(${PROJECT_NAME}_CATKIN_DEPS
 set(libpcap_LIBRARIES -lpcap)
 
 find_package(catkin REQUIRED COMPONENTS 
-	     ${${PROJECT_NAME}_CATKIN_DEPS} 
-             pcl_conversions
-	     pcl_ros
-	     roscpp 
-	     rospy 
-	     std_msgs
-             genmsg
-             cv_bridge
-             message_generation
+	${${PROJECT_NAME}_CATKIN_DEPS} 
+    pcl_conversions 
+	rospy 
+	std_msgs
+    genmsg
+    cv_bridge
+    message_generation
 )
 
 find_package(Boost COMPONENTS signals)

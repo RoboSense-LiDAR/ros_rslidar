@@ -1,4 +1,17 @@
+/* -*- mode: C++ -*- */
+/*		
+ *  Copyright (C) 2012 Austin Robot Technology, Jack O'Quin
+ *	Copyright (C) 2017 Robosense, Tony Zhang
+ * 
+ *  License: Modified BSD Software License Agreement
+ *
+ *  $Id$
+ */
 
+/** \file
+ *
+ *  ROS driver interface for the RSLIDAR 3D LIDARs
+ */
 #ifndef _RSDRIVER_H_
 #define _RSDRIVER_H_
 #include <string>
@@ -12,12 +25,7 @@
 #include <pcl_ros/impl/transforms.hpp>
 #include <pcl_conversions/pcl_conversions.h>
 #include "input.h"
-/** \file
- *
- *  ROS driver interface for the RSLIDAR 3D LIDARs
- *  output topic name :rslidar_packets
- *  node: output node
- */
+
 namespace rs_driver
 {
 
@@ -62,6 +70,6 @@ private:
   boost::shared_ptr<diagnostic_updater::TopicDiagnostic> diag_topic_;
 };
 
-}
+} //namespace rs_driver
 
 #endif

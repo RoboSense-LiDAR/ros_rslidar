@@ -1,3 +1,22 @@
+/*
+ *  Copyright (C) 2007 Austin Robot Technology, Patrick Beeson
+ *  Copyright (C) 2009, 2010, 2012 Austin Robot Technology, Jack O'Quin
+ *	Copyright (C) 2017 Robosense, Tony Zhang
+ *
+ *  License: Modified BSD Software License Agreement
+ *
+ *  $Id$
+ */
+
+/**
+ *  @file
+ *
+ *  RSLIDAR 3D LIDAR data accessor class implementation.
+ *
+ *  Class for unpacking raw RSLIDAR LIDAR packets into useful
+ *  formats.
+ *
+ */
 #include "rawdata.h"
 namespace rslidar_rawdata
 {

@@ -1,15 +1,20 @@
+/*
+ *  Copyright (C) 2012 Austin Robot Technology, Jack O'Quin
+ *	Copyright (C) 2017 Robosense, Tony Zhang
+ * 
+ *  License: Modified BSD Software License Agreement
+ *
+ *  $Id$
+ */
+
+/** \file
+ *
+ *  ROS driver node for the Velodyne 3D LIDARs.
+ */
 #include <ros/ros.h>
 #include "rsdriver.h"
 #include "std_msgs/String.h"
 
-
-/**
- * ROS Main node entry point
- * @brief main  ros node of rsliar driver
- * @param argc
- * @param argv
- * @return
- */
 using namespace rs_driver;
 volatile sig_atomic_t flag=1;
 static void my_handler(int sig)

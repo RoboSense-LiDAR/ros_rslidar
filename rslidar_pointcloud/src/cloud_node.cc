@@ -1,3 +1,16 @@
+/*
+ *  Copyright (C) 2012 Austin Robot Technology, Jack O'Quin
+ *  Copyright (C) 2016 Robosense, Tony Zhang
+ *  License: Modified BSD Software License Agreement
+ *
+ *  $Id$
+ */
+
+/** \file
+
+    This ROS node converts raw RSLIDAR LIDAR packets to PointCloud2.
+
+*/
 #include "convert.h"
 
 /** Main node entry point. */

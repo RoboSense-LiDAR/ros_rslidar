@@ -1,14 +1,18 @@
-/* -*- mode: C++ -*- */
 /*
- *  Copyright (C) 2017 robosense technology, guoleiming
+ *  Copyright (C) 2007 Austin Robot Technology, Patrick Beeson
+ *  Copyright (C) 2009, 2010 Austin Robot Technology, Jack O'Quin
+ *  Copyright (C) 2015, Jack O'Quin
+ *	Copyright (C) 2017, Robosense, Tony Zhang
+ *
  *
  *  License: Modified BSD Software License Agreement
  *
  *  $Id$
  */
+
 /** \file
  *
- *  Input classes for the RSlidar 3D LIDAR:
+ *  Input classes for the RSLIDAR RS-16 3D LIDAR:
  *
  *     Input -- base class used to access the data independently of
  *              its source

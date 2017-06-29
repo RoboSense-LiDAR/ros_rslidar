@@ -1,6 +1,6 @@
 #### 1. Prerequisites
 (1) Install a ubuntu PC. We suggested Ubuntu 14.04 or Ubuntu 16.04. Please do not use virtual machine.
-(2) Install ros full-desktop version.
+(2) Install ros full-desktop version. We tried Indigo and Kinect.
 
 ####  2. Install
 (1). Copy the whole rslidar directory into ROS workspace, i.e "~/catkin_ws/src".
@@ -41,5 +41,9 @@ Set the Fixed Frame to "**rslidar**".
 Add a Pointcloud2 type and set the topic to "**rslidar_points**".
 
 #### 5. About the lidar data
-Under "**rslidar_pointcloud/data**" directory, you can find the lidar data files for the exact sensor.
-If you have more than one RSLIDAR, you can put all the files under the "**rslidar_pointcloud/data**" directory, and rewrite the launch file to start you lidar.
+Under "**rslidar_pointcloud/data**" directory, you can find the lidar data files for the exact sensor. By default the launch file "one.launch" load the three files: 
+- rslidar_pointcloud/data/angle.csv
+- rslidar_pointcloud/data/ChannelNum.csv
+- rslidar_pointcloud/data/curves.csv. 
+
+If you have more than one RSLIDAR, you can creat new sub-directories under the "**rslidar_pointcloud/data**", and put the data files into it.Then you need rewrite the launch file to start you lidar. We have put an example launch file "two_lidar.launch" to load two lidars together for reference.

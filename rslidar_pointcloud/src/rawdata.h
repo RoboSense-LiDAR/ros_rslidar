@@ -16,6 +16,7 @@
  *  @author Yaxin Liu
  *  @author Patrick Beeson
  *  @author Jack O'Quin
+ *	@author Tony Zhang
  */
 
 #ifndef _RAWDATA_H

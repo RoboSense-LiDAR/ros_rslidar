@@ -33,7 +33,6 @@
 #include <netinet/in.h>
 #include <ros/ros.h>
 #include <rslidar_msgs/rslidarPacket.h>
-#include <rslidar_msgs/rslidarScan.h>
 #include <string>
 #include <sstream>
 #include <sys/socket.h>

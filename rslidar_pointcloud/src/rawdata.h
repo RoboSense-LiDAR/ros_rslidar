@@ -32,7 +32,6 @@
 #include <pcl_ros/point_cloud.h>
 #include <pcl_ros/impl/transforms.hpp>
 #include <pcl_conversions/pcl_conversions.h>
-#include <pcl_ros/point_cloud.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 

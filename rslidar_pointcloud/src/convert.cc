@@ -43,12 +43,12 @@ namespace rslidar_pointcloud
                      ros::TransportHints().tcpNoDelay(true));
   }
   
-void Convert::callback(rslidar_pointcloud::CloudNodeConfig &config,
+  void Convert::callback(rslidar_pointcloud::CloudNodeConfig &config,
                               uint32_t level)
-{
+  {
     ROS_INFO("Reconfigure Request");
    // config_.time_offset = config.time_offset;
-}
+  }
 
   /** @brief Callback for raw scan messages. */
   void Convert::processScan( const rslidar_msgs::rslidarScan::ConstPtr &scanMsg)

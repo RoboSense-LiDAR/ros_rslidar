@@ -129,7 +129,7 @@ namespace rslidar_rawdata
         /*load the cablibrated files: angle, distance, intensity*/
         void    loadConfigFile(ros::NodeHandle private_nh);
         /*unpack the UDP packet and opuput PCL PointXYZI type*/
-        void    unpack(const rslidar_msgs::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud);
+        void    unpack(const rslidar_msgs::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,bool finish_packets_parse);
         /*calibrated the disctance*/
         float   pixelToDistance(int pixelValue, int passageway);
         /*calibrated the intensity*/

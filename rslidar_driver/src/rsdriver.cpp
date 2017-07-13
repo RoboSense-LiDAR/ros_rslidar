@@ -37,7 +37,7 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
     //product model
     if (config_.model == "RS16")
     {
-        packet_rate = 834;
+        packet_rate = 850;
         model_full_name = "RS_16";
     }
     else

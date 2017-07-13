@@ -172,7 +172,7 @@ float RawData::calibrateIntensity(float intensity,int calIdx, int distance)
    *  @param pkt raw packet to unpack
    *  @param pc shared pointer to point cloud (points are appended)
    */
- void RawData::unpack(const rslidar_msgs::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud)
+ void RawData::unpack(const rslidar_msgs::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,bool finish_packets_parse)
  {
     float azimuth;  //0.01 dgree
     float intensity;
@@ -192,8 +192,7 @@ float RawData::calibrateIntensity(float intensity,int calIdx, int distance)
                                      << block << " header value is "
                                      << raw->blocks[block].header);
             
-            
-            return ;
+            break ;
         }
         azimuth = (float)(256*raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2);
    
@@ -244,59 +243,59 @@ float RawData::calibrateIntensity(float intensity,int calIdx, int distance)
         }
         pic.azimuth[pic.col] = azimuth;
         pic.col++;
-        
-        if(pic.col == (BLOCKS_PER_PACKET * 84))
-        {
-          pointcloud->clear();
-          pointcloud->height = RS16_SCANS_PER_FIRING;
-          pointcloud->width = 2 * pic.col;
-          pointcloud->is_dense = false;      
-          pointcloud->resize(pointcloud->height * pointcloud->width);
-          mat_depth = cv::Mat(cv::Size( 2 * pic.col,RS16_SCANS_PER_FIRING), CV_32FC1, cv::Scalar(0));
-          //mat_inten = cv::Mat(cv::Size(2 * pic.col ,RS16_SCANS_PER_FIRING ), CV_8UC1, cv::Scalar(0));
-          for (int block_num = 0; block_num < pic.col; block_num++)
-          {
+    }
 
-              for (int firing = 0; firing < RS16_FIRINGS_PER_BLOCK; firing++)
+    if(finish_packets_parse)
+    {
+      //ROS_INFO_STREAM("***************: "<<pic.col);
+      pointcloud->clear();
+      pointcloud->height = RS16_SCANS_PER_FIRING;
+      pointcloud->width = 2 * pic.col;
+      pointcloud->is_dense = false;
+      pointcloud->resize(pointcloud->height * pointcloud->width);
+      mat_depth = cv::Mat(cv::Size( 2 * pic.col,RS16_SCANS_PER_FIRING), CV_32FC1, cv::Scalar(0));
+      //mat_inten = cv::Mat(cv::Size(2 * pic.col ,RS16_SCANS_PER_FIRING ), CV_8UC1, cv::Scalar(0));
+      for (int block_num = 0; block_num < pic.col; block_num++)
+      {
+
+          for (int firing = 0; firing < RS16_FIRINGS_PER_BLOCK; firing++)
+          {
+              for (int channel = 0; channel < RS16_SCANS_PER_FIRING; channel++)
               {
-                  for (int channel = 0; channel < RS16_SCANS_PER_FIRING; channel++)
+                  float dis = pic.distance[block_num * 32 + channel + 16*firing];
+                  float arg_horiz = pic.azimuthforeachP[block_num*32 + channel + 16*firing] /18000*CV_PI;
+                  float intensity = pic.intensity[block_num*32 + channel + 16*firing];
+                  float arg_vert = VERT_ANGLE[channel];
+                  pcl::PointXYZI point;
+                  if(dis > DISTANCE_MAX || dis < DISTANCE_MIN)  //invalid data
                   {
-                      float dis = pic.distance[block_num * 32 + channel + 16*firing];
-                      float arg_horiz = pic.azimuthforeachP[block_num*32 + channel + 16*firing] /18000*CV_PI;
-                      float intensity = pic.intensity[block_num*32 + channel + 16*firing];
-                      float arg_vert = VERT_ANGLE[channel];
-                      pcl::PointXYZI point;
-                      if(dis > DISTANCE_MAX || dis < DISTANCE_MIN)  //invalid data
-                      {
-                          point.x = NAN;
-                          point.y = NAN;
-                          point.z = NAN;
-                          point.intensity = 0;
-                          //ROS_INFO("inten: %f", intensity);
-                          //pointcloud->push_back(point);
-                          pointcloud->at(2*block_num + firing, channel) = point;
-                          mat_depth.at<float>(channel,2*block_num + firing) = 0;
-                          //mat_inten.at<uchar>(channel,2*block_num + firing) = (uchar)0;
-                      }else
-                      {
-                          point.x = dis * cos(arg_vert) * sin(arg_horiz);
-                          point.y = dis * cos(arg_vert) * cos(arg_horiz);
-                          point.z = dis * sin(arg_vert);
-                          point.intensity = intensity;
-                          pointcloud->at(2*block_num + firing, channel) = point;
-                          mat_depth.at<float>(channel,2*block_num + firing) = dis;
-                          //mat_inten.at<uchar>(channel,2*block_num + firing) = (uchar)intensity;
-                          
-                      }
+                      point.x = NAN;
+                      point.y = NAN;
+                      point.z = NAN;
+                      point.intensity = 0;
+                      //ROS_INFO("inten: %f", intensity);
+                      //pointcloud->push_back(point);
+                      pointcloud->at(2*block_num + firing, channel) = point;
+                      mat_depth.at<float>(channel,2*block_num + firing) = 0;
+                      //mat_inten.at<uchar>(channel,2*block_num + firing) = (uchar)0;
+                  }else
+                  {
+                      point.x = dis * cos(arg_vert) * sin(arg_horiz);
+                      point.y = dis * cos(arg_vert) * cos(arg_horiz);
+                      point.z = dis * sin(arg_vert);
+                      point.intensity = intensity;
+                      pointcloud->at(2*block_num + firing, channel) = point;
+                      mat_depth.at<float>(channel,2*block_num + firing) = dis;
+                      //mat_inten.at<uchar>(channel,2*block_num + firing) = (uchar)intensity;
 
                   }
+
               }
           }
-          //removeOutlier(pointcloud); //去除脏数据
-          init_setup();
-          pic.header.stamp = pkt.stamp;
-        }
-            
+      }
+      removeOutlier(pointcloud); //去除脏数据
+      init_setup();
+      pic.header.stamp = pkt.stamp;
     }
 
 }

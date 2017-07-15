@@ -204,9 +204,9 @@ float RawData::calibrateIntensity(float intensity,int calIdx, int distance)
             azimuth_diff = (float)((36000 + azi1 - azi2)%36000);
              //Debug start by Tony 20170523
             if(azimuth_diff <= 0.0 || azimuth_diff > 70.0){
-            	//ROS_INFO("Error: %d  %d", azi2, azi1);
-            	azimuth_diff = 40.0;
-            	azimuth = pic.azimuth[pic.col-1] + azimuth_diff;
+                //ROS_INFO("Error: %d  %d", azi1, azi2);
+                azimuth_diff = 40.0;
+                azimuth = pic.azimuth[pic.col-1] + azimuth_diff;
             }
             //Debug end by Tony 20170523
             last_azimuth_diff = azimuth_diff;
@@ -219,25 +219,25 @@ float RawData::calibrateIntensity(float intensity,int calIdx, int distance)
         {
             for (int dsr = 0; dsr < RS16_SCANS_PER_FIRING; dsr++, k += RAW_SCAN_SIZE)//16   3
             {
-
+                int point_count = pic.col * SCANS_PER_BLOCK + dsr + RS16_SCANS_PER_FIRING * firing;
                 azimuth_corrected_f = azimuth + (azimuth_diff * ((dsr * RS16_DSR_TOFFSET) + (firing * RS16_FIRING_TOFFSET)) / RS16_BLOCK_TDURATION);
                 azimuth_corrected = ((int)round(azimuth_corrected_f)) % 36000;//convert to integral value...
-                pic.azimuthforeachP[pic.col*32+k/3]=azimuth_corrected;
+                pic.azimuthforeachP[point_count] = azimuth_corrected;
 
                 union two_bytes tmp;
                 tmp.bytes[1] = raw->blocks[block].data[k];
                 tmp.bytes[0] = raw->blocks[block].data[k+1];
-                int distance = tmp.uint;// * DISTANCE_RESOLUTION;
+                int distance = tmp.uint;
 
 				// read intensity
                 intensity = raw->blocks[block].data[k+2];
                 intensity = calibrateIntensity(intensity,dsr,distance);
                 
                 float distance2 = pixelToDistance(distance, dsr);
-                distance2 = 0.01* distance2;
+                distance2 = distance2 * DISTANCE_RESOLUTION;
 
-                pic.distance[pic.col*32+k/3] = distance2;
-                pic.intensity[pic.col*32+k/3] = intensity;
+                pic.distance[point_count] = distance2;
+                pic.intensity[point_count] = intensity;
 
                }
         }
@@ -260,12 +260,13 @@ float RawData::calibrateIntensity(float intensity,int calIdx, int distance)
 
           for (int firing = 0; firing < RS16_FIRINGS_PER_BLOCK; firing++)
           {
-              for (int channel = 0; channel < RS16_SCANS_PER_FIRING; channel++)
+              for (int dsr = 0; dsr < RS16_SCANS_PER_FIRING; dsr++)
               {
-                  float dis = pic.distance[block_num * 32 + channel + 16*firing];
-                  float arg_horiz = pic.azimuthforeachP[block_num*32 + channel + 16*firing] /18000*CV_PI;
-                  float intensity = pic.intensity[block_num*32 + channel + 16*firing];
-                  float arg_vert = VERT_ANGLE[channel];
+                  int point_count = block_num * SCANS_PER_BLOCK + dsr + RS16_SCANS_PER_FIRING * firing;
+                  float dis = pic.distance[point_count];
+                  float arg_horiz = pic.azimuthforeachP[point_count]/18000*CV_PI;
+                  float intensity = pic.intensity[point_count];
+                  float arg_vert = VERT_ANGLE[dsr];
                   pcl::PointXYZI point;
                   if(dis > DISTANCE_MAX || dis < DISTANCE_MIN)  //invalid data
                   {
@@ -275,18 +276,18 @@ float RawData::calibrateIntensity(float intensity,int calIdx, int distance)
                       point.intensity = 0;
                       //ROS_INFO("inten: %f", intensity);
                       //pointcloud->push_back(point);
-                      pointcloud->at(2*block_num + firing, channel) = point;
-                      mat_depth.at<float>(channel,2*block_num + firing) = 0;
-                      //mat_inten.at<uchar>(channel,2*block_num + firing) = (uchar)0;
+                      pointcloud->at(2*block_num + firing, dsr) = point;
+                      mat_depth.at<float>(dsr,2*block_num + firing) = 0;
+                      //mat_inten.at<uchar>(dsr,2*block_num + firing) = (uchar)0;
                   }else
                   {
                       point.x = dis * cos(arg_vert) * sin(arg_horiz);
                       point.y = dis * cos(arg_vert) * cos(arg_horiz);
                       point.z = dis * sin(arg_vert);
                       point.intensity = intensity;
-                      pointcloud->at(2*block_num + firing, channel) = point;
-                      mat_depth.at<float>(channel,2*block_num + firing) = dis;
-                      //mat_inten.at<uchar>(channel,2*block_num + firing) = (uchar)intensity;
+                      pointcloud->at(2*block_num + firing, dsr) = point;
+                      mat_depth.at<float>(dsr,2*block_num + firing) = dis;
+                      //mat_inten.at<uchar>(dsr,2*block_num + firing) = (uchar)intensity;
 
                   }
 

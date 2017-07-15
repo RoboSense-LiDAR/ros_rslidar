@@ -70,9 +70,9 @@ namespace rslidar_pointcloud
     sensor_msgs::PointCloud2 outMsg;
     pcl::toROSMsg(*outPoints, outMsg);
 
-    if(outPoints->size()==0){
-        ROS_INFO_STREAM("Height1: "<<outPoints->height<<" Width1: "<<outPoints->width);
-    }
+    //if(outPoints->size()==0){
+    //    ROS_INFO_STREAM("Height1: "<<outPoints->height<<" Width1: "<<outPoints->width);
+    //}
     output_.publish(outMsg);
   }
 } // namespace rslidar_pointcloud

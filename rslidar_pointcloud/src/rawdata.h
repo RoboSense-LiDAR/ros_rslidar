@@ -48,11 +48,9 @@ namespace rslidar_rawdata
 	static const float  ROTATION_RESOLUTION = 0.01f; /**< degrees 旋转角分辨率*/
 	static const uint16_t ROTATION_MAX_UNITS = 36000; /**< hundredths of degrees */
 
-	/** According to Bruce Hall DISTANCE_MAX is 65.0, but we noticed
-	 *  valid packets with readings up to 130.0. */
 	static const float  DISTANCE_MAX = 150.0f;        /**< meters */
 	static const float  DISTANCE_MIN = 0.2f;        /**< meters */
-	static const float  DISTANCE_RESOLUTION = 0.002f; /**< meters */
+    static const float  DISTANCE_RESOLUTION = 0.01f; /**< meters */
 	static const float  DISTANCE_MAX_UNITS = (DISTANCE_MAX
 		                                     / DISTANCE_RESOLUTION + 1.0);
 	/** @todo make this work for both big and little-endian machines */

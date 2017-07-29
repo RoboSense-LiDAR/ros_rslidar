@@ -148,8 +148,11 @@ float RawData::calibrateIntensity(float intensity,int calIdx, int distance)
 	
     if((int)realPwr<126)
         realPwr = realPwr * 4.0;
-    else
+    else if((int)realPwr>=126 && (int)realPwr<226)
         realPwr = (realPwr-125.0) * 16.0 + 500.0;
+    else
+        realPwr = (realPwr-225.0) * 256.0 + 2100.0;
+
 
     //-------------------------------------------------------------------------------------------------
     //limit sDist belongs to [200,1600] in unit cm
@@ -159,8 +162,8 @@ float RawData::calibrateIntensity(float intensity,int calIdx, int distance)
     algDist = sDist - g_ChannelNum[calIdx] ;
     //algDist = algDist < 1400? algDist : 1399;
     refPwr = aIntensityCal[algDist][calIdx];
-    tempInten = refPwr / realPwr;
-    tempInten = tempInten * 200.0;
+    tempInten = (200 * refPwr) / realPwr;
+    //tempInten = tempInten * 200.0;
     tempInten = (int)tempInten > 255 ? 255.0 : tempInten;
     return tempInten;
     //------------------------------------------------------------

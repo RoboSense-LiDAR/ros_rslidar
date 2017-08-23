@@ -48,7 +48,7 @@ namespace rslidar_rawdata
 	static const float  ROTATION_RESOLUTION = 0.01f; /**< degrees 旋转角分辨率*/
 	static const uint16_t ROTATION_MAX_UNITS = 36000; /**< hundredths of degrees */
 
-	static const float  DISTANCE_MAX = 150.0f;        /**< meters */
+    static const float  DISTANCE_MAX = 180.0f;        /**< meters */
 	static const float  DISTANCE_MIN = 0.2f;        /**< meters */
     static const float  DISTANCE_RESOLUTION = 0.01f; /**< meters */
 	static const float  DISTANCE_MAX_UNITS = (DISTANCE_MAX

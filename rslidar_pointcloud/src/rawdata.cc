@@ -82,7 +82,7 @@ void RawData::loadConfigFile(ros::NodeHandle private_nh)
         }
         for(loopn=0;loopn<16;loopn++)
         {
-            VERT_ANGLE[loopn]=b[loopn]/180 * CV_PI;
+            VERT_ANGLE[loopn]=b[loopn]/180 * M_PI;
         }
         fclose(f_angle);
     }
@@ -191,9 +191,10 @@ float RawData::calibrateIntensity(float intensity,int calIdx, int distance)
 
         if(UPPER_BANK != raw->blocks[block].header)
         {
-            ROS_WARN_STREAM_THROTTLE(60, "skipping invalid RSLIDAR packet: block "
+            ROS_INFO_STREAM_THROTTLE(180, "skipping RSLIDAR DIFOP packet");
+            /*ROS_WARN_STREAM_THROTTLE(60, "skipping invalid RSLIDAR packet: block "
                                      << block << " header value is "
-                                     << raw->blocks[block].header);
+                                     << raw->blocks[block].header);*/
             
             break ;
         }
@@ -267,7 +268,7 @@ float RawData::calibrateIntensity(float intensity,int calIdx, int distance)
               {
                   int point_count = block_num * SCANS_PER_BLOCK + dsr + RS16_SCANS_PER_FIRING * firing;
                   float dis = pic.distance[point_count];
-                  float arg_horiz = pic.azimuthforeachP[point_count]/18000*CV_PI;
+                  float arg_horiz = pic.azimuthforeachP[point_count]/18000*M_PI;
                   float intensity = pic.intensity[point_count];
                   float arg_vert = VERT_ANGLE[dsr];
                   pcl::PointXYZI point;
@@ -284,8 +285,13 @@ float RawData::calibrateIntensity(float intensity,int calIdx, int distance)
                       //mat_inten.at<uchar>(dsr,2*block_num + firing) = (uchar)0;
                   }else
                   {
-                      point.x = dis * cos(arg_vert) * sin(arg_horiz);
-                      point.y = dis * cos(arg_vert) * cos(arg_horiz);
+                      //If you want to fix the rslidar Y aixs to the front side of the cable, please use the two line below
+                      //point.x = dis * cos(arg_vert) * sin(arg_horiz);
+                      //point.y = dis * cos(arg_vert) * cos(arg_horiz);
+
+                      //If you want to fix the rslidar X aixs to the front side of the cable, please use the two line below
+                      point.y = -dis * cos(arg_vert) * sin(arg_horiz);
+                      point.x = dis * cos(arg_vert) * cos(arg_horiz);
                       point.z = dis * sin(arg_vert);
                       point.intensity = intensity;
                       pointcloud->at(2*block_num + firing, dsr) = point;

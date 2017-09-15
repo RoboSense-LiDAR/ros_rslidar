@@ -7,9 +7,9 @@
   </node>
 
   <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
-    <param name="curves_path" value="/data/curves.csv" />
-    <param name="angle_path" value="/data/angle.csv" />
-    <param name="channel_path" value="/data/ChannelNum.csv" />
+    <param name="curves_path" value="$(find rslidar_pointcloud)/data/curves.csv" />
+    <param name="angle_path" value="$(find rslidar_pointcloud)/data/angle.csv" />
+    <param name="channel_path" value="$(find rslidar_pointcloud)/data/ChannelNum.csv" />
   </node>
 
 </launch>

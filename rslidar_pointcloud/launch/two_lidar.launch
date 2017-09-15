@@ -7,9 +7,9 @@
   </node>
 
   <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
-    <param name="curves_path" value="/data/lidar1/curves.csv" />
-    <param name="angle_path" value="/data/lidar1/angle.csv" />
-    <param name="channel_path" value="/data/lidar1/ChannelNum.csv" />
+    <param name="curves_path" value="$(find rslidar_pointcloud)/data/lidar1/curves.csv" />
+    <param name="angle_path" value="$(find rslidar_pointcloud)/data/lidar1/angle.csv" />
+    <param name="channel_path" value="$(find rslidar_pointcloud)/data/lidar1/ChannelNum.csv" />
   </node>
 </group>
 
@@ -21,9 +21,9 @@
   </node>
 	
   <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
-    <param name="curves_path" value="/data/lidar2/curves.csv" />
-    <param name="angle_path" value="/data/lidar2/angle.csv" />
-    <param name="channel_path" value="/data/lidar2/ChannelNum.csv" />
+    <param name="curves_path" value="$(find rslidar_pointcloud)/data/lidar2/curves.csv" />
+    <param name="angle_path" value="$(find rslidar_pointcloud)/data/lidar2/angle.csv" />
+    <param name="channel_path" value="$(find rslidar_pointcloud)/data/lidar2/ChannelNum.csv" />
   </node>
 </group>
 </launch>

@@ -128,6 +128,10 @@ namespace rslidar_rawdata
         void    loadConfigFile(ros::NodeHandle private_nh);
         /*unpack the UDP packet and opuput PCL PointXYZI type*/
         void    unpack(const rslidar_msgs::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,bool finish_packets_parse);
+        /*compute temperature*/
+        float   computeTemperature(unsigned char bit1, unsigned char bit2);
+        /*estimate temperature*/
+        int     estimateTemperature(float Temper);
         /*calibrated the disctance*/
         float   pixelToDistance(int pixelValue, int passageway);
         /*calibrated the intensity*/
@@ -140,7 +144,9 @@ namespace rslidar_rawdata
     //cv::Mat mat_inten;// = cv::Mat::zeros(16,2100,cv::CV_U8C);
     float   VERT_ANGLE[16];
     float   aIntensityCal[1600][16];
-    int     g_ChannelNum[16];
+    int     g_ChannelNum[16][41];
+
+    float temper = 30.0;
 
     void   removeOutlier(pcl::PointCloud<pcl::PointXYZI>::Ptr);
     

@@ -88,23 +88,47 @@ void RawData::loadConfigFile(ros::NodeHandle private_nh)
   }
 
   //=============================================================
-  FILE *f_channel = fopen(channelPath.c_str(), "r");
+  FILE *f_channel = fopen(channelPath.c_str(),"r");
   if(!f_channel)
   {
-    ROS_ERROR_STREAM(channelPath << " does not exist");
+      ROS_ERROR_STREAM(channelPath << " does not exist");
   }
   else
   {
-    int loopl = 0;
-    //  int c[16];
-    while(~feof(f_channel))
-    {
-      fscanf(f_channel, "%d", &g_ChannelNum[loopl]);
-      loopl++;
-      if(loopl > 15) break;
-    }
-    fclose(f_channel);
-  }
+      printf("Loading channelnum corrections file!\n");
+      int loopl=0;
+      int loopm=0;
+      int c[41];
+      while (~feof(f_channel))
+      {
+        fscanf(f_channel, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
+         &c[0], &c[1], &c[2], &c[3], &c[4], &c[5], &c[6], &c[7], &c[8], &c[9], &c[10], &c[11], &c[12], &c[13], &c[14], &c[15], 
+         &c[16], &c[17], &c[18], &c[19], &c[20], &c[21], &c[22], &c[23], &c[24], &c[25], &c[26], &c[27], &c[28], &c[29], &c[30],
+         &c[31], &c[32], &c[33], &c[34], &c[35], &c[36], &c[37], &c[38], &c[39], &c[40]);
+
+        if(c[1]<100||c[1]>1000)//TODO:2100 is not the real max value
+        {
+          for (loopl = 0; loopl < 41; loopl++)
+          {
+            g_ChannelNum[loopm][loopl] =c[0];
+            //printf("Non temperature information in correction file .\n");
+          }
+        }
+        else
+        {
+          for (loopl = 0; loopl < 41; loopl++)
+          {
+            g_ChannelNum[loopm][loopl] =c[loopl];
+            //printf("With temperature information in correction file.\n");
+          }
+        }
+        loopm++;
+        if(loopm>15)
+          {break;}
+        
+      }
+      fclose(f_channel);
+   }
 }
 
 /** Set up for on-line operation. */
@@ -121,15 +145,15 @@ float RawData::pixelToDistance(int pixelValue, int passageway)
 {
   float DistanceValue;
 
-  if(pixelValue <= g_ChannelNum[passageway])
+  int indexTemper = estimateTemperature(temper)-30;
+  if(pixelValue <= g_ChannelNum[passageway][indexTemper])
   {
     DistanceValue = 0.0;
   }
   else
   {
-    DistanceValue = (float) (pixelValue - g_ChannelNum[passageway]);
+    DistanceValue = (float) (pixelValue - g_ChannelNum[passageway][indexTemper]);
   }
-
   return DistanceValue;
 }
 
@@ -143,7 +167,8 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
   float refPwr;
   float tempInten;
 
-  uplimitDist = g_ChannelNum[calIdx] + 1400;
+  int indexTemper = estimateTemperature(temper)-30;
+  uplimitDist = g_ChannelNum[calIdx][indexTemper] + 1400;
   realPwr = intensity;
 
   if((int) realPwr < 126)
@@ -155,10 +180,10 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
 
 
 
-  sDist = (distance > g_ChannelNum[calIdx]) ? distance : g_ChannelNum[calIdx];
+  sDist = (distance > g_ChannelNum[calIdx][indexTemper]) ? distance : g_ChannelNum[calIdx][indexTemper];
   sDist = (sDist < uplimitDist) ? sDist : uplimitDist;
   //minus the static offset (this data is For the intensity cal useage only)
-  algDist = sDist - g_ChannelNum[calIdx];
+  algDist = sDist - g_ChannelNum[calIdx][indexTemper];
   //algDist = algDist < 1400? algDist : 1399;
   refPwr = aIntensityCal[algDist][calIdx];
   tempInten = (200 * refPwr) / realPwr;
@@ -168,6 +193,42 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
   //------------------------------------------------------------
 }
 
+//------------------------------------------------------------
+float RawData::computeTemperature(
+  unsigned char bit1, unsigned char bit2)
+{
+  float Temp;
+  float bitneg = bit2 & 128;//10000000
+  float highbit = bit2 & 127;//01111111
+  float lowbit= bit1 >> 3;
+  if(bitneg == 128)
+  {
+    Temp = -1 *(highbit * 32 + lowbit)*0.0625;
+  }
+  else
+  {
+    Temp = (highbit * 32 + lowbit)*0.0625;
+  }
+
+  return Temp;
+}
+//------------------------------------------------------------
+int RawData::estimateTemperature(float Temper)
+{
+  int temp = floor(Temper+0.5);
+
+  if(temp<30)
+  {
+    temp = 30;
+  }
+  else if(temp>70)
+  {
+    temp = 70;
+  }
+
+  return temp;
+}
+//------------------------------------------------------------
 
 /** @brief convert raw packet to point cloud
  *
@@ -196,6 +257,7 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl
 
       break;
     }
+    temper = computeTemperature(pkt.data[38],pkt.data[39]);
     azimuth = (float) (256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2);
 
     if(block < (BLOCKS_PER_PACKET - 1))//12

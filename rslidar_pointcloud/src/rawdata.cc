@@ -257,7 +257,17 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl
 
       break;
     }
-    temper = computeTemperature(pkt.data[38],pkt.data[39]);
+
+    if(tempPacketNum<20000 && tempPacketNum>0)//update temperature information per 20000 packets
+    {
+        tempPacketNum++;
+    }
+    else
+    {
+        temper = computeTemperature(pkt.data[38],pkt.data[39]);
+        tempPacketNum = 1;
+    }
+
     azimuth = (float) (256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2);
 
     if(block < (BLOCKS_PER_PACKET - 1))//12

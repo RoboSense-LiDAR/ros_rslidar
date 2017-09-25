@@ -147,6 +147,7 @@ namespace rslidar_rawdata
     int     g_ChannelNum[16][41];
 
     float temper = 30.0;
+    int tempPacketNum = 0;
 
     void   removeOutlier(pcl::PointCloud<pcl::PointXYZI>::Ptr);
     

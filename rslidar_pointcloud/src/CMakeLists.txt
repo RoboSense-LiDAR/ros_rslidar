@@ -1,5 +1,6 @@
 add_library(rslidar_data rawdata.cc )
 target_link_libraries(rslidar_data
+    ${OpenCV_LIBRARIES}
     ${catkin_LIBRARIES}
     ${libpcap_LIBRARIES})
 

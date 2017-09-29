@@ -47,7 +47,7 @@ void RawData::loadConfigFile(ros::NodeHandle private_nh)
   }
   else
   {
-    while(~feof(f_inten))
+    while(!feof(f_inten))
     {
       float a[16];
       loopi++;
@@ -74,7 +74,7 @@ void RawData::loadConfigFile(ros::NodeHandle private_nh)
     float b[16];
     int loopk = 0;
     int loopn = 0;
-    while(~feof(f_angle))
+    while(!feof(f_angle))
     {
       fscanf(f_angle, "%f", &b[loopk]);
       loopk++;
@@ -97,7 +97,7 @@ void RawData::loadConfigFile(ros::NodeHandle private_nh)
   {
     int loopl = 0;
     //  int c[16];
-    while(~feof(f_channel))
+    while(!feof(f_channel))
     {
       fscanf(f_channel, "%d", &g_ChannelNum[loopl]);
       loopl++;

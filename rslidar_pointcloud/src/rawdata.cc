@@ -47,7 +47,7 @@ void RawData::loadConfigFile(ros::NodeHandle private_nh)
   }
   else
   {
-    while(~feof(f_inten))
+    while(!feof(f_inten))
     {
       float a[16];
       loopi++;
@@ -74,7 +74,7 @@ void RawData::loadConfigFile(ros::NodeHandle private_nh)
     float b[16];
     int loopk = 0;
     int loopn = 0;
-    while(~feof(f_angle))
+    while(!feof(f_angle))
     {
       fscanf(f_angle, "%f", &b[loopk]);
       loopk++;
@@ -99,7 +99,7 @@ void RawData::loadConfigFile(ros::NodeHandle private_nh)
       int loopl=0;
       int loopm=0;
       int c[41];
-      while (~feof(f_channel))
+      while (!feof(f_channel))
       {
         fscanf(f_channel, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
          &c[0], &c[1], &c[2], &c[3], &c[4], &c[5], &c[6], &c[7], &c[8], &c[9], &c[10], &c[11], &c[12], &c[13], &c[14], &c[15], 
@@ -329,8 +329,6 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl
     pointcloud->width = 2 * pic.col;
     pointcloud->is_dense = false;
     pointcloud->resize(pointcloud->height * pointcloud->width);
-    mat_depth = cv::Mat(cv::Size(2 * pic.col, RS16_SCANS_PER_FIRING), CV_32FC1, cv::Scalar(0));
-    //mat_inten = cv::Mat(cv::Size(2 * pic.col ,RS16_SCANS_PER_FIRING ), CV_8UC1, cv::Scalar(0));
     for(int block_num = 0; block_num < pic.col; block_num++)
     {
 
@@ -353,8 +351,6 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl
             //ROS_INFO("inten: %f", intensity);
             //pointcloud->push_back(point);
             pointcloud->at(2 * block_num + firing, dsr) = point;
-            mat_depth.at<float>(dsr, 2 * block_num + firing) = 0;
-            //mat_inten.at<uchar>(dsr,2*block_num + firing) = (uchar)0;
           }
           else
           {
@@ -368,146 +364,16 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl
             point.z = dis * sin(arg_vert);
             point.intensity = intensity;
             pointcloud->at(2 * block_num + firing, dsr) = point;
-            mat_depth.at<float>(dsr, 2 * block_num + firing) = dis;
-            //mat_inten.at<uchar>(dsr,2*block_num + firing) = (uchar)intensity;
 
           }
         }
       }
     }
-    removeOutlier(pointcloud); //去除脏数据
     init_setup();
     pic.header.stamp = pkt.stamp;
   }
 }
 
-
-
-void regionGrow(cv::Mat src, cv::Mat &matDst, cv::Point2i pt, float th)
-{
-
-  cv::Point2i ptGrowing;
-  int nGrowLable = 0;
-  float nSrcValue = 0;
-  float nCurValue = 0;
-
-
-  int DIR[10][2] = {{-1, 0},
-                    {1,  0},
-                    {-2, 0},
-                    {2,  0},
-                    {-3, 0},
-                    {3,  0},
-                    {-4, 0},
-                    {4,  0},
-                    {0,  1},
-                    {0,  -1}};
-
-
-  nSrcValue = src.at<float>(pt);
-  matDst.at<uchar>(pt) = 0;
-  if(nSrcValue == 0)
-  {
-    matDst.at<uchar>(pt) = 255;
-    return;
-  }
-
-  //分别对八个方向上的点进行生长
-  for(int i = 0; i < 10; ++i)
-  {
-    ptGrowing.x = pt.x + DIR[i][0];
-    ptGrowing.y = pt.y + DIR[i][1];
-    //检查是否是边缘点
-    if(ptGrowing.x < 0 || ptGrowing.y<0 || ptGrowing.x>(src.cols - 1) || (ptGrowing.y > src.rows - 1))
-      continue;
-
-
-    nCurValue = src.at<float>(ptGrowing);
-
-    if(nCurValue == 0)
-    {
-      continue;
-    }
-
-    if(nSrcValue <= 2)//在阈值范围内则生长
-    {
-      if(abs(nSrcValue - nCurValue) < 0.2)
-      {
-        matDst.at<uchar>(pt) += 1;
-      }
-
-      if(matDst.at<uchar>(pt) >= 3)
-      {
-        matDst.at<uchar>(pt) = 255;
-        return;
-      }
-    }
-    if(nSrcValue > 2 && nSrcValue <= 5)
-    {
-      if(abs(nSrcValue - nCurValue) < 0.5)
-      {
-        matDst.at<uchar>(pt) += 1;
-      }
-
-      if(matDst.at<uchar>(pt) >= 2)
-      {
-        matDst.at<uchar>(pt) = 255;
-        return;
-      }
-    }
-    if(nSrcValue > 5)
-    {
-
-      if(abs(nSrcValue - nCurValue) < 1)
-      {
-        matDst.at<uchar>(pt) += 1;
-      }
-
-      if(matDst.at<uchar>(pt) >= 1)
-      {
-        matDst.at<uchar>(pt) = 255;
-        return;
-      }
-    }
-  }
-}
-
-
-void removeOutlier(pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud)
-{
-
-  cv::Mat matMask = cv::Mat::zeros(mat_depth.size(), CV_8UC1);
-  for(int row = 0; row < mat_depth.rows; row++)
-  {
-    for(int col = 0; col < mat_depth.cols; col++)
-    {
-      float d = mat_depth.at<float>(row, col);
-      if(d > 8)
-      {
-        matMask.at<uchar>(row, col) = (uchar) 255;
-        continue;
-      }
-
-      cv::Point2i pt(col, row);
-      regionGrow(mat_depth, matMask, pt, 1);
-    }
-  }
-
-  for(int row = 0; row < matMask.rows; row++)
-  {
-    for(int col = 0; col < matMask.cols; col++)
-    {
-      if(matMask.at<uchar>(row, col) != 255)
-      {
-
-        pointcloud->at(col, row).x = NAN;
-        pointcloud->at(col, row).y = NAN;
-        pointcloud->at(col, row).z = NAN;
-
-      }
-    }
-  }
-}
 }//namespace rs_pointcloud
 
 

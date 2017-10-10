@@ -32,8 +32,6 @@
 #include <pcl_ros/point_cloud.h>
 #include <pcl_ros/impl/transforms.hpp>
 #include <pcl_conversions/pcl_conversions.h>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
 
 namespace rslidar_rawdata
 {   
@@ -139,17 +137,12 @@ namespace rslidar_rawdata
 
     };
 
-
-    cv::Mat mat_depth;// = cv::Mat::zeros(16,2100,cv::CV_32F); // 10HZ 2000 points per circle
-    //cv::Mat mat_inten;// = cv::Mat::zeros(16,2100,cv::CV_U8C);
     float   VERT_ANGLE[16];
     float   aIntensityCal[1600][16];
     int     g_ChannelNum[16][41];
 
     float temper = 30.0;
     int tempPacketNum = 0;
-
-    void   removeOutlier(pcl::PointCloud<pcl::PointXYZI>::Ptr);
     
     rslidar_msgs::rslidarPic pic;
 

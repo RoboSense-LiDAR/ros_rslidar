@@ -114,30 +114,30 @@ InputSocket::~InputSocket(void)
 int InputSocket::getPacket(rslidar_msgs::rslidarPacket *pkt, const double time_offset)
 {
     double time1 = ros::Time::now().toSec();
-	struct pollfd fds[1];
-	fds[0].fd = sockfd_;
-	fds[0].events = POLLIN;
-	static const int POLL_TIMEOUT = 1000; // one second (in msec)
-	
-	sockaddr_in sender_address;
-	socklen_t sender_address_len = sizeof(sender_address);
+    struct pollfd fds[1];
+    fds[0].fd = sockfd_;
+    fds[0].events = POLLIN;
+    static const int POLL_TIMEOUT = 1000; // one second (in msec)
+    
+    sockaddr_in sender_address;
+    socklen_t sender_address_len = sizeof(sender_address);
     while (flag == 1)
     {
-		// Receive packets that should now be available from the
-		// socket using a blocking read.
-		// poll() until input available
-		do
-		{
-			int retval = poll(fds, 1, POLL_TIMEOUT);
-			if (retval < 0)             // poll() error?
-			{
-				if (errno != EINTR)
-					ROS_ERROR("poll() error: %s", strerror(errno));
-				return 1;
-			}
-			if (retval == 0)            // poll() timeout?
-			{
-				ROS_WARN("Rslidar poll() timeout");
+        // Receive packets that should now be available from the
+        // socket using a blocking read.
+        // poll() until input available
+        do
+        {
+            int retval = poll(fds, 1, POLL_TIMEOUT);
+            if (retval < 0)             // poll() error?
+            {
+                if (errno != EINTR)
+                ROS_ERROR("poll() error: %s", strerror(errno));
+                return 1;
+            }
+            if (retval == 0)            // poll() timeout?
+            {
+                ROS_WARN("Rslidar poll() timeout");
 
                 char buffer_data[8] = "re-con";
                 memset(&sender_address, 0, sender_address_len);    // initialize to zeros
@@ -145,15 +145,15 @@ int InputSocket::getPacket(rslidar_msgs::rslidarPacket *pkt, const double time_o
                 sender_address.sin_port = htons(DATA_PORT_NUMBER);      // port in network byte order, set any value
                 sender_address.sin_addr.s_addr = devip_.s_addr;    // automatically fill in my IP
                 sendto(sockfd_, &buffer_data,strlen(buffer_data), 0, (sockaddr *)&sender_address,sender_address_len);
-				return 1;
-			}
-			if ((fds[0].revents & POLLERR) || (fds[0].revents & POLLHUP) || (fds[0].revents & POLLNVAL)) // device error?
-			{
-				ROS_ERROR("poll() reports Rslidar error");
-				return 1;
-			}
-		}while ((fds[0].revents & POLLIN) == 0);
-        ssize_t nbytes = recvfrom(sockfd_, &pkt->data[0],
+                return 1;
+            }
+            if ((fds[0].revents & POLLERR) || (fds[0].revents & POLLHUP) || (fds[0].revents & POLLNVAL)) // device error?
+            {
+                ROS_ERROR("poll() reports Rslidar error");
+                return 1;
+            }
+        }while ((fds[0].revents & POLLIN) == 0);
+            ssize_t nbytes = recvfrom(sockfd_, &pkt->data[0],
                 packet_size,  0,
                 (sockaddr*) &sender_address,
                 &sender_address_len);
@@ -178,16 +178,15 @@ int InputSocket::getPacket(rslidar_msgs::rslidarPacket *pkt, const double time_o
         ROS_DEBUG_STREAM("incomplete rslidar packet read: "
                          << nbytes << " bytes");
     }
-
-	if(flag==0)
-	{
-		abort();
-	}
+    if(flag==0)
+    {
+        abort();
+    }
     // Average the times at which we begin and end reading.  Use that to
     // estimate when the scan occurred. Add the time offset.
     double time2 = ros::Time::now().toSec();
     pkt->stamp = ros::Time((time2 + time1) / 2.0 + time_offset);
-
+    
     return 0;
 }
 

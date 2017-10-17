@@ -139,11 +139,11 @@ int InputSocket::getPacket(rslidar_msgs::rslidarPacket *pkt, const double time_o
 			{
 				ROS_WARN("Rslidar poll() timeout");
 
-                char buffer_data[8] = "revocer";
+                char buffer_data[8] = "re-con";
                 memset(&sender_address, 0, sender_address_len);    // initialize to zeros
                 sender_address.sin_family = AF_INET;            // host byte order
-                sender_address.sin_port = htons(DATA_PORT_NUMBER);          // port in network byte order
-                sender_address.sin_addr.s_addr = INADDR_ANY;    // automatically fill in my IP
+                sender_address.sin_port = htons(DATA_PORT_NUMBER);      // port in network byte order, set any value
+                sender_address.sin_addr.s_addr = devip_.s_addr;    // automatically fill in my IP
                 sendto(sockfd_, &buffer_data,strlen(buffer_data), 0, (sockaddr *)&sender_address,sender_address_len);
 				return 1;
 			}

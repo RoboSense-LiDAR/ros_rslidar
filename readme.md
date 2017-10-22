@@ -8,7 +8,9 @@
 (2). Checkt the file attributes:
 
 ```
-cd ~/catkin_ws/src/rslidar
+cd ~/catkin_ws/src/ros_rslidar/rslidar_drvier
+chmod 777 cfg/*
+cd ~/catkin_ws/src/ros_rslidar/rslidar_pointcloud
 chmod 777 cfg/*
 ```
 

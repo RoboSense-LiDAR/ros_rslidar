@@ -106,26 +106,15 @@ void RawData::loadConfigFile(ros::NodeHandle private_nh)
          &c[16], &c[17], &c[18], &c[19], &c[20], &c[21], &c[22], &c[23], &c[24], &c[25], &c[26], &c[27], &c[28], &c[29], &c[30],
          &c[31], &c[32], &c[33], &c[34], &c[35], &c[36], &c[37], &c[38], &c[39], &c[40]);
 
-        if(c[1]<100||c[1]>1000)//TODO:2100 is not the real max value
+        for (loopl = 0; loopl < 41; loopl++)
         {
-          for (loopl = 0; loopl < 41; loopl++)
-          {
-            g_ChannelNum[loopm][loopl] =c[0];
-            //printf("Non temperature information in correction file .\n");
-          }
-        }
-        else
-        {
-          for (loopl = 0; loopl < 41; loopl++)
-          {
-            g_ChannelNum[loopm][loopl] =c[loopl];
-            //printf("With temperature information in correction file.\n");
-          }
+          g_ChannelNum[loopm][loopl] =c[loopl];
         }
         loopm++;
         if(loopm>15)
-          {break;}
-        
+        {
+          break;
+        }
       }
       fclose(f_channel);
    }
@@ -177,8 +166,6 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
     realPwr = (realPwr - 125.0) * 16.0 + 500.0;
   else
     realPwr = (realPwr - 225.0) * 256.0 + 2100.0;
-
-
 
   sDist = (distance > g_ChannelNum[calIdx][indexTemper]) ? distance : g_ChannelNum[calIdx][indexTemper];
   sDist = (sDist < uplimitDist) ? sDist : uplimitDist;
@@ -241,7 +228,6 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl
   float azimuth;  //0.01 dgree
   float intensity;
   float azimuth_diff;
-  float last_azimuth_diff;
   float azimuth_corrected_f;
   int azimuth_corrected;
 
@@ -265,6 +251,7 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl
     else
     {
         temper = computeTemperature(pkt.data[38],pkt.data[39]);
+        ROS_INFO_STREAM("temperature is "<< temper);
         tempPacketNum = 1;
     }
 
@@ -276,19 +263,27 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl
       azi1 = 256 * raw->blocks[block + 1].rotation_1 + raw->blocks[block + 1].rotation_2;
       azi2 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
       azimuth_diff = (float) ((36000 + azi1 - azi2) % 36000);
-      //Debug start by Tony 20170523
-      if(azimuth_diff <= 0.0 || azimuth_diff > 70.0)
+
+      //Ingnore the block if the azimuth change abnormal
+      if(azimuth_diff <= 0.0 || azimuth_diff > 75.0)
       {
-        //ROS_INFO("Error: %d  %d", azi1, azi2);
-        azimuth_diff = 40.0;
-        azimuth = pic.azimuth[pic.col - 1] + azimuth_diff;
+        continue;
       }
-      //Debug end by Tony 20170523
-      last_azimuth_diff = azimuth_diff;
+
     }
     else
     {
-      azimuth_diff = last_azimuth_diff;
+      int azi1, azi2;
+      azi1 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
+      azi2 = 256 * raw->blocks[block-1].rotation_1 + raw->blocks[block-1].rotation_2;
+      azimuth_diff = (float) ((36000 + azi1 - azi2) % 36000);
+
+      //Ingnore the block if the azimuth change abnormal
+      if(azimuth_diff <= 0.0 || azimuth_diff > 75.0)
+      {
+        continue;
+      }
+
     }
 
     for(int firing = 0, k = 0; firing < RS16_FIRINGS_PER_BLOCK; firing++)//2
@@ -348,8 +343,6 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl
             point.y = NAN;
             point.z = NAN;
             point.intensity = 0;
-            //ROS_INFO("inten: %f", intensity);
-            //pointcloud->push_back(point);
             pointcloud->at(2 * block_num + firing, dsr) = point;
           }
           else

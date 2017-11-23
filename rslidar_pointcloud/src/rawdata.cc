@@ -239,8 +239,6 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl
     if(UPPER_BANK != raw->blocks[block].header)
     {
       ROS_INFO_STREAM_THROTTLE(180, "skipping RSLIDAR DIFOP packet");
-
-
       break;
     }
 
@@ -251,7 +249,6 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl
     else
     {
         temper = computeTemperature(pkt.data[38],pkt.data[39]);
-        ROS_INFO_STREAM("temperature is "<< temper);
         tempPacketNum = 1;
     }
 

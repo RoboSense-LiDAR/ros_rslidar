@@ -141,7 +141,7 @@ namespace rslidar_rawdata
     float   aIntensityCal[1600][16];
     int     g_ChannelNum[16][41];
 
-    float temper = 30.0;
+    float temper = 31.0;
     int tempPacketNum = 0;
     
     rslidar_msgs::rslidarPic pic;

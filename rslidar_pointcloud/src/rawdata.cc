@@ -134,7 +134,7 @@ float RawData::pixelToDistance(int pixelValue, int passageway)
 {
   float DistanceValue;
 
-  int indexTemper = estimateTemperature(temper)-30;
+  int indexTemper = estimateTemperature(temper)-31;
   if(pixelValue <= g_ChannelNum[passageway][indexTemper])
   {
     DistanceValue = 0.0;
@@ -156,7 +156,7 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
   float refPwr;
   float tempInten;
 
-  int indexTemper = estimateTemperature(temper)-30;
+  int indexTemper = estimateTemperature(temper)-31;
   uplimitDist = g_ChannelNum[calIdx][indexTemper] + 1400;
   realPwr = intensity;
 
@@ -204,9 +204,9 @@ int RawData::estimateTemperature(float Temper)
 {
   int temp = floor(Temper+0.5);
 
-  if(temp<30)
+  if(temp<31)
   {
-    temp = 30;
+    temp = 31;
   }
   else if(temp>70)
   {
@@ -249,6 +249,7 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl
     else
     {
         temper = computeTemperature(pkt.data[38],pkt.data[39]);
+        ROS_INFO_STREAM("Temp is: " << temper);
         tempPacketNum = 1;
     }
 

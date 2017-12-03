@@ -208,9 +208,9 @@ int RawData::estimateTemperature(float Temper)
   {
     temp = 31;
   }
-  else if(temp>70)
+  else if(temp>71)
   {
-    temp = 70;
+    temp = 71;
   }
 
   return temp;
@@ -249,7 +249,7 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl
     else
     {
         temper = computeTemperature(pkt.data[38],pkt.data[39]);
-        ROS_INFO_STREAM("Temp is: " << temper);
+        //ROS_INFO_STREAM("Temp is: " << temper);
         tempPacketNum = 1;
     }
 

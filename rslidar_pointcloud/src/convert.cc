@@ -57,15 +57,23 @@ namespace rslidar_pointcloud
   	outPoints->header.stamp = pcl_conversions::toPCL(scanMsg->header).stamp;
   	outPoints->header.frame_id = scanMsg->header.frame_id;
     // process each packet provided by the driver
+    int numOfLaers = data_->getNumOfLasers();
     bool finish_packets_parse = false;
     for (size_t i = 0; i < scanMsg->packets.size(); ++i)
     {
         if(i == (scanMsg->packets.size()-1))
        {
-            //ROS_INFO_STREAM("Packets per scan: "<< scanMsg->packets.size());
+            // ROS_INFO_STREAM("Packets per scan: "<< scanMsg->packets.size());
             finish_packets_parse = true;
        }
-        data_->unpack(scanMsg->packets[i], outPoints,finish_packets_parse);
+       if(numOfLaers == 16)
+       {
+        data_->unpack_RS16(scanMsg->packets[i], outPoints,finish_packets_parse);
+       }
+       else if(numOfLaers == 32)
+       {
+        data_->unpack_RS32(scanMsg->packets[i], outPoints,finish_packets_parse);
+       }
     }
     sensor_msgs::PointCloud2 outMsg;
     pcl::toROSMsg(*outPoints, outMsg);

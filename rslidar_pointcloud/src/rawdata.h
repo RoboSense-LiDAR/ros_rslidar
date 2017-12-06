@@ -36,8 +36,6 @@
 namespace rslidar_rawdata
 {   
 	//static const float  ROTATION_SOLUTION_ = 0.18f;  //水平角分辨率 10hz
-	static const int    POINT_PER_CIRCLE_ =  2000;
-	static const int    DATA_NUMBER_PER_SCAN = 40000 ; //Set 40000 to be large enough
 	static const int    SIZE_BLOCK = 100;
 	static const int    RAW_SCAN_SIZE = 3;
 	static const int    SCANS_PER_BLOCK = 32;
@@ -46,15 +44,14 @@ namespace rslidar_rawdata
 	static const float  ROTATION_RESOLUTION = 0.01f; /**< degrees 旋转角分辨率*/
 	static const uint16_t ROTATION_MAX_UNITS = 36000; /**< hundredths of degrees */
 
-    static const float  DISTANCE_MAX = 180.0f;        /**< meters */
+    	static const float  DISTANCE_MAX = 180.0f;        /**< meters */
 	static const float  DISTANCE_MIN = 0.2f;        /**< meters */
-    static const float  DISTANCE_RESOLUTION = 0.01f; /**< meters */
+    	static const float  DISTANCE_RESOLUTION = 0.01f; /**< meters */
 	static const float  DISTANCE_MAX_UNITS = (DISTANCE_MAX
 		                                     / DISTANCE_RESOLUTION + 1.0);
 	/** @todo make this work for both big and little-endian machines */
 	static const uint16_t UPPER_BANK = 0xeeff; //
 	static const uint16_t LOWER_BANK = 0xddff;
-
 
 	/** Special Defines for RS16 support **/
 	static const int    RS16_FIRINGS_PER_BLOCK =   2;
@@ -62,6 +59,20 @@ namespace rslidar_rawdata
 	static const float  RS16_BLOCK_TDURATION   = 100.0f;   // [µs]
 	static const float  RS16_DSR_TOFFSET       =   3.0f;   // [µs]
 	static const float  RS16_FIRING_TOFFSET    =  50.0f;   // [µs]
+	static const int    RS16_POINT_PER_CIRCLE_ =  2000;
+	static const int    RS16_DATA_NUMBER_PER_SCAN = 40000 ; //Set 40000 to be large enough
+
+	/** Special Defines for RS32 support **/
+	static const int    RS32_FIRINGS_PER_BLOCK =   1;
+	static const int    RS32_SCANS_PER_FIRING  =  32;
+	static const float  RS32_BLOCK_TDURATION   = 50.0f;   // [µs]
+	static const float  RS32_DSR_TOFFSET       =   3.0f;   // [µs]
+	static const float  RL32_FIRING_TOFFSET    =  50.0f;   // [µs]
+	static const int    RS32_POINT_PER_CIRCLE_ =  2040;
+	static const int    RS32_DATA_NUMBER_PER_SCAN = 70000 ; //Set 70000 to be large enough
+
+	static const int    TEMPERATURE_MIN =   31;
+	static const int    TEMPERATURE_RANGE =   40;
 	
 	/** \brief Raw rslidar data block.
 	 *
@@ -124,25 +135,35 @@ namespace rslidar_rawdata
         void    init_setup();
         /*load the cablibrated files: angle, distance, intensity*/
         void    loadConfigFile(ros::NodeHandle private_nh);
-        /*unpack the UDP packet and opuput PCL PointXYZI type*/
-        void    unpack(const rslidar_msgs::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,bool finish_packets_parse);
+        /*unpack the RS16 UDP packet and opuput PCL PointXYZI type*/
+        void    unpack_RS16(const rslidar_msgs::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,bool finish_packets_parse);
+        /*unpack the RS32 UDP packet and opuput PCL PointXYZI type*/
+        void    unpack_RS32(const rslidar_msgs::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,bool finish_packets_parse);
         /*compute temperature*/
         float   computeTemperature(unsigned char bit1, unsigned char bit2);
         /*estimate temperature*/
         int     estimateTemperature(float Temper);
         /*calibrated the disctance*/
         float   pixelToDistance(int pixelValue, int passageway);
+        /*calibrated the azimuth*/
+        int      correctAzimuth(float azimuth_f, int passageway);
         /*calibrated the intensity*/
         float   calibrateIntensity(float inten,int calIdx,int distance);
+        /*estimate the packet type*/
+        int      isABPacket(int distance);
+        /*return the number of lasers*/
+        int      getNumOfLasers();
 
     };
 
-    float   VERT_ANGLE[16];
-    float   aIntensityCal[1600][16];
-    int     g_ChannelNum[16][41];
+    float   VERT_ANGLE[32];
+    float   HORI_ANGLE[32];
+    float   aIntensityCal[1600][32];
+    int     g_ChannelNum[32][41];
 
     float temper = 31.0;
     int tempPacketNum = 0;
+    int numOfLasers = 16;
     
     rslidar_msgs::rslidarPic pic;
 

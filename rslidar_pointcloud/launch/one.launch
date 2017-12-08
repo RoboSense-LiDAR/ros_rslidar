@@ -1,14 +1,14 @@
 <launch>
   <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
-    <param name="num_of_lasers" value="16"/>
-    <param name="pcap" value="/home/leezonpen/RSlidardata/lm146_170730_roadtest.pcap"/>
+    <param name="model" value="RS32"/>
+    <param name="pcap" value="/home/leezonpen/RSlidardata/32-A05/a05-fence.pcap"/>
     <!-- param name="device_ip" value="192.168.1.200"/-->
     <!-- Set the Lidar data port on the PC side, default is 6699 -->
     <param name="port" value="6699"/>
   </node>
 
   <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
-    <param name="num_of_lasers" value="16"/>
+    <param name="model" value="RS32"/>
     <param name="curves_path" value="$(find rslidar_pointcloud)/data/corrections/curves.csv" />
     <param name="angle_path" value="$(find rslidar_pointcloud)/data/corrections/angle.csv" />
     <param name="channel_path" value="$(find rslidar_pointcloud)/data/corrections/ChannelNum.csv" />

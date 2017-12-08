@@ -33,19 +33,14 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
     double packet_rate;                   // packet frequency (Hz)
     std::string model_full_name;
 
-    int numOfLasers;
-    private_nh.param("num_of_lasers", numOfLasers, 16);
-
     //product model
-    if (numOfLasers == 16)
+    if (config_.model == "RS16")
     {
-        config_.model = "RS16";
         packet_rate = 850;
         model_full_name = "RS_16";
     }
-    else if (numOfLasers == 32)
+    else if (config_.model == "RS32")
     {
-        config_.model = "RS32";
         packet_rate = 850*2;
         model_full_name = "RS_32";
     }

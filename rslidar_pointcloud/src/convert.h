@@ -41,6 +41,7 @@ namespace rslidar_pointcloud
       CloudNodeConfig> > srv_;
       
     boost::shared_ptr<rslidar_rawdata::RawData> data_;
+    int numOfLasers;
     ros::Subscriber rslidar_scan_;
     ros::Publisher output_;
     

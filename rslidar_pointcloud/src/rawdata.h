@@ -151,8 +151,6 @@ namespace rslidar_rawdata
         float   calibrateIntensity(float inten,int calIdx,int distance);
         /*estimate the packet type*/
         int      isABPacket(int distance);
-        /*return the number of lasers*/
-        int      getNumOfLasers();
 
     };
 

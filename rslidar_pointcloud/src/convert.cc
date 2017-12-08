@@ -24,6 +24,17 @@ namespace rslidar_pointcloud
   {
     data_->loadConfigFile(private_nh);   			//load lidar parameters
     data_->init_setup();
+
+    std::string model;
+    private_nh.param("model", model, std::string("RS16"));
+    if (model == "RS16")
+      {
+          numOfLasers = 16;
+      }
+      else if (model == "RS32")
+      {
+          numOfLasers = 32;
+      }
     
     // advertise output point cloud (before subscribing to input data)
     output_ =
@@ -57,7 +68,7 @@ namespace rslidar_pointcloud
   	outPoints->header.stamp = pcl_conversions::toPCL(scanMsg->header).stamp;
   	outPoints->header.frame_id = scanMsg->header.frame_id;
     // process each packet provided by the driver
-    int numOfLaers = data_->getNumOfLasers();
+
     bool finish_packets_parse = false;
     for (size_t i = 0; i < scanMsg->packets.size(); ++i)
     {
@@ -66,11 +77,11 @@ namespace rslidar_pointcloud
             // ROS_INFO_STREAM("Packets per scan: "<< scanMsg->packets.size());
             finish_packets_parse = true;
        }
-       if(numOfLaers == 16)
+       if(numOfLasers == 16)
        {
         data_->unpack_RS16(scanMsg->packets[i], outPoints,finish_packets_parse);
        }
-       else if(numOfLaers == 32)
+       else if(numOfLasers == 32)
        {
         data_->unpack_RS32(scanMsg->packets[i], outPoints,finish_packets_parse);
        }

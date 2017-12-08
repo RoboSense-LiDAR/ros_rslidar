@@ -27,15 +27,22 @@ RawData::RawData(){ }
 void RawData::loadConfigFile(ros::NodeHandle private_nh)
 {
 
-  std::string anglePath, curvesPath;
-  std::string channelPath;
-
+  std::string anglePath, curvesPath, channelPath;
+  std::string model;
 
   private_nh.param("curves_path", curvesPath, std::string(""));
   private_nh.param("angle_path", anglePath, std::string(""));
   private_nh.param("channel_path", channelPath, std::string(""));
 
-  private_nh.param("num_of_lasers", numOfLasers, 16);
+  private_nh.param("model", model, std::string("RS16"));
+  if (model == "RS16")
+    {
+        numOfLasers = 16;
+    }
+    else if (model == "RS32")
+    {
+        numOfLasers = 32;
+    }
 
   /// 读参数文件 2017-02-27
   FILE *f_inten = fopen(curvesPath.c_str(), "r");
@@ -62,7 +69,7 @@ void RawData::loadConfigFile(ros::NodeHandle private_nh)
       }
       else if(numOfLasers == 32)
       {
-        fscanf(f_inten, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
+        fscanf(f_inten, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
                &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10], &a[11], &a[12], &a[13],
                &a[14], &a[15],&a[16], &a[17], &a[18], &a[19], &a[20], &a[21], &a[22], &a[23], &a[24], &a[25], &a[26], &a[27], 
                &a[28], &a[29],&a[30], &a[31]);
@@ -235,12 +242,6 @@ int RawData::isABPacket(int distance)
     ABflag = 0;// A
   }
   return ABflag;
-}
-
-//------------------------------------------------------------
-int RawData::getNumOfLasers()
-{
-  return numOfLasers;
 }
 
 //------------------------------------------------------------
@@ -526,7 +527,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket &pkt, pcl::PointClou
 
             // read intensity
             intensity = raw->blocks[block].data[index+2];
-            // intensity = calibrateIntensity(intensity,dsr,distance);
+            intensity = calibrateIntensity(intensity,dsr,distance);
             
             float distance2 = pixelToDistance(distance, dsr);
             distance2 = distance2 * DISTANCE_RESOLUTION;

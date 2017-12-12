@@ -206,6 +206,12 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
   float refPwr;
   float tempInten;
 
+  if(intensity == 0.0)
+  {
+    tempInten = 0.0;
+    return tempInten;
+  }
+
   int indexTemper = estimateTemperature(temper)-TEMPERATURE_MIN;
   uplimitDist = g_ChannelNum[calIdx][indexTemper] + 1400;
   realPwr = intensity;
@@ -432,7 +438,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket &pkt, pcl::PointClou
                      bool finish_packets_parse)
 {
     float azimuth;  //0.01 dgree
-    float intensity;
+    float intensity,intensity_temp;
     float azimuth_diff;
     float azimuth_corrected_f;
     int   azimuth_corrected;
@@ -526,8 +532,8 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket &pkt, pcl::PointClou
             int distance = tmp.uint - ab_flag_in_block*32768;
 
             // read intensity
-            intensity = raw->blocks[block].data[index+2];
-            intensity = calibrateIntensity(intensity,dsr,distance);
+            intensity_temp = (float) raw->blocks[block].data[index+2];
+            intensity = calibrateIntensity(intensity_temp,dsr,distance);
             
             float distance2 = pixelToDistance(distance, dsr);
             distance2 = distance2 * DISTANCE_RESOLUTION;

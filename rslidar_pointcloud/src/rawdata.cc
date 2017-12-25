@@ -485,8 +485,6 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket &pkt, pcl::PointClou
             int azi1, azi2;
             azi1 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
             azi2 = 256 * raw->blocks[block-1].rotation_1 + raw->blocks[block-1].rotation_2;
-            azimuth_diff = (float) ((36000 + azi1 - azi2) % 36000);
-
             //Ingnore the block if the azimuth change abnormal
             if(azimuth_diff <= 0.0 || azimuth_diff > 25.0)
             {
@@ -518,9 +516,11 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket &pkt, pcl::PointClou
             }
 
             int point_count = pic.col * SCANS_PER_BLOCK + dsr ;
-            int dsr_temp;
+            float dsr_temp ;
             if(dsr>=16)
-              {dsr_temp = dsr - 16;}
+              {dsr_temp = (float)(dsr - 16);}
+            else
+              {dsr_temp = (float)dsr;}
             azimuth_corrected_f = azimuth + (azimuth_diff * ((dsr_temp * RS32_DSR_TOFFSET) ) / RS32_BLOCK_TDURATION);
             azimuth_corrected = correctAzimuth(azimuth_corrected_f,dsr);
             pic.azimuthforeachP[point_count] = azimuth_corrected;
@@ -540,7 +540,6 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket &pkt, pcl::PointClou
 
             pic.distance[point_count] = distance2;
             pic.intensity[point_count] = intensity;
-
            }
         pic.azimuth[pic.col] = azimuth;
         pic.col++;

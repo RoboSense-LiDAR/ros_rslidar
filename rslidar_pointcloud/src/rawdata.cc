@@ -485,6 +485,8 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket &pkt, pcl::PointClou
             int azi1, azi2;
             azi1 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
             azi2 = 256 * raw->blocks[block-1].rotation_1 + raw->blocks[block-1].rotation_2;
+            azimuth_diff = (float)((36000 + azi1 - azi2)%36000);
+            
             //Ingnore the block if the azimuth change abnormal
             if(azimuth_diff <= 0.0 || azimuth_diff > 25.0)
             {

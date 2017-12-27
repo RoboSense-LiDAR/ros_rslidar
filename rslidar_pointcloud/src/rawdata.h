@@ -44,9 +44,9 @@ namespace rslidar_rawdata
 	static const float  ROTATION_RESOLUTION = 0.01f; /**< degrees 旋转角分辨率*/
 	static const uint16_t ROTATION_MAX_UNITS = 36000; /**< hundredths of degrees */
 
-    	static const float  DISTANCE_MAX = 180.0f;        /**< meters */
+	static const float  DISTANCE_MAX = 200.0f;        /**< meters */
 	static const float  DISTANCE_MIN = 0.2f;        /**< meters */
-    	static const float  DISTANCE_RESOLUTION = 0.01f; /**< meters */
+	static const float  DISTANCE_RESOLUTION = 0.01f; /**< meters */
 	static const float  DISTANCE_MAX_UNITS = (DISTANCE_MAX
 		                                     / DISTANCE_RESOLUTION + 1.0);
 	/** @todo make this work for both big and little-endian machines */
@@ -59,7 +59,7 @@ namespace rslidar_rawdata
 	static const float  RS16_BLOCK_TDURATION   = 100.0f;   // [µs]
 	static const float  RS16_DSR_TOFFSET       =   3.0f;   // [µs]
 	static const float  RS16_FIRING_TOFFSET    =  50.0f;   // [µs]
-	static const int    RS16_POINT_PER_CIRCLE_ =  2000;
+	//static const int    RS16_POINT_PER_CIRCLE_ =  2000;
 	static const int    RS16_DATA_NUMBER_PER_SCAN = 40000 ; //Set 40000 to be large enough
 
 	/** Special Defines for RS32 support **/
@@ -68,7 +68,7 @@ namespace rslidar_rawdata
 	static const float  RS32_BLOCK_TDURATION   = 50.0f;   // [µs]
 	static const float  RS32_DSR_TOFFSET       =   3.0f;   // [µs]
 	static const float  RL32_FIRING_TOFFSET    =  50.0f;   // [µs]
-	static const int    RS32_POINT_PER_CIRCLE_ =  2040;
+	//static const int    RS32_POINT_PER_CIRCLE_ =  2040;
 	static const int    RS32_DATA_NUMBER_PER_SCAN = 70000 ; //Set 70000 to be large enough
 
 	static const int    TEMPERATURE_MIN =   31;

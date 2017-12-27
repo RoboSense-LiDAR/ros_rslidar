@@ -149,14 +149,14 @@ void RawData::init_setup()
   pic.col = 0;
   if(numOfLasers == 16)
   {
-    pic.azimuth.resize(RS16_POINT_PER_CIRCLE_);
+    //pic.azimuth.resize(RS16_POINT_PER_CIRCLE_);
     pic.distance.resize(RS16_DATA_NUMBER_PER_SCAN);
     pic.intensity.resize(RS16_DATA_NUMBER_PER_SCAN);
     pic.azimuthforeachP.resize(RS16_DATA_NUMBER_PER_SCAN);
   }
   else if(numOfLasers == 32)
   {
-    pic.azimuth.resize(RS32_POINT_PER_CIRCLE_);
+    //pic.azimuth.resize(RS32_POINT_PER_CIRCLE_);
     pic.distance.resize(RS32_DATA_NUMBER_PER_SCAN);
     pic.intensity.resize(RS32_DATA_NUMBER_PER_SCAN);
     pic.azimuthforeachP.resize(RS32_DATA_NUMBER_PER_SCAN);
@@ -379,7 +379,7 @@ void RawData::unpack_RS16(const rslidar_msgs::rslidarPacket &pkt, pcl::PointClou
         pic.intensity[point_count] = intensity;
       }
     }
-    pic.azimuth[pic.col] = azimuth;
+    //pic.azimuth[pic.col] = azimuth;
     pic.col++;
   }
 
@@ -542,7 +542,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket &pkt, pcl::PointClou
             pic.intensity[point_count] = intensity;
 
            }
-        pic.azimuth[pic.col] = azimuth;
+        //pic.azimuth[pic.col] = azimuth;
         pic.col++;
     }
 

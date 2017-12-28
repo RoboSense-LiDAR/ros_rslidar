@@ -16,24 +16,23 @@
 #include "std_msgs/String.h"
 
 using namespace rs_driver;
-volatile sig_atomic_t flag=1;
-static void my_handler(int sig)
-{
-	flag=0;
+volatile sig_atomic_t flag = 1;
+
+static void my_handler(int sig) {
+    flag = 0;
 }
-int main(int argc, char** argv)
-{
+
+int main(int argc, char **argv) {
     ros::init(argc, argv, "rsdriver");
     ros::NodeHandle node;
     ros::NodeHandle private_nh("~");
 
- 	signal(SIGINT,my_handler);
- 	
+    signal(SIGINT, my_handler);
+
     // start the driver
     rs_driver::rslidarDriver dvr(node, private_nh);
     // loop until shut down or end of file
-    while(ros::ok())
-    {
+    while (ros::ok()) {
         dvr.poll();
         ros::spinOnce();
     }

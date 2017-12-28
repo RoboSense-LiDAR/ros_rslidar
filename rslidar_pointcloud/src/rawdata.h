@@ -59,7 +59,6 @@ namespace rslidar_rawdata
 	static const float  RS16_BLOCK_TDURATION   = 100.0f;   // [µs]
 	static const float  RS16_DSR_TOFFSET       =   3.0f;   // [µs]
 	static const float  RS16_FIRING_TOFFSET    =  50.0f;   // [µs]
-	//static const int    RS16_POINT_PER_CIRCLE_ =  2000;
 	static const int    RS16_DATA_NUMBER_PER_SCAN = 40000 ; //Set 40000 to be large enough
 
 	/** Special Defines for RS32 support **/
@@ -68,7 +67,6 @@ namespace rslidar_rawdata
 	static const float  RS32_BLOCK_TDURATION   = 50.0f;   // [µs]
 	static const float  RS32_DSR_TOFFSET       =   3.0f;   // [µs]
 	static const float  RL32_FIRING_TOFFSET    =  50.0f;   // [µs]
-	//static const int    RS32_POINT_PER_CIRCLE_ =  2040;
 	static const int    RS32_DATA_NUMBER_PER_SCAN = 70000 ; //Set 70000 to be large enough
 
 	static const int    TEMPERATURE_MIN =   31;
@@ -136,7 +134,7 @@ namespace rslidar_rawdata
         /*load the cablibrated files: angle, distance, intensity*/
         void    loadConfigFile(ros::NodeHandle private_nh);
         /*unpack the RS16 UDP packet and opuput PCL PointXYZI type*/
-        void    unpack_RS16(const rslidar_msgs::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,bool finish_packets_parse);
+        void    unpack(const rslidar_msgs::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,bool finish_packets_parse);
         /*unpack the RS32 UDP packet and opuput PCL PointXYZI type*/
         void    unpack_RS32(const rslidar_msgs::rslidarPacket &pkt,pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,bool finish_packets_parse);
         /*compute temperature*/

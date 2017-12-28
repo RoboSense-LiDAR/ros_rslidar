@@ -27,14 +27,6 @@ namespace rslidar_pointcloud
 
     std::string model;
     private_nh.param("model", model, std::string("RS16"));
-    if (model == "RS16")
-      {
-          numOfLasers = 16;
-      }
-      else if (model == "RS32")
-      {
-          numOfLasers = 32;
-      }
     
     // advertise output point cloud (before subscribing to input data)
     output_ =
@@ -73,18 +65,12 @@ namespace rslidar_pointcloud
     for (size_t i = 0; i < scanMsg->packets.size(); ++i)
     {
         if(i == (scanMsg->packets.size()-1))
-       {
+        {
             // ROS_INFO_STREAM("Packets per scan: "<< scanMsg->packets.size());
             finish_packets_parse = true;
-       }
-       if(numOfLasers == 16)
-       {
-        data_->unpack_RS16(scanMsg->packets[i], outPoints,finish_packets_parse);
-       }
-       else if(numOfLasers == 32)
-       {
-        data_->unpack_RS32(scanMsg->packets[i], outPoints,finish_packets_parse);
-       }
+        }
+
+        data_->unpack(scanMsg->packets[i], outPoints,finish_packets_parse);
     }
     sensor_msgs::PointCloud2 outMsg;
     pcl::toROSMsg(*outPoints, outMsg);

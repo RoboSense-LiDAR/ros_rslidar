@@ -253,7 +253,6 @@ namespace rslidar_rawdata {
                          bool finish_packets_parse) {
         if (numOfLasers == 32) {
             unpack_RS32(pkt, pointcloud, finish_packets_parse);
-            ROS_INFO_STREAM_THROTTLE(10, "32 32 32");
             return;
         }
         float azimuth;  //0.01 dgree

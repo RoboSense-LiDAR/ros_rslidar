@@ -37,28 +37,26 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
     if (config_.model == "RS16")
     {
         packet_rate = 850;
-        model_full_name = "RS_16";
+        model_full_name = "RS-LiDAR-16";
     }
     else if (config_.model == "RS32")
     {
-        packet_rate = 850*2;
-        model_full_name = "RS_32";
+        packet_rate = 1690;
+        model_full_name = "RS-LiDAR-32";
     }
     else
     {
         ROS_ERROR_STREAM("unknown LIDAR model: " << config_.model);
         packet_rate = 2600.0;
     }
-    std::string deviceName(std::string("rslidar ") + model_full_name);
+    std::string deviceName(std::string("Robosense ") + model_full_name);
 
     private_nh.param("rpm", config_.rpm, 600.0);
     double frequency = (config_.rpm / 60.0);     // expected Hz rate
 
     // default number of packets for each scan is a single revolution
     // (fractions rounded up)
-   /* config_.npackets = (int) ceil(packet_rate / frequency);
-    private_nh.getParam("npackets", config_.npackets);
-    */
+
     int npackets = (int) ceil(packet_rate / frequency);
     private_nh.param("npackets", config_.npackets, npackets);
     ROS_INFO_STREAM("publishing " << config_.npackets << " packets per scan");

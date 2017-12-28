@@ -438,7 +438,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket &pkt, pcl::PointClou
                      bool finish_packets_parse)
 {
     float azimuth;  //0.01 dgree
-    float intensity,intensity_temp;
+    float intensity;
     float azimuth_diff;
     float azimuth_corrected_f;
     int   azimuth_corrected;
@@ -518,11 +518,11 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket &pkt, pcl::PointClou
             }
 
             int point_count = pic.col * SCANS_PER_BLOCK + dsr ;
-            float dsr_temp ;
+            int dsr_temp ;
             if(dsr>=16)
-              {dsr_temp = (float)(dsr - 16);}
+              {dsr_temp = dsr - 16;}
             else
-              {dsr_temp = (float)dsr;}
+              {dsr_temp = dsr;}
             azimuth_corrected_f = azimuth + (azimuth_diff * ((dsr_temp * RS32_DSR_TOFFSET) ) / RS32_BLOCK_TDURATION);
             azimuth_corrected = correctAzimuth(azimuth_corrected_f,dsr);
             pic.azimuthforeachP[point_count] = azimuth_corrected;
@@ -534,8 +534,8 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket &pkt, pcl::PointClou
             int distance = tmp.uint - ab_flag_in_block*32768;
 
             // read intensity
-            intensity_temp = (float) raw->blocks[block].data[index+2];
-            intensity = calibrateIntensity(intensity_temp,dsr,distance);
+            intensity = (float) raw->blocks[block].data[index+2];
+            intensity = calibrateIntensity(intensity,dsr,distance);
             
             float distance2 = pixelToDistance(distance, dsr);
             distance2 = distance2 * DISTANCE_RESOLUTION;

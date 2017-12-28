@@ -110,7 +110,7 @@ namespace rslidar_rawdata {
                        &c[16], &c[17], &c[18], &c[19], &c[20], &c[21], &c[22], &c[23], &c[24], &c[25], &c[26], &c[27],
                        &c[28], &c[29], &c[30],
                        &c[31], &c[32], &c[33], &c[34], &c[35], &c[36], &c[37], &c[38], &c[39], &c[40]);
-                if (c[1] < 100 || c[1] > 3000)//TODO:it may be not an complete judgment
+                if (c[1] < 100 || c[1] > 3000)
                 {
                     tempMode = 0;
                 }
@@ -130,12 +130,10 @@ namespace rslidar_rawdata {
     void RawData::init_setup() {
         pic.col = 0;
         if (numOfLasers == 16) {
-            //pic.azimuth.resize(RS16_POINT_PER_CIRCLE_);
             pic.distance.resize(RS16_DATA_NUMBER_PER_SCAN);
             pic.intensity.resize(RS16_DATA_NUMBER_PER_SCAN);
             pic.azimuthforeachP.resize(RS16_DATA_NUMBER_PER_SCAN);
         } else if (numOfLasers == 32) {
-            //pic.azimuth.resize(RS32_POINT_PER_CIRCLE_);
             pic.distance.resize(RS32_DATA_NUMBER_PER_SCAN);
             pic.intensity.resize(RS32_DATA_NUMBER_PER_SCAN);
             pic.azimuthforeachP.resize(RS32_DATA_NUMBER_PER_SCAN);
@@ -156,11 +154,11 @@ namespace rslidar_rawdata {
     int RawData::correctAzimuth(float azimuth_f, int passageway) {
         int azimuth;
         if (azimuth_f > 0.0 && azimuth_f < 3000.0) {
-            azimuth_f = azimuth_f + HORI_ANGLE[passageway] + 36000.0;
+            azimuth_f = azimuth_f + HORI_ANGLE[passageway] + 36000.0f;
         } else {
             azimuth_f = azimuth_f + HORI_ANGLE[passageway];
         }
-        azimuth = azimuth_f;
+        azimuth = (int)azimuth_f;
         azimuth %= 36000;
 
         return azimuth;
@@ -186,11 +184,11 @@ namespace rslidar_rawdata {
         realPwr = intensity;
 
         if ((int) realPwr < 126)
-            realPwr = realPwr * 4.0;
+            realPwr = realPwr * 4.0f;
         else if ((int) realPwr >= 126 && (int) realPwr < 226)
-            realPwr = (realPwr - 125.0) * 16.0 + 500.0;
+            realPwr = (realPwr - 125.0f) * 16.0f + 500.0f;
         else
-            realPwr = (realPwr - 225.0) * 256.0 + 2100.0;
+            realPwr = (realPwr - 225.0f) * 256.0f + 2100.0f;
 
         sDist = (distance > g_ChannelNum[calIdx][indexTemper]) ? distance : g_ChannelNum[calIdx][indexTemper];
         sDist = (sDist < uplimitDist) ? sDist : uplimitDist;
@@ -200,7 +198,7 @@ namespace rslidar_rawdata {
         refPwr = aIntensityCal[algDist][calIdx];
         tempInten = (200 * refPwr) / realPwr;
         //tempInten = tempInten * 200.0;
-        tempInten = (int) tempInten > 255 ? 255.0 : tempInten;
+        tempInten = (int) tempInten > 255 ? 255.0f : tempInten;
         return tempInten;
     }
 
@@ -223,9 +221,9 @@ namespace rslidar_rawdata {
         float highbit = bit2 & 127;//01111111
         float lowbit = bit1 >> 3;
         if (bitneg == 128) {
-            Temp = -1 * (highbit * 32 + lowbit) * 0.0625;
+            Temp = -1 * (highbit * 32 + lowbit) * 0.0625f;
         } else {
-            Temp = (highbit * 32 + lowbit) * 0.0625;
+            Temp = (highbit * 32 + lowbit) * 0.0625f;
         }
 
         return Temp;
@@ -233,7 +231,7 @@ namespace rslidar_rawdata {
 
 //------------------------------------------------------------
     int RawData::estimateTemperature(float Temper) {
-        int temp = floor(Temper + 0.5);
+        int temp = (int)floor(Temper + 0.5);
         if (temp < TEMPERATURE_MIN) {
             temp = TEMPERATURE_MIN;
         } else if (temp > TEMPERATURE_MIN + TEMPERATURE_RANGE) {
@@ -352,7 +350,6 @@ namespace rslidar_rawdata {
                         int point_count = block_num * SCANS_PER_BLOCK + dsr + RS16_SCANS_PER_FIRING * firing;
                         float dis = pic.distance[point_count];
                         float arg_horiz = pic.azimuthforeachP[point_count] / 18000 * M_PI;
-                        float intensity = pic.intensity[point_count];
                         float arg_vert = VERT_ANGLE[dsr];
                         pcl::PointXYZI point;
                         if (dis > DISTANCE_MAX || dis < DISTANCE_MIN)  //invalid data
@@ -371,7 +368,7 @@ namespace rslidar_rawdata {
                             point.y = -dis * cos(arg_vert) * sin(arg_horiz);
                             point.x = dis * cos(arg_vert) * cos(arg_horiz);
                             point.z = dis * sin(arg_vert);
-                            point.intensity = intensity;
+                            point.intensity = pic.intensity[point_count];
                             pointcloud->at(2 * block_num + firing, dsr) = point;
 
                         }
@@ -436,10 +433,10 @@ namespace rslidar_rawdata {
             }
 
             //Estimate the type of packet
-            union two_bytes tmp;
-            tmp.bytes[1] = raw->blocks[block].data[0];
-            tmp.bytes[0] = raw->blocks[block].data[1];
-            int ABflag = isABPacket(tmp.uint);
+            union two_bytes tmp_flag;
+            tmp_flag.bytes[1] = raw->blocks[block].data[0];
+            tmp_flag.bytes[0] = raw->blocks[block].data[1];
+            int ABflag = isABPacket(tmp_flag.uint);
 
             int k = 0;
             int index;

@@ -1,5 +1,5 @@
 Header		    header
-int64               col
+uint32               col
 float32[]           distance
 float32[]           intensity
 float32[]           azimuthforeachP

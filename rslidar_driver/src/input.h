@@ -82,7 +82,6 @@ namespace rs_driver {
         virtual int getPacket(rslidar_msgs::rslidarPacket *pkt,
                               const double time_offset);
 
-        void setDeviceIP(const std::string &ip);
 
     private:
 
@@ -114,7 +113,6 @@ namespace rs_driver {
         virtual int getPacket(rslidar_msgs::rslidarPacket *pkt,
                               const double time_offset);
 
-        void setDeviceIP(const std::string &ip);
 
     private:
         ros::Rate packet_rate_;

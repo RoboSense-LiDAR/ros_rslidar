@@ -9,7 +9,7 @@
 
 /** \file
  *
- *  ROS driver node for the Velodyne 3D LIDARs.
+ *  ROS driver node for the Robosense 3D LIDARs.
  */
 #include <ros/ros.h>
 #include "rsdriver.h"
@@ -32,8 +32,7 @@ int main(int argc, char **argv) {
     // start the driver
     rs_driver::rslidarDriver dvr(node, private_nh);
     // loop until shut down or end of file
-    while (ros::ok()) {
-        dvr.poll();
+    while (ros::ok() && dvr.poll()) {
         ros::spinOnce();
     }
 

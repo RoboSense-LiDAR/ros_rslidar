@@ -169,8 +169,26 @@ namespace rs_driver {
         }
         // Average the times at which we begin and end reading.  Use that to
         // estimate when the scan occurred. Add the time offset.
-        double time2 = ros::Time::now().toSec();
-        pkt->stamp = ros::Time((time2 + time1) / 2.0 + time_offset);
+//        double time2 = ros::Time::now().toSec();
+//        pkt->stamp = ros::Time((time2 + time1) / 2.0 + time_offset);
+
+        if (pkt->data[0] == 0x55 && pkt->data[1] == 0xaa && pkt->data[2] == 0x05 && pkt->data[3] == 0x0a) {
+            memset(&stm, 0, sizeof(stm));
+            stm.tm_year = (int) pkt->data[20] + 100;
+            stm.tm_mon = (int) pkt->data[21] - 1;
+            stm.tm_mday = (int) pkt->data[22];
+            stm.tm_hour = (int) pkt->data[23];
+            stm.tm_min = (int) pkt->data[24];
+            stm.tm_sec = (int) pkt->data[25];
+            double stamp_double = mktime(&stm) + 0.001 * (256 * pkt->data[26] + pkt->data[27]) +
+                                  0.000001 * (256 * pkt->data[28] + pkt->data[29]);
+            pkt->stamp = ros::Time(stamp_double);
+//            ROS_INFO_STREAM("ros time msop is:" << pkt->stamp);
+        } else {
+            double time2 = ros::Time::now().toSec();
+            pkt->stamp = ros::Time((time2 + time1) / 2.0 + time_offset);
+//            ROS_INFO_STREAM("ros time difop is:" << pkt->stamp);
+        }
 
         return 0;
     }
@@ -251,7 +269,24 @@ namespace rs_driver {
                     packet_rate_.sleep();
 
                 memcpy(&pkt->data[0], pkt_data + 42, packet_size);
-                pkt->stamp = ros::Time::now(); // time_offset not considered here, as no synchronization required
+                //pkt->stamp = ros::Time::now(); // time_offset not considered here, as no synchronization required
+                if (pkt->data[0] == 0x55 && pkt->data[1] == 0xaa && pkt->data[2] == 0x05 && pkt->data[3] == 0x0a) {
+                    memset(&stm, 0, sizeof(stm));
+                    stm.tm_year = (int) pkt->data[20] + 100;
+                    stm.tm_mon = (int) pkt->data[21] - 1;
+                    stm.tm_mday = (int) pkt->data[22];
+                    stm.tm_hour = (int) pkt->data[23];
+                    stm.tm_min = (int) pkt->data[24];
+                    stm.tm_sec = (int) pkt->data[25];
+                    double stamp_double = mktime(&stm) + 0.001 * (256 * pkt->data[26] + pkt->data[27]) +
+                                          0.000001 * (256 * pkt->data[28] + pkt->data[29]);
+                    pkt->stamp = ros::Time(stamp_double);
+//                    ROS_INFO_STREAM("ros time msop is:" << pkt->stamp);
+                } else {
+                    pkt->stamp = ros::Time::now();
+//                    ROS_INFO_STREAM("ros time difop is:" << pkt->stamp);
+                }
+
                 empty_ = false;
                 return 0;                   // success
             }

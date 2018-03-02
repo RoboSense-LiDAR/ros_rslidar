@@ -50,7 +50,7 @@ namespace rslidar_rawdata {
             while (!feof(f_inten)) {
                 float a[32];
                 loopi++;
-                if (loopi > 1600)
+                if (loopi > 6)
                     break;
                 if (numOfLasers == 16) {
                     fscanf(f_inten, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
@@ -68,6 +68,7 @@ namespace rslidar_rawdata {
                 }
                 for (loopj = 0; loopj < numOfLasers; loopj++) {
                     aIntensityCal[loopi - 1][loopj] = a[loopj];
+                    ROS_INFO_STREAM(aIntensityCal[loopi - 1][loopj]);
                 }
             }
             fclose(f_inten);
@@ -173,16 +174,17 @@ namespace rslidar_rawdata {
         float realPwr;
         float refPwr;
         float tempInten;
+        float distance_f;
+        float endOfSection1;
 
         if (intensity == 0.0) {
             tempInten = 0.0;
             return tempInten;
         }
 
-        int indexTemper = estimateTemperature(temper) - TEMPERATURE_MIN;
-        uplimitDist = g_ChannelNum[calIdx][indexTemper] + 1400;
         realPwr = intensity;
 
+        // transform the one byte intensity value to two byte
         if ((int) realPwr < 126)
             realPwr = realPwr * 4.0f;
         else if ((int) realPwr >= 126 && (int) realPwr < 226)
@@ -190,14 +192,36 @@ namespace rslidar_rawdata {
         else
             realPwr = (realPwr - 225.0f) * 256.0f + 2100.0f;
 
+        int indexTemper = estimateTemperature(temper) - TEMPERATURE_MIN;
+        uplimitDist = g_ChannelNum[calIdx][indexTemper] + 20000;
+        //limit sDist
         sDist = (distance > g_ChannelNum[calIdx][indexTemper]) ? distance : g_ChannelNum[calIdx][indexTemper];
         sDist = (sDist < uplimitDist) ? sDist : uplimitDist;
         //minus the static offset (this data is For the intensity cal useage only)
         algDist = sDist - g_ChannelNum[calIdx][indexTemper];
-        //algDist = algDist < 1400? algDist : 1399;
-        refPwr = aIntensityCal[algDist][calIdx];
-        tempInten = (200 * refPwr) / realPwr;
-        //tempInten = tempInten * 200.0;
+
+        // calculate intensity ref curves
+        float refPwr_temp = 0.0f;
+        int order = 3;
+        endOfSection1 = 500.0f; 
+        distance_f = (float)algDist;
+        if(distance_f <= endOfSection1)
+        {
+          refPwr_temp = aIntensityCal[0][calIdx] * exp(aIntensityCal[1][calIdx] - 
+          aIntensityCal[2][calIdx] * distance_f/100.0f) + aIntensityCal[3][calIdx];
+        //   printf("a-calIdx=%d,distance_f=%f,refPwr=%f\n",calIdx,distance_f,refPwr_temp);
+        }
+        else
+        {
+          for(int i = 0; i < order; i++)
+          {
+            refPwr_temp +=aIntensityCal[i+4][calIdx]*(pow(distance_f/100.0f,order-1-i));
+          }
+          // printf("b-calIdx=%d,distance_f=%f,refPwr=%f\n",calIdx,distance_f,refPwr_temp);
+        }
+        refPwr = std::max(std::min(refPwr_temp,500.0f),0.0f);
+
+        tempInten = (51* refPwr) / realPwr;
         tempInten = (int) tempInten > 255 ? 255.0f : tempInten;
         return tempInten;
     }

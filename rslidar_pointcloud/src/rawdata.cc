@@ -68,7 +68,6 @@ namespace rslidar_rawdata {
                 }
                 for (loopj = 0; loopj < numOfLasers; loopj++) {
                     aIntensityCal[loopi - 1][loopj] = a[loopj];
-                    ROS_INFO_STREAM(aIntensityCal[loopi - 1][loopj]);
                 }
             }
             fclose(f_inten);

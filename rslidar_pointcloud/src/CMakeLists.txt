@@ -16,7 +16,6 @@ endif()
 
 target_link_libraries(cloud_node
     rslidar_point
-    rslidar_input
     ${catkin_LIBRARIES}
     ${libpcap_LIBRARIES}
     )

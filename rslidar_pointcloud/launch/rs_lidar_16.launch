@@ -5,6 +5,7 @@
     <param name="device_ip" value="192.168.1.200"/>
     <!-- Set the Lidar data port on the PC side, default is 6699 -->
     <param name="port" value="6699"/>
+    <param name="time_synchronization" value="true"/>
   </node>
 
   <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >

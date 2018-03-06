@@ -71,6 +71,7 @@ namespace rs_driver {
         ros::NodeHandle private_nh_;
         uint16_t port_;
         std::string devip_str_;
+        bool time_synchronization_;
     };
 
 /** @brief Live rslidar input from socket. */

@@ -19,6 +19,7 @@
 namespace rs_driver {
 
     rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh) {
+        skip_num_ = 0;
         // use private node handle to get parameters
         private_nh.param("frame_id", config_.frame_id, std::string("rslidar"));
 
@@ -94,6 +95,9 @@ namespace rs_driver {
 
         // raw packet output topic
         output_ = node.advertise<rslidar_msgs::rslidarScan>("rslidar_packets", 10);
+
+        // add for time synchronization
+        skip_num_sub_ = node.subscribe<std_msgs::Int32>("skippackets_num", 1, &rslidarDriver::skipNumCallback, (rslidarDriver *)this, ros::TransportHints().tcpNoDelay(true));
     }
 
 /** poll the device
@@ -104,6 +108,19 @@ namespace rs_driver {
         // Allocate a new shared pointer for zero-copy sharing with other nodelets.
         rslidar_msgs::rslidarScanPtr scan(new rslidar_msgs::rslidarScan);
         scan->packets.resize(config_.npackets);
+
+        // skip packets to synchronization
+        // std::cout << "skip_num_: " << skip_num_ << std::endl;
+        while (skip_num_) {
+          while (true) {
+            // keep reading until full packet received
+            int rc = input_->getPacket(&scan->packets[0], config_.time_offset);
+            if (rc == 0) break;       // got a full packet?
+            if (rc < 0) return false; // end of file reached?
+          }
+          --skip_num_;
+        }
+
         // Since the rslidar delivers data at a very high rate, keep
         // reading and publishing scans as fast as possible.
         for (int i = 0; i < config_.npackets; i++) {
@@ -117,7 +134,8 @@ namespace rs_driver {
 
         // publish message using time of last packet read
         ROS_DEBUG("Publishing a full rslidar scan.");
-        scan->header.stamp = scan->packets[config_.npackets - 1].stamp;
+        // scan->header.stamp = scan->packets[config_.npackets - 1].stamp;
+        scan->header.stamp = scan->packets[0].stamp;
         scan->header.frame_id = config_.frame_id;
         output_.publish(scan);
 
@@ -133,5 +151,14 @@ namespace rs_driver {
         ROS_INFO("Reconfigure Request");
         config_.time_offset = config.time_offset;
     }
+
+    // add for time synchronization
+    void rslidarDriver::skipNumCallback(const std_msgs::Int32::ConstPtr &skip_num)
+    {
+        // std::cout << "Enter skipNumCallback: " << skip_num->data << std::endl;
+        skip_num_ = skip_num->data;
+    }
+
+
 
 }

@@ -1,0 +1,3 @@
+<launch>
+  <node name="rviz" pkg="rviz" type="rviz"  args="-d $(find multilidar_timesync)/rviz_cfg/time_sync.rviz" output="log" />
+</launch>

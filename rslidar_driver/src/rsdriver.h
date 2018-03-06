@@ -18,6 +18,7 @@
 #include <string>
 #include <ros/ros.h>
 #include <ros/package.h>
+#include <std_msgs/Int32.h>
 #include <diagnostic_updater/diagnostic_updater.h>
 #include <diagnostic_updater/publisher.h>
 #include <dynamic_reconfigure/server.h>
@@ -47,6 +48,8 @@ namespace rs_driver {
         ///Callback for dynamic reconfigure
         void callback(rslidar_driver::rslidarNodeConfig &config, uint32_t level);
 
+        ///Callback for skip num for time synchronization
+        void skipNumCallback(const std_msgs::Int32::ConstPtr &skip_num);
         ///Pointer to dynamic reconfigure service srv_
         boost::shared_ptr<dynamic_reconfigure::Server<rslidar_driver::rslidarNodeConfig> > srv_;
 
@@ -67,6 +70,11 @@ namespace rs_driver {
         double diag_min_freq_;
         double diag_max_freq_;
         boost::shared_ptr<diagnostic_updater::TopicDiagnostic> diag_topic_;
+
+      // add for time synchronization
+      uint32_t skip_num_;
+      ros::Subscriber skip_num_sub_;
+
     };
 
 } //namespace rs_driver

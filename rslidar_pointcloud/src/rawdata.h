@@ -69,7 +69,7 @@ namespace rslidar_rawdata {
     static const int RS32_DATA_NUMBER_PER_SCAN = 70000; //Set 70000 to be large enough
 
     static const int TEMPERATURE_MIN = 31;
-    static const int TEMPERATURE_RANGE = 40;
+
 
     /** \brief Raw rslidar data block.
      *
@@ -163,11 +163,12 @@ namespace rslidar_rawdata {
     float VERT_ANGLE[32];
     float HORI_ANGLE[32];
     float aIntensityCal[1600][32];
-    int g_ChannelNum[32][41];
+    int g_ChannelNum[32][51];
 
     float temper = 31.0;
     int tempPacketNum = 0;
     int numOfLasers = 16;
+    int TEMPERATURE_RANGE = 40;
 
     rslidar_msgs::rslidarPic pic;
 

@@ -51,7 +51,7 @@ namespace rslidar_rawdata {
             while (!feof(f_inten)) {
                 float a[32];
                 loopi++;
-                if (loopi > 6)
+                if (loopi > 7)
                     break;
                 if (numOfLasers == 16) {
                     fscanf(f_inten, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
@@ -233,7 +233,7 @@ namespace rslidar_rawdata {
           }
           // printf("b-calIdx=%d,distance_f=%f,refPwr=%f\n",calIdx,distance_f,refPwr_temp);
         }
-        refPwr = std::max(std::min(refPwr_temp,500.0f),0.0f);
+        refPwr = std::max(std::min(refPwr_temp,500.0f),4.0f);
 
         tempInten = (51* refPwr) / realPwr;
         tempInten = (int) tempInten > 255 ? 255.0f : tempInten;

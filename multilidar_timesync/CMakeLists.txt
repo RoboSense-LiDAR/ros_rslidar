@@ -6,10 +6,17 @@ catkin_package()
 include_directories(include
     ${catkin_INCLUDE_DIRS})
 
-add_executable(timesync_node src/timesync.cpp)
-add_dependencies(timesync_node ${catkin_EXPORTED_TARGETS})
-
-target_link_libraries(timesync_node
+add_executable(timesync_2lidar_node src/timesync_2lidar.cpp)
+add_dependencies(timesync_2lidar_node ${catkin_EXPORTED_TARGETS})
+target_link_libraries(timesync_2lidar_node
 	${catkin_LIBRARIES}
 )
+
+add_executable(timesync_3lidar_node src/timesync_3lidar.cpp)
+add_dependencies(timesync_3lidar_node ${catkin_EXPORTED_TARGETS})
+target_link_libraries(timesync_3lidar_node
+	${catkin_LIBRARIES}
+)
+
+
 

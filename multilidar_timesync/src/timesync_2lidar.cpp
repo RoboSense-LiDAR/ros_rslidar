@@ -11,33 +11,39 @@
 
 ros::Publisher g_skippackets_num_pub1;
 ros::Publisher g_skippackets_num_pub2;
+bool comparePair(const std::pair<unsigned, double> a, const std::pair<unsigned, double> b )
+{
+  return a.second < b.second;
+}
 
 void scanCallback(const rslidar_msgs::rslidarScan::ConstPtr &scan_msg1, const rslidar_msgs::rslidarScan::ConstPtr &scan_msg2)
 {
   std::cerr << "Enter scanCallback function!" << std::endl;
   // calculate the first packet timestamp difference (us)
-  // double time1 = scan_msg1->header.stamp.sec * 1e6 + scan_msg1->header.stamp.nsec * 0.001;
-  // double time2 = scan_msg2->header.stamp.sec * 1e6 + scan_msg2->header.stamp.nsec * 0.001;
-  double time1 = 0.001 * scan_msg1->header.stamp.nsec;
-  double time2 = 0.001 * scan_msg2->header.stamp.nsec;
+  double time1 = scan_msg1->header.stamp.sec * 1e6 + scan_msg1->header.stamp.nsec * 0.001;
+  double time2 = scan_msg2->header.stamp.sec * 1e6 + scan_msg2->header.stamp.nsec * 0.001;
 
-  double delta_time = time1 - time2;
-  // std::cout << "delta time: " << delta_time << "us" << std::endl;
-  // std::cout << "delta time: " << delta_time/1000 << "ms" << std::endl;
-  int delta_skip    = delta_time / 1200;
+  std::vector<std::pair<unsigned, double> > lidar_vector;
+  lidar_vector.push_back(std::make_pair(1, time1));
+  lidar_vector.push_back(std::make_pair(2, time2));
+  std::sort(lidar_vector.begin(), lidar_vector.end(), comparePair);
+  unsigned delta_skip = (lidar_vector[1].second - lidar_vector[0].second) / 1200;
+
   std::cout << "skip " << delta_skip << " packets!"<< std::endl;
   std_msgs::Int32 skip_num;
+  skip_num.data = 1;
   if (delta_skip > 0)
   {
-    std::cout << "lidar 2 faster, lidar 2 skip one packets!"<< std::endl;
-    skip_num.data = 1;
-    g_skippackets_num_pub2.publish(skip_num);
-  }
-  else if(delta_skip < 0)
-  {
-    std::cout << "lidar 1 faster, lidar 1 skip one packet!"<< std::endl;
-    skip_num.data = 1;
-    g_skippackets_num_pub1.publish(skip_num);
+    if (lidar_vector[0].first == 1)
+    {
+      std::cout << "lidar 1 older, lidar 1 skip one packets!"<< std::endl;
+      g_skippackets_num_pub1.publish(skip_num);
+    }
+    else if (lidar_vector[0].first == 2)
+    {
+      std::cout << "lidar 2 older, lidar 2 skip one packets!"<< std::endl;
+      g_skippackets_num_pub2.publish(skip_num);
+    }
   }
   else
   {

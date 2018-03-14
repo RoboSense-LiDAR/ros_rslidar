@@ -1,0 +1,61 @@
+<launch>
+ <group ns="left">
+    <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
+      <!--param name="pcap" value="/home/tony-sti/lidar_data/lm75-170616-roadtest.pcap"/ -->
+      <param name="model" value="RS16"/>
+      <param name="device_ip" value="192.168.1.112" />
+      <param name="port" value="2012"/>
+      <param name="time_synchronization" value="true"/>
+    </node>
+
+    <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
+      <param name="model" value="RS16"/>
+      <param name="curves_path" value="$(find rslidar_pointcloud)/data/LM1012DATA/curves.csv" />
+      <param name="angle_path" value="$(find rslidar_pointcloud)/data/LM1012DATA/angle.csv" />
+      <param name="channel_path" value="$(find rslidar_pointcloud)/data/LM1012DATA/ChannelNum.csv" />
+    </node>
+  </group>
+
+  <group ns="right">
+    <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
+      <param name="model" value="RS16"/>
+      <param name="device_ip" value="192.168.1.200"/>
+      <param name="port" value="6699"/>
+      <param name="time_synchronization" value="true"/>
+    </node>
+
+    <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
+      <param name="model" value="RS16"/>
+      <param name="curves_path" value="$(find rslidar_pointcloud)/data/LM1024DATA/curves.csv" />
+      <param name="angle_path" value="$(find rslidar_pointcloud)/data/LM1024DATA/angle.csv" />
+      <param name="channel_path" value="$(find rslidar_pointcloud)/data/LM1024DATA/ChannelNum.csv" />
+    </node>
+  </group>
+
+<group ns="middle">
+  <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
+    <!--param name="pcap" value="/home/tony-sti/lidar_data/lm75-170616-roadtest.pcap"/ -->
+    <param name="model" value="RS32"/>
+    <param name="device_ip" value="192.168.1.136"/>
+    <param name="port" value="3216"/>
+  </node>
+	
+  <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
+    <param name="model" value="RS32"/>
+    <param name="curves_path" value="$(find rslidar_pointcloud)/data/B16/curves.csv" />
+    <param name="angle_path" value="$(find rslidar_pointcloud)/data/B16/angle.csv" />
+    <param name="channel_path" value="$(find rslidar_pointcloud)/data/B16/ChannelNum.csv" />
+  </node>
+</group>
+
+
+  <node  name="multilidar_timesync_3lidar" pkg="multilidar_timesync" type="timesync_3lidar_node" output="screen" >
+    <param name="scan1_topic" value="/left/rslidar_packets"/>
+    <param name="scan2_topic" value="/middle/rslidar_packets"/>
+    <param name="scan3_topic" value="/right/rslidar_packets"/>
+
+    <param name="skippackets1_topic" value="/left/skippackets_num"/>
+    <param name="skippackets2_topic" value="/middle/skippackets_num"/>
+    <param name="skippackets3_topic" value="/right/skippackets_num"/>
+  </node>
+</launch>

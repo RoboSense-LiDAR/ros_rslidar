@@ -57,5 +57,7 @@
     <param name="skippackets1_topic" value="/left/skippackets_num"/>
     <param name="skippackets2_topic" value="/middle/skippackets_num"/>
     <param name="skippackets3_topic" value="/right/skippackets_num"/>
+
+    <param name="sync_packet_diff_topic" value="/sync_packet_diff"/>
   </node>
 </launch>

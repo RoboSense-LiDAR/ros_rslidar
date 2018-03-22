@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <std_msgs/Int32.h>
+#include <std_msgs/String.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <message_filters/subscriber.h>
 #include <message_filters/synchronizer.h>
@@ -12,7 +13,7 @@
 ros::Publisher g_skippackets_num_pub1;
 ros::Publisher g_skippackets_num_pub2;
 ros::Publisher g_skippackets_num_pub3;
-
+ros::Publisher g_maxnum_diff_packetnum_pub;
 bool comparePair(const std::pair<unsigned, double> a, const std::pair<unsigned, double> b )
 {
   return a.second < b.second;
@@ -20,7 +21,6 @@ bool comparePair(const std::pair<unsigned, double> a, const std::pair<unsigned, 
 
 void scanCallback(const rslidar_msgs::rslidarScan::ConstPtr &scan_msg1, const rslidar_msgs::rslidarScan::ConstPtr &scan_msg2, const rslidar_msgs::rslidarScan::ConstPtr &scan_msg3)
 {
-  //std::cerr << "Enter 3lidar scanCallback function!" << std::endl;
   // calculate the first packet timestamp difference (us)
   double time1 = scan_msg1->header.stamp.sec * 1e6 + scan_msg1->header.stamp.nsec * 0.001;
   double time2 = scan_msg2->header.stamp.sec * 1e6 + scan_msg2->header.stamp.nsec * 0.001;
@@ -36,8 +36,11 @@ void scanCallback(const rslidar_msgs::rslidarScan::ConstPtr &scan_msg1, const rs
   unsigned skip_big   = (lidar_vector[2].second - lidar_vector[0].second) / 1200;
   unsigned skip_small = (lidar_vector[1].second - lidar_vector[0].second) / 1200;
 
-  std::cout << "skip_big:   " << skip_big << "packets!" << std::endl;
-  std::cout << "skip_small: " << skip_small << "packets!" << std::endl;
+  std_msgs::String msg;
+  std::stringstream ss;
+  ss << "sync diff packets: " << skip_big;
+  msg.data = ss.str();
+  g_maxnum_diff_packetnum_pub.publish(msg);
 
   std_msgs::Int32 skip_num;
   if (skip_big > 1 && skip_small > 0)
@@ -74,7 +77,7 @@ void scanCallback(const rslidar_msgs::rslidarScan::ConstPtr &scan_msg1, const rs
   }
   else if ( skip_big > 0 && skip_small == 0)
   {
-        // oldest skip 2 packets
+    // oldest skip 2 packets
     skip_num.data = 1;
     if (lidar_vector[0].first  == 1)
     {
@@ -128,7 +131,7 @@ void scanCallback(const rslidar_msgs::rslidarScan::ConstPtr &scan_msg1, const rs
   {
     std::cout << "3 lidar synchronizer!" << std::endl;
   }
-  std::cout << std::endl;
+  // std::cout << std::endl;
 }
 
 int main(int argc, char **argv)
@@ -162,6 +165,10 @@ int main(int argc, char **argv)
   g_skippackets_num_pub1 = nh.advertise<std_msgs::Int32>(skippackets1_topic.c_str(), 1, true);
   g_skippackets_num_pub2 = nh.advertise<std_msgs::Int32>(skippackets2_topic.c_str(), 1, true);
   g_skippackets_num_pub3 = nh.advertise<std_msgs::Int32>(skippackets3_topic.c_str(), 1, true);
+
+  std::string sync_packet_diff_topic("/sync_packet_diff");
+  nh.getParam(std::string("sync_packet_diff_topic"), scan1_topic);
+  g_maxnum_diff_packetnum_pub = nh.advertise<std_msgs::String>(sync_packet_diff_topic, 1, true);
 
   ros::spin();
   return 0;

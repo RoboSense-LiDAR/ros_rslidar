@@ -31,6 +31,7 @@ namespace rslidar_rawdata {
         private_nh.param("curves_path", curvesPath, std::string(""));
         private_nh.param("angle_path", anglePath, std::string(""));
         private_nh.param("channel_path", channelPath, std::string(""));
+        private_nh.param("laser_channel", selectLaser, 7);
 
         private_nh.param("model", model, std::string("RS16"));
         if (model == "RS16") {
@@ -263,9 +264,9 @@ namespace rslidar_rawdata {
  *  @param pc shared pointer to point cloud (points are appended)
  */
     void RawData::unpack(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,
-                         bool finish_packets_parse) {
+                         pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloudSingle, bool finish_packets_parse) {
         if (numOfLasers == 32) {
-            unpack_RS32(pkt, pointcloud, finish_packets_parse);
+            unpack_RS32(pkt, pointcloud, pointcloudSingle, finish_packets_parse);
             return;
         }
         float azimuth;  //0.01 dgree
@@ -358,6 +359,8 @@ namespace rslidar_rawdata {
             pointcloud->width = 2 * pic.col;
             pointcloud->is_dense = false;
             pointcloud->resize(pointcloud->height * pointcloud->width);
+
+            pointcloudSingle->height = 1;
             for (int block_num = 0; block_num < pic.col; block_num++) {
 
                 for (int firing = 0; firing < RS16_FIRINGS_PER_BLOCK; firing++) {
@@ -385,8 +388,13 @@ namespace rslidar_rawdata {
                             point.z = dis * sin(arg_vert);
                             point.intensity = pic.intensity[point_count];
                             pointcloud->at(2 * block_num + firing, dsr) = point;
+                            if(dsr == selectLaser){
+                                pointcloudSingle->points.push_back(point);
+                                ++pointcloudSingle->width;
+                            }
 
                         }
+
                     }
                 }
             }
@@ -396,7 +404,7 @@ namespace rslidar_rawdata {
     }
 
     void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,
-                              bool finish_packets_parse) {
+                              pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloudSingle, bool finish_packets_parse) {
         float azimuth;  //0.01 dgree
         float intensity;
         float azimuth_diff;
@@ -500,6 +508,8 @@ namespace rslidar_rawdata {
             pointcloud->width = pic.col;
             pointcloud->is_dense = false;
             pointcloud->resize(pointcloud->height * pointcloud->width);
+
+            pointcloudSingle->height = 1;
             for (int block_num = 0; block_num < pic.col; block_num++) {
 
                 for (int dsr = 0; dsr < RS32_SCANS_PER_FIRING * RS32_FIRINGS_PER_BLOCK; dsr++) {
@@ -528,6 +538,10 @@ namespace rslidar_rawdata {
                         point.z = dis * sin(arg_vert);
                         point.intensity = intensity;
                         pointcloud->at(block_num, dsr) = point;
+                        if(dsr == selectLaser){
+                            pointcloudSingle->points.push_back(point);
+                            ++pointcloudSingle->width;
+                        }
                     }
                 }
             }

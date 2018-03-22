@@ -29,6 +29,8 @@ namespace rslidar_pointcloud {
         // advertise output point cloud (before subscribing to input data)
         output_ =
                 node.advertise<sensor_msgs::PointCloud2>("rslidar_points", 10);
+        output_single_ =
+                node.advertise<sensor_msgs::PointCloud2>("rslidar_points_single", 10);
 
         srv_ = boost::make_shared<dynamic_reconfigure::Server<rslidar_pointcloud::
         CloudNodeConfig> >(private_nh);
@@ -55,6 +57,10 @@ namespace rslidar_pointcloud {
         pcl::PointCloud<pcl::PointXYZI>::Ptr outPoints(new pcl::PointCloud<pcl::PointXYZI>);
         outPoints->header.stamp = pcl_conversions::toPCL(scanMsg->header).stamp;
         outPoints->header.frame_id = scanMsg->header.frame_id;
+
+        pcl::PointCloud<pcl::PointXYZI>::Ptr outPointsSingle(new pcl::PointCloud<pcl::PointXYZI>);
+        outPointsSingle->header.stamp = pcl_conversions::toPCL(scanMsg->header).stamp;
+        outPointsSingle->header.frame_id = scanMsg->header.frame_id;
         // process each packet provided by the driver
 
         bool finish_packets_parse = false;
@@ -64,14 +70,17 @@ namespace rslidar_pointcloud {
                 finish_packets_parse = true;
             }
 
-            data_->unpack(scanMsg->packets[i], outPoints, finish_packets_parse);
+            data_->unpack(scanMsg->packets[i], outPoints, outPointsSingle,finish_packets_parse);
         }
-        sensor_msgs::PointCloud2 outMsg;
+
+        sensor_msgs::PointCloud2 outMsg, outMsgSingle;
         pcl::toROSMsg(*outPoints, outMsg);
+        pcl::toROSMsg(*outPointsSingle, outMsgSingle);
 
         //if(outPoints->size()==0){
         //    ROS_INFO_STREAM("Height1: "<<outPoints->height<<" Width1: "<<outPoints->width);
         //}
         output_.publish(outMsg);
+        output_single_.publish(outMsgSingle);
     }
 } // namespace rslidar_pointcloud

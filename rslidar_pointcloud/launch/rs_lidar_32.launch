@@ -9,6 +9,7 @@
 
   <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
     <param name="model" value="RS32"/>
+    <param name="laser_channel" value="7"/>
     <param name="curves_path" value="$(find rslidar_pointcloud)/data/rs_lidar_32/curves.csv" />
     <param name="angle_path" value="$(find rslidar_pointcloud)/data/rs_lidar_32/angle.csv" />
     <param name="channel_path" value="$(find rslidar_pointcloud)/data/rs_lidar_32/ChannelNum.csv" />

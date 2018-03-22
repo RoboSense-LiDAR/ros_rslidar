@@ -134,11 +134,11 @@ namespace rslidar_rawdata {
 
         /*unpack the RS16 UDP packet and opuput PCL PointXYZI type*/
         void unpack(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,
-                    bool finish_packets_parse);
+                    pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloudSingle, bool finish_packets_parse);
 
         /*unpack the RS32 UDP packet and opuput PCL PointXYZI type*/
         void unpack_RS32(const rslidar_msgs::rslidarPacket &pkt, pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,
-                         bool finish_packets_parse);
+                         pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloudSingle, bool finish_packets_parse);
 
         /*compute temperature*/
         float computeTemperature(unsigned char bit1, unsigned char bit2);
@@ -169,6 +169,7 @@ namespace rslidar_rawdata {
     int tempPacketNum = 0;
     int numOfLasers = 16;
     int TEMPERATURE_RANGE = 40;
+    int selectLaser;
 
     rslidar_msgs::rslidarPic pic;
 

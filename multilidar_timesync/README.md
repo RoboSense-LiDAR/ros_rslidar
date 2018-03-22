@@ -1,9 +1,29 @@
-# multilidar_timesync
+# multilidar time synchronization package
 
 # How to use
 
-+ Connect multiple lidars with the same GPS, the system time of the lidars will be the same with the GPS time.
++ Connect multiple lidars with the same GPS. The system time of the lidars will be the same with the GPS time.
 
-+ Modify the lidar ip and port in the launch/multilidar_timesync.launch. Please make sure the time_synchronization param value is true.
++ Modify the lidar ip, port and namespace in the launch/multilidar_timesync_nlidar.launch (n = 2 or 3). Please make sure the time_synchronization param value is true.
 
-+ Launch the multilidar_timesync.launch.
++ Build and launch the multilidar_timesync_nlidar.launch.
+```
+roslaunch multilidar_timesync multilidar_timesync_2lidar.launch
+```
+or
+```
+roslaunch multilidar_timesync multilidar_timesync_3lidar.launch
+```
+
++ Check the time synchronization result.
+```
+rostopic echo /sync_packet_diff
+```
+It shows like this, n < 4 says good time synchronization. n >= 4 says bad result.
+```
+sync diff packets: n
+```
+If it doesn't show any message, please check the GPS connection. You may check the lidar timestamp below.
+```
+rostopic echo YOUR_LIDAR_TOPIC --noarr
+```

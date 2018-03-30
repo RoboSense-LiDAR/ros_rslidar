@@ -193,8 +193,8 @@ namespace rslidar_rawdata {
 
         int temp = estimateTemperature(temper);
 
-        // realPwr = std::max( (float)(round( intensity / (1+(temp-TEMPERATURE_MIN)/24.0f) ) ), 1.0f );
-        realPwr = intensity;
+        realPwr = std::max( (float)(round( intensity / (1+(temp-TEMPERATURE_MIN)/24.0f) ) ), 1.0f );
+        // realPwr = intensity;
 
         // transform the one byte intensity value to two byte
         if ((int) realPwr < 126)

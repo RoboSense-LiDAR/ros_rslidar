@@ -45,5 +45,3 @@ ENV/
 *.pcap
 *.pcd
 *.bag
-*.csv
-

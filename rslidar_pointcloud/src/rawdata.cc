@@ -25,12 +25,13 @@ namespace rslidar_rawdata {
 
     void RawData::loadConfigFile(ros::NodeHandle private_nh) {
 
-        std::string anglePath, curvesPath, channelPath;
+        std::string anglePath, curvesPath, channelPath, curvesRatePath;
         std::string model;
 
         private_nh.param("curves_path", curvesPath, std::string(""));
         private_nh.param("angle_path", anglePath, std::string(""));
         private_nh.param("channel_path", channelPath, std::string(""));
+        private_nh.param("curves_rate_path", curvesRatePath, std::string(""));
 
         private_nh.param("model", model, std::string("RS16"));
         if (model == "RS16") {
@@ -98,7 +99,6 @@ namespace rslidar_rawdata {
         if (!f_channel) {
             ROS_ERROR_STREAM(channelPath << " does not exist");
         } else {
-            printf("Loading channelnum corrections file!\n");
             int loopl = 0;
             int loopm = 0;
             int c[51];
@@ -139,6 +139,27 @@ namespace rslidar_rawdata {
             }
             fclose(f_channel);
         }
+
+        if(numOfLasers == 32){
+            FILE *f_curvesRate = fopen(curvesRatePath.c_str(), "r");
+            if(!f_curvesRate)
+            {
+                ROS_ERROR_STREAM(curvesRatePath << " does not exist");
+            }
+            else
+            {
+                int loopk = 0;
+                while(!feof(f_curvesRate))
+                {
+                    fscanf(f_curvesRate, "%f\n", &CurvesRate[loopk]);
+                    loopk++;
+                    if(loopk > (numOfLasers-1)) break;
+                }
+                fclose(f_curvesRate);
+            }
+        }
+
+
     }
 
 /** Set up for on-line operation. */
@@ -235,6 +256,9 @@ namespace rslidar_rawdata {
         refPwr = std::max(std::min(refPwr_temp,500.0f),4.0f);
 
         tempInten = (51* refPwr) / realPwr;
+        if(numOfLasers == 32){
+            tempInten = tempInten * CurvesRate[calIdx];
+        }
         tempInten = (int) tempInten > 255 ? 255.0f : tempInten;
         return tempInten;
     }

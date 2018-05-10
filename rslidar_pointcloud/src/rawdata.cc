@@ -125,10 +125,10 @@ namespace rslidar_rawdata {
                            &c[31], &c[32], &c[33], &c[34], &c[35], &c[36], &c[37], &c[38], &c[39], &c[40], 
                            &c[41], &c[42], &c[43], &c[44], &c[45], &c[46], &c[47], &c[48], &c[49], &c[50]);
                 }
-                if (c[1] < 100 || c[1] > 3000)
-                {
-                    tempMode = 0;
-                }
+//                if (c[1] < 100 || c[1] > 3000)
+//                {
+//                    tempMode = 0;
+//                }
                 for (loopl = 0; loopl < TEMPERATURE_RANGE+1; loopl++) {
                     g_ChannelNum[loopm][loopl] = c[tempMode * loopl];
                 }

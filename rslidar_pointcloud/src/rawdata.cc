@@ -25,13 +25,16 @@ namespace rslidar_rawdata {
 
     void RawData::loadConfigFile(ros::NodeHandle private_nh) {
 
-        std::string anglePath, curvesPath, channelPath;
+        std::string anglePath, curvesPath, channelPath, curvesRatePath;
         std::string model;
 
         private_nh.param("curves_path", curvesPath, std::string(""));
         private_nh.param("angle_path", anglePath, std::string(""));
         private_nh.param("channel_path", channelPath, std::string(""));
         private_nh.param("laser_channel", selectLaser, 7);
+
+        private_nh.param("curves_rate_path", curvesRatePath, std::string(""));
+
 
         private_nh.param("model", model, std::string("RS16"));
         if (model == "RS16") {
@@ -52,7 +55,7 @@ namespace rslidar_rawdata {
             while (!feof(f_inten)) {
                 float a[32];
                 loopi++;
-                if (loopi > 1600)
+                if (loopi > 7)
                     break;
                 if (numOfLasers == 16) {
                     fscanf(f_inten, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
@@ -99,7 +102,6 @@ namespace rslidar_rawdata {
         if (!f_channel) {
             ROS_ERROR_STREAM(channelPath << " does not exist");
         } else {
-            printf("Loading channelnum corrections file!\n");
             int loopl = 0;
             int loopm = 0;
             int c[51];
@@ -126,10 +128,10 @@ namespace rslidar_rawdata {
                            &c[31], &c[32], &c[33], &c[34], &c[35], &c[36], &c[37], &c[38], &c[39], &c[40], 
                            &c[41], &c[42], &c[43], &c[44], &c[45], &c[46], &c[47], &c[48], &c[49], &c[50]);
                 }
-                if (c[1] < 100 || c[1] > 3000)
-                {
-                    tempMode = 0;
-                }
+//                if (c[1] < 100 || c[1] > 3000)
+//                {
+//                    tempMode = 0;
+//                }
                 for (loopl = 0; loopl < TEMPERATURE_RANGE+1; loopl++) {
                     g_ChannelNum[loopm][loopl] = c[tempMode * loopl];
                 }
@@ -140,6 +142,27 @@ namespace rslidar_rawdata {
             }
             fclose(f_channel);
         }
+
+        if(numOfLasers == 32){
+            FILE *f_curvesRate = fopen(curvesRatePath.c_str(), "r");
+            if(!f_curvesRate)
+            {
+                ROS_ERROR_STREAM(curvesRatePath << " does not exist");
+            }
+            else
+            {
+                int loopk = 0;
+                while(!feof(f_curvesRate))
+                {
+                    fscanf(f_curvesRate, "%f\n", &CurvesRate[loopk]);
+                    loopk++;
+                    if(loopk > (numOfLasers-1)) break;
+                }
+                fclose(f_curvesRate);
+            }
+        }
+
+
     }
 
 /** Set up for on-line operation. */
@@ -189,16 +212,15 @@ namespace rslidar_rawdata {
         float realPwr;
         float refPwr;
         float tempInten;
+        float distance_f;
+        float endOfSection1;
 
-        if (intensity == 0.0) {
-            tempInten = 0.0;
-            return tempInten;
-        }
+        int temp = estimateTemperature(temper);
 
-        int indexTemper = estimateTemperature(temper) - TEMPERATURE_MIN;
-        uplimitDist = g_ChannelNum[calIdx][indexTemper] + 1400;
-        realPwr = intensity;
+        realPwr = std::max( (float)( intensity / (1+(temp-TEMPERATURE_MIN)/24.0f) ), 1.0f );
+        // realPwr = intensity;
 
+        // transform the one byte intensity value to two byte
         if ((int) realPwr < 126)
             realPwr = realPwr * 4.0f;
         else if ((int) realPwr >= 126 && (int) realPwr < 226)
@@ -206,14 +228,40 @@ namespace rslidar_rawdata {
         else
             realPwr = (realPwr - 225.0f) * 256.0f + 2100.0f;
 
+        int indexTemper = estimateTemperature(temper) - TEMPERATURE_MIN;
+        uplimitDist = g_ChannelNum[calIdx][indexTemper] + 20000;
+        //limit sDist
         sDist = (distance > g_ChannelNum[calIdx][indexTemper]) ? distance : g_ChannelNum[calIdx][indexTemper];
         sDist = (sDist < uplimitDist) ? sDist : uplimitDist;
         //minus the static offset (this data is For the intensity cal useage only)
         algDist = sDist - g_ChannelNum[calIdx][indexTemper];
-        //algDist = algDist < 1400? algDist : 1399;
-        refPwr = aIntensityCal[algDist][calIdx];
-        tempInten = (200 * refPwr) / realPwr;
-        //tempInten = tempInten * 200.0;
+
+        // calculate intensity ref curves
+        float refPwr_temp = 0.0f;
+        int order = 3;
+        endOfSection1 = 500.0f; 
+        distance_f = (float)algDist;
+        if(distance_f <= endOfSection1)
+        {
+          refPwr_temp = aIntensityCal[0][calIdx] * exp(aIntensityCal[1][calIdx] - 
+          aIntensityCal[2][calIdx] * distance_f/100.0f) + aIntensityCal[3][calIdx];
+        //   printf("a-calIdx=%d,distance_f=%f,refPwr=%f\n",calIdx,distance_f,refPwr_temp);
+        }
+        else
+        {
+          for(int i = 0; i < order; i++)
+          {
+            refPwr_temp +=aIntensityCal[i+4][calIdx]*(pow(distance_f/100.0f,order-1-i));
+          }
+          // printf("b-calIdx=%d,distance_f=%f,refPwr=%f\n",calIdx,distance_f,refPwr_temp);
+        }
+
+        refPwr = std::max(std::min(refPwr_temp,500.0f),4.0f);
+
+        tempInten = (51* refPwr) / realPwr;
+        if(numOfLasers == 32){
+            tempInten = tempInten * CurvesRate[calIdx];
+        }
         tempInten = (int) tempInten > 255 ? 255.0f : tempInten;
         return tempInten;
     }

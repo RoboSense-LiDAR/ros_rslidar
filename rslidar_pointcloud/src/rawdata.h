@@ -162,8 +162,9 @@ namespace rslidar_rawdata {
 
     float VERT_ANGLE[32];
     float HORI_ANGLE[32];
-    float aIntensityCal[1600][32];
+    float aIntensityCal[7][32];
     int g_ChannelNum[32][51];
+    float CurvesRate[32];
 
     float temper = 31.0;
     int tempPacketNum = 0;

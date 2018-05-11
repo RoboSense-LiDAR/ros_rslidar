@@ -13,6 +13,7 @@
     <param name="curves_path" value="$(find rslidar_pointcloud)/data/rs_lidar_32/curves.csv" />
     <param name="angle_path" value="$(find rslidar_pointcloud)/data/rs_lidar_32/angle.csv" />
     <param name="channel_path" value="$(find rslidar_pointcloud)/data/rs_lidar_32/ChannelNum.csv" />
+    <param name="curves_rate_path" value="$(find rslidar_pointcloud)/data/rs_lidar_32/CurveRate.csv" />
   </node>
 
   <node name="rviz" pkg="rviz" type="rviz"  args="-d $(find rslidar_pointcloud)/rviz_cfg/rslidar.rviz" />

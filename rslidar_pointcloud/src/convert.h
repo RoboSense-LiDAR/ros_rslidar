@@ -11,7 +11,7 @@
 
 /** @file
 
-    This class converts raw Velodyne 3D LIDAR packets to PointCloud2.
+    This class converts raw Robosense 3D LIDAR packets to PointCloud2.
 
 */
 #ifndef _CONVERT_H_

@@ -45,14 +45,29 @@ namespace rslidar_rawdata {
         FILE *f_inten = fopen(curvesPath.c_str(), "r");
         int loopi = 0;
         int loopj = 0;
-
+		int loop_num;
         if (!f_inten) {
             ROS_ERROR_STREAM(curvesPath << " does not exist");
         } else {
+            fseek(f_inten,0,SEEK_END);     //定位到文件末  
+            int size = ftell(f_inten);       //文件长度
+            ROS_INFO_STREAM("size is::::::::::::::::::::::::::::: " << size);
+			if(size>10000)  //老版的curve
+			{
+				Curvesis_new = false;
+				loop_num = 1600;
+			}
+			else
+			{
+				Curvesis_new = true;
+				loop_num = 7;
+			}
+		    fseek(f_inten,0,SEEK_SET);   	
             while (!feof(f_inten)) {
                 float a[32];
                 loopi++;
-                if (loopi > 7)
+			    
+                if (loopi > loop_num)
                     break;
                 if (numOfLasers == 16) {
                     fscanf(f_inten, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
@@ -68,9 +83,19 @@ namespace rslidar_rawdata {
                            &a[25], &a[26], &a[27],
                            &a[28], &a[29], &a[30], &a[31]);
                 }
-                for (loopj = 0; loopj < numOfLasers; loopj++) {
-                    aIntensityCal[loopi - 1][loopj] = a[loopj];
-                }
+				if(Curvesis_new)
+				{
+                	for (loopj = 0; loopj < numOfLasers; loopj++) {
+                    	aIntensityCal[loopi - 1][loopj] = a[loopj];
+                	}
+				}
+				else
+				{
+					for (loopj = 0; loopj < numOfLasers; loopj++) {
+                    	aIntensityCal_old[loopi - 1][loopj] = a[loopj];
+                	}
+				}
+                ROS_INFO_STREAM("new is " << a[0]);
             }
             fclose(f_inten);
         }
@@ -264,6 +289,44 @@ namespace rslidar_rawdata {
     }
 
 //------------------------------------------------------------
+//校准反射强度值 old
+	float RawData::calibrateIntensity_old(float intensity, int calIdx, int distance) {
+		int algDist;
+		int sDist;
+		int uplimitDist;
+		float realPwr;
+		float refPwr;
+		float tempInten;
+	
+		if (intensity == 0.0) {
+			tempInten = 0.0;
+			return tempInten;
+		}
+	
+		int indexTemper = estimateTemperature(temper) - TEMPERATURE_MIN;
+		uplimitDist = g_ChannelNum[calIdx][indexTemper] + 1400;
+		realPwr = intensity;
+	
+		if ((int) realPwr < 126)
+			realPwr = realPwr * 4.0f;
+		else if ((int) realPwr >= 126 && (int) realPwr < 226)
+			realPwr = (realPwr - 125.0f) * 16.0f + 500.0f;
+		else
+			realPwr = (realPwr - 225.0f) * 256.0f + 2100.0f;
+	
+		sDist = (distance > g_ChannelNum[calIdx][indexTemper]) ? distance : g_ChannelNum[calIdx][indexTemper];
+		sDist = (sDist < uplimitDist) ? sDist : uplimitDist;
+		//minus the static offset (this data is For the intensity cal useage only)
+		algDist = sDist - g_ChannelNum[calIdx][indexTemper];
+		//algDist = algDist < 1400? algDist : 1399;
+		refPwr = aIntensityCal_old[algDist][calIdx];
+		tempInten = (200 * refPwr) / realPwr;
+		//tempInten = tempInten * 200.0;
+		tempInten = (int) tempInten > 255 ? 255.0f : tempInten;
+		return tempInten;
+	}
+
+//------------------------------------------------------------
     int RawData::isABPacket(int distance) {
         int ABflag = 0;
         if ((distance & 32768) != 0) {
@@ -384,7 +447,10 @@ namespace rslidar_rawdata {
 
                     // read intensity
                     intensity = raw->blocks[block].data[k + 2];
-                    intensity = calibrateIntensity(intensity, dsr, distance);
+					if(Curvesis_new)
+                    	intensity = calibrateIntensity(intensity, dsr, distance);
+					else
+						intensity = calibrateIntensity_old(intensity, dsr, distance);
 
                     float distance2 = pixelToDistance(distance, dsr);
                     distance2 = distance2 * DISTANCE_RESOLUTION;
@@ -527,7 +593,10 @@ namespace rslidar_rawdata {
 
                 // read intensity
                 intensity = (float) raw->blocks[block].data[index + 2];
-                intensity = calibrateIntensity(intensity, dsr, distance);
+				if(Curvesis_new)
+                    intensity = calibrateIntensity(intensity, dsr, distance);
+				else
+					intensity = calibrateIntensity_old(intensity, dsr, distance);
 
                 float distance2 = pixelToDistance(distance, dsr);
                 distance2 = distance2 * DISTANCE_RESOLUTION;

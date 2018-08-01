@@ -32,7 +32,7 @@
 #include <pcl_ros/point_cloud.h>
 #include <pcl_ros/impl/transforms.hpp>
 #include <pcl_conversions/pcl_conversions.h>
-
+#include <stdio.h>
 namespace rslidar_rawdata {
     //static const float  ROTATION_SOLUTION_ = 0.18f;  //水平角分辨率 10hz
     static const int SIZE_BLOCK = 100;
@@ -154,6 +154,7 @@ namespace rslidar_rawdata {
 
         /*calibrated the intensity*/
         float calibrateIntensity(float inten, int calIdx, int distance);
+		float calibrateIntensity_old(float inten, int calIdx, int distance);
 
         /*estimate the packet type*/
         int isABPacket(int distance);
@@ -163,6 +164,8 @@ namespace rslidar_rawdata {
     float VERT_ANGLE[32];
     float HORI_ANGLE[32];
     float aIntensityCal[7][32];
+	float aIntensityCal_old[1600][32];
+	bool Curvesis_new;
     int g_ChannelNum[32][51];
     float CurvesRate[32];
 

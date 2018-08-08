@@ -282,7 +282,7 @@ namespace rslidar_rawdata {
 
         tempInten = (51* refPwr) / realPwr;
         if(numOfLasers == 32){
-            tempInten = tempInten * CurvesRate[calIdx];
+          tempInten = tempInten * CurvesRate[calIdx];
         }
         tempInten = (int) tempInten > 255 ? 255.0f : tempInten;
         return tempInten;
@@ -290,41 +290,41 @@ namespace rslidar_rawdata {
 
 //------------------------------------------------------------
 //校准反射强度值 old
-	float RawData::calibrateIntensity_old(float intensity, int calIdx, int distance) {
-		int algDist;
-		int sDist;
-		int uplimitDist;
-		float realPwr;
-		float refPwr;
-		float tempInten;
+    float RawData::calibrateIntensity_old(float intensity, int calIdx, int distance) {
+	int algDist;
+	int sDist;
+	int uplimitDist;
+	float realPwr;
+	float refPwr;
+	float tempInten;
 	
-		if (intensity == 0.0) {
-			tempInten = 0.0;
-			return tempInten;
-		}
+	int temp = estimateTemperature(temper);		
+	realPwr = std::max( (float)( intensity / (1+(temp-TEMPERATURE_MIN)/24.0f) ), 1.0f );
+	//realPwr = intensity;
+		
+	if ((int) realPwr < 126)
+	  realPwr = realPwr * 4.0f;
+	else if ((int) realPwr >= 126 && (int) realPwr < 226)
+	  realPwr = (realPwr - 125.0f) * 16.0f + 500.0f;
+	else
+	  realPwr = (realPwr - 225.0f) * 256.0f + 2100.0f;
 	
-		int indexTemper = estimateTemperature(temper) - TEMPERATURE_MIN;
-		uplimitDist = g_ChannelNum[calIdx][indexTemper] + 1400;
-		realPwr = intensity;
-	
-		if ((int) realPwr < 126)
-			realPwr = realPwr * 4.0f;
-		else if ((int) realPwr >= 126 && (int) realPwr < 226)
-			realPwr = (realPwr - 125.0f) * 16.0f + 500.0f;
-		else
-			realPwr = (realPwr - 225.0f) * 256.0f + 2100.0f;
-	
-		sDist = (distance > g_ChannelNum[calIdx][indexTemper]) ? distance : g_ChannelNum[calIdx][indexTemper];
-		sDist = (sDist < uplimitDist) ? sDist : uplimitDist;
-		//minus the static offset (this data is For the intensity cal useage only)
-		algDist = sDist - g_ChannelNum[calIdx][indexTemper];
-		//algDist = algDist < 1400? algDist : 1399;
-		refPwr = aIntensityCal_old[algDist][calIdx];
-		tempInten = (200 * refPwr) / realPwr;
-		//tempInten = tempInten * 200.0;
-		tempInten = (int) tempInten > 255 ? 255.0f : tempInten;
-		return tempInten;
-	}
+	int indexTemper = estimateTemperature(temper) - TEMPERATURE_MIN;
+	uplimitDist = g_ChannelNum[calIdx][indexTemper] + 1400;		
+	sDist = (distance > g_ChannelNum[calIdx][indexTemper]) ? distance : g_ChannelNum[calIdx][indexTemper];
+	sDist = (sDist < uplimitDist) ? sDist : uplimitDist;
+	//minus the static offset (this data is For the intensity cal useage only)
+	algDist = sDist - g_ChannelNum[calIdx][indexTemper];
+	//algDist = algDist < 1400? algDist : 1399;
+	refPwr = aIntensityCal_old[algDist][calIdx];
+
+	tempInten = (51* refPwr) / realPwr;
+        if(numOfLasers == 32){
+	  tempInten = tempInten * CurvesRate[calIdx];
+        }
+        tempInten = (int) tempInten > 255 ? 255.0f : tempInten;
+        return tempInten;
+    }
 
 //------------------------------------------------------------
     int RawData::isABPacket(int distance) {

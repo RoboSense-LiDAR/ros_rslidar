@@ -27,7 +27,7 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include "input.h"
 
-namespace rs_driver {
+namespace rslidar_driver {
 
     class rslidarDriver {
     public:

@@ -8,6 +8,12 @@ target_link_libraries(rslidar_point
     rslidar_data
     ${catkin_LIBRARIES})
 
+
+add_library(cloud_nodelet cloud_nodelet.cc )
+# add_dependencies(cloud_nodelet ${${PROJECT_NAME}_EXPORTED_TARGETS})
+target_link_libraries(cloud_nodelet rslidar_point
+                      ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
+
 add_executable(cloud_node cloud_node.cc)
 
 if(catkin_EXPORTED_TARGETS)

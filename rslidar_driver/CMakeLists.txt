@@ -14,6 +14,7 @@ set(${PROJECT_NAME}_CATKIN_DEPS
     dynamic_reconfigure
     diagnostic_updater
     rslidar_msgs
+    nodelet
 )
 
 set(libpcap_LIBRARIES -lpcap)

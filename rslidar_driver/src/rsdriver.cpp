@@ -15,7 +15,7 @@
 #include "rsdriver.h"
 #include <rslidar_msgs/rslidarScan.h>
 
-namespace rs_driver
+namespace rslidar_driver
 {
 rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
 {
@@ -89,14 +89,14 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
   if (dump_file != "")  // have PCAP file?
   {
     // read data from packet capture file
-    input_.reset(new rs_driver::InputPCAP(private_nh, udp_port, packet_rate, dump_file));
-    difop_input_.reset(new rs_driver::InputPCAP(private_nh, difop_udp_port, packet_rate, dump_file));
+    input_.reset(new rslidar_driver::InputPCAP(private_nh, udp_port, packet_rate, dump_file));
+    difop_input_.reset(new rslidar_driver::InputPCAP(private_nh, difop_udp_port, packet_rate, dump_file));
   }
   else
   {
     // read data from live socket
-    input_.reset(new rs_driver::InputSocket(private_nh, udp_port));
-    difop_input_.reset(new rs_driver::InputSocket(private_nh, difop_udp_port));
+    input_.reset(new rslidar_driver::InputSocket(private_nh, udp_port));
+    difop_input_.reset(new rslidar_driver::InputSocket(private_nh, difop_udp_port));
   }
 
   // raw packet output topic
@@ -145,16 +145,18 @@ bool rslidarDriver::poll(void)
 void rslidarDriver::difopPoll(void)
 {
   // reading and publishing scans as fast as possible.
-  rslidar_msgs::rslidarPacket* difop_packet(new rslidar_msgs::rslidarPacket);
+  rslidar_msgs::rslidarPacketPtr difop_packet_ptr(new rslidar_msgs::rslidarPacket);
   while (ros::ok())
   {
     // keep reading
-    int rc = difop_input_->getPacket(difop_packet, config_.time_offset);
+    rslidar_msgs::rslidarPacket difop_packet_msg;
+    int rc = difop_input_->getPacket(&difop_packet_msg, config_.time_offset);
     if (rc == 0)
     {
       // std::cout << "Publishing a difop data." << std::endl;
       ROS_DEBUG("Publishing a difop data.");
-      difop_output_.publish(*difop_packet);
+      *difop_packet_ptr = difop_packet_msg;
+      difop_output_.publish(difop_packet_ptr);
     }
     if (rc < 0)
       return;  // end of file reached?

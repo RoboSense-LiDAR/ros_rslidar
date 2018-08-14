@@ -15,7 +15,7 @@
 #include "rsdriver.h"
 #include "std_msgs/String.h"
 
-using namespace rs_driver;
+using namespace rslidar_driver;
 volatile sig_atomic_t flag = 1;
 
 static void my_handler(int sig) {
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
     signal(SIGINT, my_handler);
 
     // start the driver
-    rs_driver::rslidarDriver dvr(node, private_nh);
+    rslidar_driver::rslidarDriver dvr(node, private_nh);
     // loop until shut down or end of file
     while (ros::ok() && dvr.poll()) {
         ros::spinOnce();

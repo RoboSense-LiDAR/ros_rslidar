@@ -26,7 +26,7 @@
 #include "input.h"
 
 extern volatile sig_atomic_t flag;
-namespace rs_driver {
+namespace rslidar_driver {
 static const size_t packet_size = sizeof(rslidar_msgs::rslidarPacket().data);
 
 ////////////////////////////////////////////////////////////////////////

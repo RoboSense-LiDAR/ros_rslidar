@@ -44,7 +44,7 @@
 #include <signal.h>
 
 
-namespace rs_driver {
+namespace rslidar_driver {
     static uint16_t DATA_PORT_NUMBER = 6699;     // rslidar default data port on PC
     static uint16_t DIFOP_DATA_PORT_NUMBER = 7788;     // rslidar default difop data port on PC
 /**

@@ -22,30 +22,29 @@
 #include <rslidar_pointcloud/CloudNodeConfig.h>
 #include "rawdata.h"
 
-namespace rslidar_pointcloud {
-    class Convert {
-    public:
+namespace rslidar_pointcloud
+{
+class Convert
+{
+public:
+  Convert(ros::NodeHandle node, ros::NodeHandle private_nh);
 
-        Convert(ros::NodeHandle node, ros::NodeHandle private_nh);
+  ~Convert()
+  {
+  }
 
-        ~Convert() {}
+private:
+  void callback(rslidar_pointcloud::CloudNodeConfig& config, uint32_t level);
 
-    private:
+  void processScan(const rslidar_msgs::rslidarScan::ConstPtr& scanMsg);
 
-        void callback(rslidar_pointcloud::CloudNodeConfig &config,
-                      uint32_t level);
+  /// Pointer to dynamic reconfigure service srv_
+  boost::shared_ptr<dynamic_reconfigure::Server<rslidar_pointcloud::CloudNodeConfig> > srv_;
 
-        void processScan(const rslidar_msgs::rslidarScan::ConstPtr &scanMsg);
+  boost::shared_ptr<rslidar_rawdata::RawData> data_;
+  ros::Subscriber rslidar_scan_;
+  ros::Publisher output_;
+};
 
-        ///Pointer to dynamic reconfigure service srv_
-        boost::shared_ptr<dynamic_reconfigure::Server<rslidar_pointcloud::
-        CloudNodeConfig> > srv_;
-
-        boost::shared_ptr<rslidar_rawdata::RawData> data_;
-        ros::Subscriber rslidar_scan_;
-        ros::Publisher output_;
-
-    };
-
-}//namespace rslidar_pointcloud
+}  // namespace rslidar_pointcloud
 #endif

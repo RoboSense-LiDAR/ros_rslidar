@@ -38,13 +38,13 @@
   <run_depend>pcl_ros</run_depend>
   <run_depend>nodelet</run_depend>
   <run_depend>pluginlib</run_depend>
-  <run_depend>python-yaml</run_depend>
+  <!-- <run_depend>python-yaml</run_depend> -->
   <run_depend>roscpp</run_depend>
   <run_depend>roslib</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>tf</run_depend>
-  <run_depend>yaml-cpp</run_depend>
+  <!-- <run_depend>yaml-cpp</run_depend> -->
   <run_depend>dynamic_reconfigure</run_depend>
   <run_depend>message_runtime</run_depend>
   <run_depend>pcl_conversions</run_depend>

@@ -73,7 +73,7 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
   {
     ROS_INFO_STREAM("Cut at specific angle feature deactivated.");
   }
-  else if (cut_angle < 2*M_PI)
+  else if (cut_angle < 2 * M_PI)
   {
     ROS_INFO_STREAM("Cut at specific angle feature activated. "
                     "Cutting rslidar points always at "
@@ -88,7 +88,7 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
 
   // Convert cut_angle from radian to one-hundredth degree,
   // which is used in rslidar packets
-  config_.cut_angle = int(cut_angle *360/(2*M_PI) * 100);
+  config_.cut_angle = int(cut_angle * 360 / (2 * M_PI) * 100);
 
   // Initialize dynamic reconfigure
   srv_ = boost::make_shared<dynamic_reconfigure::Server<rslidar_driver::rslidarNodeConfig> >(private_nh);
@@ -155,7 +155,7 @@ bool rslidarDriver::poll(void)
       }
       scan->packets.push_back(tmp_packet);
 
-      static int ANGLE_HEAD = -36001; // note: cannot be set to -1, or stack smashing
+      static int ANGLE_HEAD = -36001;  // note: cannot be set to -1, or stack smashing
       static int last_azimuth = ANGLE_HEAD;
 
       int azimuth = 256 * tmp_packet.data[44] + tmp_packet.data[45];

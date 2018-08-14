@@ -164,7 +164,7 @@ public:
   /*estimate the packet type*/
   int isABPacket(int distance);
 
-  void processDifop(const rslidar_msgs::rslidarPacket::ConstPtr &difop_msg);
+  void processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_msg);
   ros::Subscriber difop_sub_;
   bool is_init_curve_;
   bool is_init_angle_;

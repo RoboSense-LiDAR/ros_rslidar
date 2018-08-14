@@ -20,27 +20,28 @@
 
 namespace rslidar_pointcloud
 {
-  class CloudNodelet: public nodelet::Nodelet
+class CloudNodelet : public nodelet::Nodelet
+{
+public:
+  CloudNodelet()
   {
-  public:
-
-    CloudNodelet() {}
-    ~CloudNodelet() {}
-
-  private:
-
-    virtual void onInit();
-    boost::shared_ptr<Convert> conv_;
-  };
-
-  /** @brief Nodelet initialization. */
-  void CloudNodelet::onInit()
+  }
+  ~CloudNodelet()
   {
-    conv_.reset(new Convert(getNodeHandle(), getPrivateNodeHandle()));
   }
 
-} // namespace velodyne_pointcloud
+private:
+  virtual void onInit();
+  boost::shared_ptr<Convert> conv_;
+};
 
+/** @brief Nodelet initialization. */
+void CloudNodelet::onInit()
+{
+  conv_.reset(new Convert(getNodeHandle(), getPrivateNodeHandle()));
+}
+
+}  // namespace velodyne_pointcloud
 
 // Register this plugin with pluginlib.  Names must match nodelets.xml.
 //

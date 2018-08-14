@@ -245,8 +245,8 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
     {
       bool curve_flag = true;
       // check difop reigon has beed flashed the right data
-      if ((data[50] == 0x00 && data[51] == 0x00 && data[52] == 0x00 && data[53] == 0x00) ||
-          (data[50] == 0xff && data[51] == 0xff && data[52] == 0xff && data[53] == 0xff))
+      if ((data[50] == 0x00 || data[50] == 0xff) && (data[51] == 0x00 || data[51] == 0xff) &&
+          (data[52] == 0x00 || data[52] == 0xff) && (data[53] == 0x00 || data[53] == 0xff))
       {
         curve_flag = false;
       }
@@ -312,8 +312,8 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
     {
       bool angle_flag = true;
       // check difop reigon has beed flashed the right data
-      if ((data[1165] == 0x00 && data[1166] == 0x00 && data[1167] == 0x00 && data[1168] == 0x00) ||
-          (data[1165] == 0xff && data[1166] == 0xff && data[1167] == 0xff && data[1168] == 0xff))
+      if ((data[1165] == 0x00 || data[1165] == 0xff) && (data[1166] == 0x00 || data[1166] == 0xff) &&
+          (data[1167] == 0x00 || data[1167] == 0xff) && (data[1168] == 0x00 || data[1168] == 0xff))
       {
         angle_flag = false;
       }

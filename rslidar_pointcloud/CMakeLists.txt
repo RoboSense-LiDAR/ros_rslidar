@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(rslidar_pointcloud)
+
+add_compile_options(-std=c++11)
+set(CMAKE_BUILD_TYPE Release)#RelWithDebInfo
 set(${PROJECT_NAME}_CATKIN_DEPS
     angles
     nodelet

@@ -67,6 +67,29 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
   int difop_udp_port;
   private_nh.param("difop_port", difop_udp_port, (int)DIFOP_DATA_PORT_NUMBER);
 
+  double cut_angle;
+  private_nh.param("cut_angle", cut_angle, -0.01);
+  if (cut_angle < 0.0)
+  {
+    ROS_INFO_STREAM("Cut at specific angle feature deactivated.");
+  }
+  else if (cut_angle < 2*M_PI)
+  {
+    ROS_INFO_STREAM("Cut at specific angle feature activated. "
+                    "Cutting rslidar points always at "
+                    << cut_angle << " rad.");
+  }
+  else
+  {
+    ROS_ERROR_STREAM("cut_angle parameter is out of range. Allowed range is "
+                     << "between 0.0 and 2pi negative values to deactivate this feature.");
+    cut_angle = -0.01;
+  }
+
+  // Convert cut_angle from radian to one-hundredth degree,
+  // which is used in rslidar packets
+  config_.cut_angle = int(cut_angle *360/(2*M_PI) * 100);
+
   // Initialize dynamic reconfigure
   srv_ = boost::make_shared<dynamic_reconfigure::Server<rslidar_driver::rslidarNodeConfig> >(private_nh);
   dynamic_reconfigure::Server<rslidar_driver::rslidarNodeConfig>::CallbackType f;
@@ -113,19 +136,59 @@ bool rslidarDriver::poll(void)
 {
   // Allocate a new shared pointer for zero-copy sharing with other nodelets.
   rslidar_msgs::rslidarScanPtr scan(new rslidar_msgs::rslidarScan);
-  scan->packets.resize(config_.npackets);
+
   // Since the rslidar delivers data at a very high rate, keep
   // reading and publishing scans as fast as possible.
-  for (int i = 0; i < config_.npackets; i++)
+  if (config_.cut_angle >= 0)  // Cut at specific angle feature enabled
   {
+    scan->packets.reserve(config_.npackets);
+    rslidar_msgs::rslidarPacket tmp_packet;
     while (true)
     {
-      // keep reading until full packet received
-      int rc = input_->getPacket(&scan->packets[i], config_.time_offset);
-      if (rc == 0)
-        break;  // got a full packet?
-      if (rc < 0)
-        return false;  // end of file reached?
+      while (true)
+      {
+        int rc = input_->getPacket(&tmp_packet, config_.time_offset);
+        if (rc == 0)
+          break;  // got a full packet?
+        if (rc < 0)
+          return false;  // end of file reached?
+      }
+      scan->packets.push_back(tmp_packet);
+
+      static int ANGLE_HEAD = -36001; // note: cannot be set to -1, or stack smashing
+      static int last_azimuth = ANGLE_HEAD;
+
+      int azimuth = 256 * tmp_packet.data[44] + tmp_packet.data[45];
+      // int azimuth = *( (u_int16_t*) (&tmp_packet.data[azimuth_data_pos]));
+
+      // Handle overflow 35999->0
+      if (azimuth < last_azimuth)
+      {
+        last_azimuth -= 36000;
+      }
+      // Check if currently passing cut angle
+      if (last_azimuth != ANGLE_HEAD && last_azimuth < config_.cut_angle && azimuth >= config_.cut_angle)
+      {
+        last_azimuth = azimuth;
+        break;  // Cut angle passed, one full revolution collected
+      }
+      last_azimuth = azimuth;
+    }
+  }
+  else  // standard behaviour
+  {
+    scan->packets.resize(config_.npackets);
+    for (int i = 0; i < config_.npackets; ++i)
+    {
+      while (true)
+      {
+        // keep reading until full packet received
+        int rc = input_->getPacket(&scan->packets[i], config_.time_offset);
+        if (rc == 0)
+          break;  // got a full packet?
+        if (rc < 0)
+          return false;  // end of file reached?
+      }
     }
   }
 

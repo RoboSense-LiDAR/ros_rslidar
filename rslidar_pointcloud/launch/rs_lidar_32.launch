@@ -1,18 +1,24 @@
 <launch>
+  <arg name="model" default="RS32" />
+  <arg name="device_ip" default="192.168.1.200" />
+  <arg name="msop_port" default="6699" />
+  <arg name="difop_port" default="7788" />
+  <arg name="lidar_param_path" default="$(find rslidar_pointcloud)/data/rs_lidar_32/"/>
+
   <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
-    <param name="model" value="RS32"/>
+    <param name="model" value="$(arg model)"/>
+    <param name="device_ip" value="$(arg device_ip)" />
+    <param name="msop_port" value="$(arg msop_port)" />
+    <param name="difop_port" value="$(arg difop_port)"/>
     <!--param name="pcap" value="path_to_pcap"/-->
-    <!--param name="device_ip" value="192.168.1.200"/-->
-    <!-- Set the Lidar data port on the PC side, default is 6699 -->
-    <param name="msop_port" value="6699"/>
   </node>
 
   <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
-    <param name="model" value="RS32"/>
-    <param name="curves_path" value="$(find rslidar_pointcloud)/data/rs_lidar_32/curves.csv" />
-    <param name="angle_path" value="$(find rslidar_pointcloud)/data/rs_lidar_32/angle.csv" />
-    <param name="channel_path" value="$(find rslidar_pointcloud)/data/rs_lidar_32/ChannelNum.csv" />
-    <param name="curves_rate_path" value="$(find rslidar_pointcloud)/data/rs_lidar_32/CurveRate.csv" />
+    <param name="model" value="$(arg model)"/>
+    <param name="curves_path" value="$(arg lidar_param_path)/curves.csv" />
+    <param name="angle_path" value="$(arg lidar_param_path)/angle.csv" />
+    <param name="channel_path" value="$(arg lidar_param_path)/ChannelNum.csv" />
+    <param name="curves_rate_path" value="$(arg lidar_param_path)/CurveRate.csv" />
   </node>
 
   <node name="rviz" pkg="rviz" type="rviz"  args="-d $(find rslidar_pointcloud)/rviz_cfg/rslidar.rviz" />

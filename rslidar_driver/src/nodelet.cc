@@ -70,18 +70,8 @@ void DriverNodelet::devicePoll()
   {
     ros::spinOnce();
   }
-
-  // while(ros::ok())
-  //   {
-  //     // poll device until end of file
-  //     running_ = dvr_->poll();
-  //     if (!running_)
-  //       break;
-  //   }
-  // running_ = false;
 }
-
-}  // namespace velodyne_driver
+}
 
 // Register this plugin with pluginlib.  Names must match nodelet_velodyne.xml.
 //

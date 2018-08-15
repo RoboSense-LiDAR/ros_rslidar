@@ -45,7 +45,7 @@
 
 namespace rslidar_driver
 {
-static uint16_t DATA_PORT_NUMBER = 6699;        // rslidar default data port on PC
+static uint16_t MSOP_DATA_PORT_NUMBER = 6699;   // rslidar default data port on PC
 static uint16_t DIFOP_DATA_PORT_NUMBER = 7788;  // rslidar default difop data port on PC
                                                 /**
                                                  *  从在线的网络数据或离线的网络抓包数据（pcap文件）中提取出lidar的原始数据，即packet数据包
@@ -78,7 +78,7 @@ protected:
 class InputSocket : public Input
 {
 public:
-  InputSocket(ros::NodeHandle private_nh, uint16_t port = DATA_PORT_NUMBER);
+  InputSocket(ros::NodeHandle private_nh, uint16_t port = MSOP_DATA_PORT_NUMBER);
 
   virtual ~InputSocket();
 
@@ -100,7 +100,7 @@ private:
 class InputPCAP : public Input
 {
 public:
-  InputPCAP(ros::NodeHandle private_nh, uint16_t port = DATA_PORT_NUMBER, double packet_rate = 0.0,
+  InputPCAP(ros::NodeHandle private_nh, uint16_t port = MSOP_DATA_PORT_NUMBER, double packet_rate = 0.0,
             std::string filename = "", bool read_once = false, bool read_fast = false, double repeat_delay = 0.0);
 
   virtual ~InputPCAP();

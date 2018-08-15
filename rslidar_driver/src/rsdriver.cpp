@@ -62,8 +62,8 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
   std::string dump_file;
   private_nh.param("pcap", dump_file, std::string(""));
 
-  int udp_port;
-  private_nh.param("port", udp_port, (int)DATA_PORT_NUMBER);
+  int msop_udp_port;
+  private_nh.param("msop_port", msop_udp_port, (int)MSOP_DATA_PORT_NUMBER);
   int difop_udp_port;
   private_nh.param("difop_port", difop_udp_port, (int)DIFOP_DATA_PORT_NUMBER);
 
@@ -112,18 +112,18 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
   if (dump_file != "")  // have PCAP file?
   {
     // read data from packet capture file
-    input_.reset(new rslidar_driver::InputPCAP(private_nh, udp_port, packet_rate, dump_file));
+    msop_input_.reset(new rslidar_driver::InputPCAP(private_nh, msop_udp_port, packet_rate, dump_file));
     difop_input_.reset(new rslidar_driver::InputPCAP(private_nh, difop_udp_port, packet_rate, dump_file));
   }
   else
   {
     // read data from live socket
-    input_.reset(new rslidar_driver::InputSocket(private_nh, udp_port));
+    msop_input_.reset(new rslidar_driver::InputSocket(private_nh, msop_udp_port));
     difop_input_.reset(new rslidar_driver::InputSocket(private_nh, difop_udp_port));
   }
 
   // raw packet output topic
-  output_ = node.advertise<rslidar_msgs::rslidarScan>("rslidar_packets", 10);
+  msop_output_ = node.advertise<rslidar_msgs::rslidarScan>("rslidar_packets", 10);
   difop_output_ = node.advertise<rslidar_msgs::rslidarPacket>("rslidar_packets_difop", 10);
   difop_thread_ = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&rslidarDriver::difopPoll, this)));
 }
@@ -147,7 +147,7 @@ bool rslidarDriver::poll(void)
     {
       while (true)
       {
-        int rc = input_->getPacket(&tmp_packet, config_.time_offset);
+        int rc = msop_input_->getPacket(&tmp_packet, config_.time_offset);
         if (rc == 0)
           break;  // got a full packet?
         if (rc < 0)
@@ -183,7 +183,7 @@ bool rslidarDriver::poll(void)
       while (true)
       {
         // keep reading until full packet received
-        int rc = input_->getPacket(&scan->packets[i], config_.time_offset);
+        int rc = msop_input_->getPacket(&scan->packets[i], config_.time_offset);
         if (rc == 0)
           break;  // got a full packet?
         if (rc < 0)
@@ -196,7 +196,7 @@ bool rslidarDriver::poll(void)
   ROS_DEBUG("Publishing a full rslidar scan.");
   scan->header.stamp = scan->packets[config_.npackets - 1].stamp;
   scan->header.frame_id = config_.frame_id;
-  output_.publish(scan);
+  msop_output_.publish(scan);
 
   // notify diagnostics that a message has been published, updating its status
   diag_topic_->tick(scan->header.stamp);

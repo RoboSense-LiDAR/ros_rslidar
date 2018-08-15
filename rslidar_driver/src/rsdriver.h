@@ -64,9 +64,9 @@ private:
     double cut_angle;
   } config_;
 
-  boost::shared_ptr<Input> input_;
+  boost::shared_ptr<Input> msop_input_;
   boost::shared_ptr<Input> difop_input_;
-  ros::Publisher output_;
+  ros::Publisher msop_output_;
   ros::Publisher difop_output_;
   // Converter convtor_;
   /** diagnostics updater */
@@ -77,6 +77,6 @@ private:
   boost::shared_ptr<boost::thread> difop_thread_;
 };
 
-}  // namespace rs_driver
+}  // namespace rslidar_driver
 
 #endif

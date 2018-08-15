@@ -1,8 +1,8 @@
 <launch>
   <arg name="manager" default="rslidar_nodelet_manager" />
-  <arg name="device_ip" default="192.168.1.101" />
+  <arg name="device_ip" default="192.168.1.200" />
   <arg name="model" default="RS16" />
-  <arg name="msop_port" default="1201" />
+  <arg name="msop_port" default="6699" />
   <arg name="difop_port" default="7788" />
 
   <!-- start nodelet manager -->

@@ -294,15 +294,15 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
           bit1 = static_cast<int>(*(data + 50 + loopn * 15 + 12));
           bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 13));
           aIntensityCal[6][loopn] = (bit1 * 256 + bit2) * 0.001;
-          std::cout << aIntensityCal[0][loopn] << "\t" << aIntensityCal[1][loopn] << "\t" << aIntensityCal[2][loopn]
-                    << "\t" << aIntensityCal[3][loopn] << "\t" << aIntensityCal[4][loopn] << "\t"
-                    << aIntensityCal[5][loopn] << "\t" << aIntensityCal[6][loopn] << std::endl;
+          // std::cout << aIntensityCal[0][loopn] << "\t" << aIntensityCal[1][loopn] << "\t" << aIntensityCal[2][loopn]
+          //         << "\t" << aIntensityCal[3][loopn] << "\t" << aIntensityCal[4][loopn] << "\t"
+          //          << aIntensityCal[5][loopn] << "\t" << aIntensityCal[6][loopn] << std::endl;
           ;
         }
         this->is_init_curve_ = true;
         std::cout << "this->is_init_curve_ = "
                   << "true!" << std::endl;
-        //        Curvesis_new = true;
+        Curvesis_new = true;
       }
     }
   }

@@ -22,7 +22,6 @@ namespace rslidar_pointcloud
 Convert::Convert(ros::NodeHandle node, ros::NodeHandle private_nh) : data_(new rslidar_rawdata::RawData())
 {
   data_->loadConfigFile(node, private_nh);  // load lidar parameters
-  data_->init_setup();
 
   std::string model;
   private_nh.param("model", model, std::string("RS16"));
@@ -52,8 +51,7 @@ void Convert::processScan(const rslidar_msgs::rslidarScan::ConstPtr& scanMsg)
   pcl::PointCloud<pcl::PointXYZI>::Ptr outPoints(new pcl::PointCloud<pcl::PointXYZI>);
   outPoints->header.stamp = pcl_conversions::toPCL(scanMsg->header).stamp;
   outPoints->header.frame_id = scanMsg->header.frame_id;
-  // process each packet provided by the driver
-
+  outPoints->height = 1;
   bool finish_packets_parse = false;
   for (size_t i = 0; i < scanMsg->packets.size(); ++i)
   {
@@ -65,12 +63,9 @@ void Convert::processScan(const rslidar_msgs::rslidarScan::ConstPtr& scanMsg)
 
     data_->unpack(scanMsg->packets[i], outPoints, finish_packets_parse);
   }
+  std::cout << outPoints->width << std::endl;
   sensor_msgs::PointCloud2 outMsg;
   pcl::toROSMsg(*outPoints, outMsg);
-
-  // if(outPoints->size()==0){
-  //    ROS_INFO_STREAM("Height1: "<<outPoints->height<<" Width1: "<<outPoints->width);
-  //}
   output_.publish(outMsg);
 }
 }  // namespace rslidar_pointcloud

@@ -529,12 +529,11 @@ int RawData::estimateTemperature(float Temper)
  *  @param pkt raw packet to unpack
  *  @param pc shared pointer to point cloud (points are appended)
  */
-void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,
-                     bool finish_packets_parse)
+void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud)
 {
   if (numOfLasers == 32)
   {
-    unpack_RS32(pkt, pointcloud, finish_packets_parse);
+    unpack_RS32(pkt, pointcloud);
     return;
   }
   float azimuth;  // 0.01 dgree
@@ -633,8 +632,7 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
   }
 }
 
-void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,
-                          bool finish_packets_parse)
+void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud)
 {
   float azimuth;  // 0.01 dgree
   float intensity;

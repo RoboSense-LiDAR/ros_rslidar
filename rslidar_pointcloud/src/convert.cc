@@ -52,18 +52,12 @@ void Convert::processScan(const rslidar_msgs::rslidarScan::ConstPtr& scanMsg)
   outPoints->header.stamp = pcl_conversions::toPCL(scanMsg->header).stamp;
   outPoints->header.frame_id = scanMsg->header.frame_id;
   outPoints->height = 1;
-  bool finish_packets_parse = false;
+
   for (size_t i = 0; i < scanMsg->packets.size(); ++i)
   {
-    if (i == (scanMsg->packets.size() - 1))
-    {
-      // ROS_INFO_STREAM("Packets per scan: "<< scanMsg->packets.size());
-      finish_packets_parse = true;
-    }
-
-    data_->unpack(scanMsg->packets[i], outPoints, finish_packets_parse);
+    data_->unpack(scanMsg->packets[i], outPoints);
   }
-  std::cout << outPoints->width << std::endl;
+
   sensor_msgs::PointCloud2 outMsg;
   pcl::toROSMsg(*outPoints, outMsg);
   output_.publish(outMsg);

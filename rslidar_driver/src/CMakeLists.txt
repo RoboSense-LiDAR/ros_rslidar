@@ -21,7 +21,6 @@ if(catkin_EXPORTED_TARGETS)
   add_dependencies(rslidar_input ${catkin_EXPORTED_TARGETS})
 endif()
 
-#add_dependencies(talker ${${PROJECT_NAME}_EXPORTED_TARGETS})
 target_link_libraries(rslidar_node
 	rslidar_driver
   rslidar_input

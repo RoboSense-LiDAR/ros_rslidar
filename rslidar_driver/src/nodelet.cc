@@ -8,7 +8,7 @@
 
 /** \file
  *
- *  ROS driver nodelet for the Velodyne 3D LIDARs
+ *  ROS driver nodelet for the RSLIDAR 3D LIDARs
  */
 
 #include <string>

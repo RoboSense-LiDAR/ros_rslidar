@@ -7,7 +7,7 @@
 
 /** @file
 
-    This ROS nodelet converts raw Velodyne 3D LIDAR packets to a
+    This ROS nodelet converts raw RSLIDAR 3D LIDAR packets to a
     PointCloud2.
 
 */

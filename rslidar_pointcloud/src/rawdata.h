@@ -24,7 +24,6 @@
 
 #include <ros/ros.h>
 #include <ros/package.h>
-#include <rslidar_msgs/rslidarPic.h>
 #include <rslidar_msgs/rslidarPacket.h>
 #include <rslidar_msgs/rslidarScan.h>
 #include "std_msgs/String.h"
@@ -180,8 +179,6 @@ float temper = 31.0;
 int tempPacketNum = 0;
 int numOfLasers = 16;
 int TEMPERATURE_RANGE = 40;
-
-rslidar_msgs::rslidarPic pic;
 
 }  // namespace rslidar_rawdata
 

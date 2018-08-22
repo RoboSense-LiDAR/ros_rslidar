@@ -272,7 +272,7 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
           aIntensityCal[4][loopn] = (bit1 * 256 + bit2) * 0.00001;
           bit1 = static_cast<int>(*(data + 50 + loopn * 15 + 10));
           bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 11));
-          aIntensityCal[5][loopn] = (bit1 * 256 + bit2) * 0.00001;
+          aIntensityCal[5][loopn] = -(bit1 * 256 + bit2) * 0.00001;
           bit1 = static_cast<int>(*(data + 50 + loopn * 15 + 12));
           bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 13));
           aIntensityCal[6][loopn] = (bit1 * 256 + bit2) * 0.001;

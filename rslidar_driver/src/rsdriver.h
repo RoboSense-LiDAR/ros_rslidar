@@ -61,7 +61,7 @@ private:
     int npackets;          ///< number of packets to collect
     double rpm;            ///< device rotation rate (RPMs)
     double time_offset;    ///< time in seconds added to each  time stamp
-    double cut_angle;
+    int cut_angle;
   } config_;
 
   boost::shared_ptr<Input> msop_input_;

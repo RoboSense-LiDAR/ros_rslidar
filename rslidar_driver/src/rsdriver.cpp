@@ -73,22 +73,22 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
   {
     ROS_INFO_STREAM("Cut at specific angle feature deactivated.");
   }
-  else if (cut_angle < 2 * M_PI)
+  else if (cut_angle < 360)
   {
     ROS_INFO_STREAM("Cut at specific angle feature activated. "
                     "Cutting rslidar points always at "
-                    << cut_angle << " rad.");
+                    << cut_angle << " degree.");
   }
   else
   {
     ROS_ERROR_STREAM("cut_angle parameter is out of range. Allowed range is "
-                     << "between 0.0 and 2pi negative values to deactivate this feature.");
+                     << "between 0.0 and 360 negative values to deactivate this feature.");
     cut_angle = -0.01;
   }
 
   // Convert cut_angle from radian to one-hundredth degree,
   // which is used in rslidar packets
-  config_.cut_angle = int(cut_angle * 360 / (2 * M_PI) * 100);
+  config_.cut_angle = static_cast<int>(cut_angle * 100);
 
   // Initialize dynamic reconfigure
   srv_ = boost::make_shared<dynamic_reconfigure::Server<rslidar_driver::rslidarNodeConfig> >(private_nh);
@@ -194,7 +194,7 @@ bool rslidarDriver::poll(void)
 
   // publish message using time of last packet read
   ROS_DEBUG("Publishing a full rslidar scan.");
-  scan->header.stamp = scan->packets[config_.npackets - 1].stamp;
+  scan->header.stamp = scan->packets.back().stamp;
   scan->header.frame_id = config_.frame_id;
   msop_output_.publish(scan);
 

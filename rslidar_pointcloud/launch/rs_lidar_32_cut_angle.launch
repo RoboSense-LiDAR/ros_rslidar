@@ -1,5 +1,5 @@
 <launch>
-  <arg name="cut_angle" default="0.0" doc="If set at (0-2pi), cut at specific angle feature activated, otherwise use the fixed packets number mode."/>
+  <arg name="cut_angle" default="0" doc="If set at [0, 360), cut at specific angle feature activated, otherwise use the fixed packets number mode."/>
 
   <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
     <param name="model" value="RS32"/>

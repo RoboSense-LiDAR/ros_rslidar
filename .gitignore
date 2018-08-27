@@ -29,7 +29,7 @@ __pycache__/
 cmake-build-debug/
 
 # clang-format
-.clang-format
+#.clang-format
 
 # ROSBag files
 *.bag

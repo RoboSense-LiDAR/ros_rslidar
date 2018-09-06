@@ -9,8 +9,8 @@ target_link_libraries(rslidar_point
         ${catkin_LIBRARIES})
 
 
-add_library(cloud_nodelet cloud_nodelet.cc)
-target_link_libraries(cloud_nodelet rslidar_point
+add_library(rscloud_nodelet cloud_nodelet.cc)
+target_link_libraries(rscloud_nodelet rslidar_point
         ${catkin_LIBRARIES})
 
 add_executable(rscloud_node cloud_node.cc)

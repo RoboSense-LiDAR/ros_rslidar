@@ -1,4 +1,4 @@
-<library path="lib/libcloud_nodelet">
+<library path="lib/librscloud_nodelet">
   <class name="rslidar_pointcloud/CloudNodelet"
          type="rslidar_pointcloud::CloudNodelet"
          base_class_type="nodelet::Nodelet">

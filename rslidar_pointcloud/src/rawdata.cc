@@ -55,7 +55,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   int loop_num;
   if (!f_inten)
   {
-    ROS_ERROR_STREAM(curvesPath << " does not exist");
+    ROS_ERROR_STREAM("curves_path: '" << curvesPath << "' does not exist");
   }
   else
   {
@@ -115,7 +115,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   FILE* f_angle = fopen(anglePath.c_str(), "r");
   if (!f_angle)
   {
-    ROS_ERROR_STREAM(anglePath << " does not exist");
+    ROS_ERROR_STREAM("angle_path: '" << anglePath << "' does not exist");
   }
   else
   {
@@ -141,7 +141,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   FILE* f_channel = fopen(channelPath.c_str(), "r");
   if (!f_channel)
   {
-    ROS_ERROR_STREAM(channelPath << " does not exist");
+    ROS_ERROR_STREAM("channel_path: '" << channelPath << "' does not exist");
   }
   else
   {
@@ -193,7 +193,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     FILE* f_curvesRate = fopen(curvesRatePath.c_str(), "r");
     if (!f_curvesRate)
     {
-      ROS_ERROR_STREAM(curvesRatePath << " does not exist");
+      ROS_ERROR_STREAM("curves_path: '" << curvesRatePath << "' does not exist");
     }
     else
     {

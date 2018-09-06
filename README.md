@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/CPFL/robosense.svg?branch=develop-curves-function)](https://travis-ci.org/CPFL/robosense)
+
 #### 1. Prerequisites
 (1) Install a ubuntu PC. We suggested Ubuntu 14.04 or Ubuntu 16.04. Please do not use virtual machine.
 (2) Install ros full-desktop version. We tried Indigo and Kinect.

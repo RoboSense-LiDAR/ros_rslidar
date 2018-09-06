@@ -1,0 +1,56 @@
+language:
+  - generic
+cache:
+  - apt
+matrix:
+  include:
+    - dist: xenial
+      compiler: gcc
+      os: linux
+      sudo: required
+      env: ROS_DISTRO=kinetic
+    - dist: trusty
+      compiler: gcc
+      os: linux
+      sudo: required
+      env: ROS_DISTRO=indigo
+env:
+  global:
+    - ROS_CI_DESKTOP="`lsb_release -cs`"
+    - CI_SOURCE_PATH=$(pwd)
+    - ROSINSTALL_FILE=$CI_SOURCE_PATH/dependencies.rosinstall
+    - CATKIN_OPTIONS=$CI_SOURCE_PATH/catkin.options
+    - PYTHONPATH=${PYTHONPATH}:/usr/lib/python2.7/dist-packages:/usr/local/lib/python2.7/dist-packages
+
+before_install:
+  -   sudo sh -c "echo \"deb http://packages.ros.org/ros/ubuntu $ROS_CI_DESKTOP main\" > /etc/apt/sources.list.d/ros-latest.list";
+      travis_retry sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116;
+      travis_retry sudo apt-get update;
+      travis_retry sudo apt-get install -y dpkg;
+      travis_retry sudo apt-get install -y python-catkin-pkg python-rosdep python-wstool ros-${ROS_DISTRO}-catkin;
+      source /opt/ros/${ROS_DISTRO}/setup.bash;
+      travis_retry sudo rosdep init;
+      travis_retry rosdep update;
+
+install:
+  - mkdir -p ~/rslidar_ws/src
+  - cd ~/rslidar_ws/src
+  - catkin_init_workspace
+  - cd ~/rslidar_ws
+  - catkin_make
+  - source devel/setup.bash
+  - cd ~/rslidar_ws/src
+  - ln -s $CI_SOURCE_PATH .
+
+before_script:
+  - cd ~/rslidar_ws/src
+  - wstool init
+  - if [[ -f $ROSINSTALL_FILE ]] ; then wstool merge $ROSINSTALL_FILE ; fi
+  - wstool up
+  - cd ~/rslidar_ws
+  - rosdep install -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO
+
+script:
+  - source /opt/ros/$ROS_DISTRO/setup.bash
+  - cd ~/rslidar_ws
+  - catkin_make $( [ -f $CATKIN_OPTIONS ] && cat $CATKIN_OPTIONS )

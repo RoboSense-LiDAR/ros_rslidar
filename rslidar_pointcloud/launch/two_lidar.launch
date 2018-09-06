@@ -8,7 +8,7 @@
             <param name="difop_port" value="7788"/>
         </node>
 
-        <node name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen">
+        <node name="rscloud_node" pkg="rslidar_pointcloud" type="rscloud_node" output="screen">
             <param name="model" value="RS16"/>
             <param name="curves_path" value="$(find rslidar_pointcloud)/data/lidar1/curves.csv"/>
             <param name="angle_path" value="$(find rslidar_pointcloud)/data/lidar1/angle.csv"/>
@@ -25,7 +25,7 @@
             <param name="difop_port" value="8877"/>
         </node>
 
-        <node name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen">
+        <node name="rscloud_node" pkg="rslidar_pointcloud" type="rscloud_node" output="screen">
             <param name="model" value="RS16"/>
             <param name="curves_path" value="$(find rslidar_pointcloud)/data/lidar2/curves.csv"/>
             <param name="angle_path" value="$(find rslidar_pointcloud)/data/lidar2/angle.csv"/>

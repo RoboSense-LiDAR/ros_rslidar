@@ -52,7 +52,9 @@ Open a new terminal and run:
 ```
 cd ~/catkin_ws
 source devel/setup.bash
-roslaunch rslidar_pointcloud cloud_nodelet.launch
+roslaunch rslidar_pointcloud cloud_nodelet_16.launch
+# or
+roslaunch rslidar_pointcloud cloud_nodelet_32.launch
 ```
 Then we can run view the pointcloud via "rviz"
 

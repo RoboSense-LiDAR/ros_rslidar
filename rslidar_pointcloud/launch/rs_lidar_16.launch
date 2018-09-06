@@ -13,7 +13,7 @@
         <!--param name="pcap" value="path_to_pcap"/-->
     </node>
 
-    <node name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen">
+    <node name="rscloud_node" pkg="rslidar_pointcloud" type="rscloud_node" output="screen">
         <param name="model" value="$(arg model)"/>
         <param name="curves_path" value="$(arg lidar_param_path)/curves.csv"/>
         <param name="angle_path" value="$(arg lidar_param_path)/angle.csv"/>

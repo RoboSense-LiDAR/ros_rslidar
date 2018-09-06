@@ -11,7 +11,7 @@
         <param name="cut_angle" value="$(arg cut_angle)"/>
     </node>
 
-    <node name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen">
+    <node name="rscloud_node" pkg="rslidar_pointcloud" type="rscloud_node" output="screen">
         <param name="model" value="RS32"/>
         <param name="curves_path" value="$(find rslidar_pointcloud)/data/rs_lidar_32/curves.csv"/>
         <param name="angle_path" value="$(find rslidar_pointcloud)/data/rs_lidar_32/angle.csv"/>

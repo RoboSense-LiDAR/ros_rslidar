@@ -36,6 +36,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   private_nh.param("angle_path", anglePath, std::string(""));
   private_nh.param("channel_path", channelPath, std::string(""));
   private_nh.param("curves_rate_path", curvesRatePath, std::string(""));
+  private_nh.param("min_distance", min_distance, min_distance);
 
   private_nh.param("model", model, std::string("RS16"));
   if (model == "RS16")
@@ -617,11 +618,20 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
         float arg_vert = VERT_ANGLE[dsr];
         pcl::PointXYZI point;
 
-        if (distance2 > DISTANCE_MAX || distance2 < DISTANCE_MIN)  // invalid data
+        if (distance2 > DISTANCE_MAX)  // invalid data
         {
           point.x = NAN;
           point.y = NAN;
           point.z = NAN;
+          point.intensity = 0;
+          pointcloud->at(2 * this->block_num + firing, dsr) = point;
+        }
+        else if (distance2 < min_distance)
+        {
+          assert(std::numeric_limits<float>::is_iec559);
+          point.x = -std::numeric_limits<float>::infinity();
+          point.y = -std::numeric_limits<float>::infinity();
+          point.z = -std::numeric_limits<float>::infinity();
           point.intensity = 0;
           pointcloud->at(2 * this->block_num + firing, dsr) = point;
         }
@@ -756,11 +766,20 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
       float arg_vert = VERT_ANGLE[dsr];
       pcl::PointXYZI point;
 
-      if (distance2 > DISTANCE_MAX || distance2 < DISTANCE_MIN)  // invalid data
+      if (distance2 > DISTANCE_MAX)  // invalid data
       {
         point.x = NAN;
         point.y = NAN;
         point.z = NAN;
+        point.intensity = 0;
+        pointcloud->at(this->block_num, dsr) = point;
+      }
+      else if (distance2 < min_distance)
+      {
+        assert(std::numeric_limits<float>::is_iec559);
+        point.x = -std::numeric_limits<float>::infinity();
+        point.y = -std::numeric_limits<float>::infinity();
+        point.z = -std::numeric_limits<float>::infinity();
         point.intensity = 0;
         pointcloud->at(this->block_num, dsr) = point;
       }

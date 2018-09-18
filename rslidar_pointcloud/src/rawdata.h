@@ -44,7 +44,6 @@ static const float ROTATION_RESOLUTION = 0.01f;   /**< degrees 旋转角分辨�
 static const uint16_t ROTATION_MAX_UNITS = 36000; /**< hundredths of degrees */
 
 static const float DISTANCE_MAX = 200.0f;       /**< meters */
-static const float DISTANCE_MIN = 0.2f;         /**< meters */
 static const float DISTANCE_RESOLUTION = 0.01f; /**< meters */
 static const float DISTANCE_MAX_UNITS = (DISTANCE_MAX / DISTANCE_RESOLUTION + 1.0f);
 /** @todo make this work for both big and little-endian machines */
@@ -175,7 +174,7 @@ float temper = 31.0;
 int tempPacketNum = 0;
 int numOfLasers = 16;
 int TEMPERATURE_RANGE = 40;
-
+float min_distance = 0.2f;
 }  // namespace rslidar_rawdata
 
 #endif  // __RAWDATA_H

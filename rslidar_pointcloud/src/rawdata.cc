@@ -37,6 +37,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   private_nh.param("channel_path", channelPath, std::string(""));
   private_nh.param("curves_rate_path", curvesRatePath, std::string(""));
   private_nh.param("intensity_mode", intensity_mode_, 1);
+  private_nh.param("intensity_factor", intensityFactor, 51);
 
   private_nh.param("model", model, std::string("RS16"));
   if (model == "RS16")
@@ -478,7 +479,7 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
 
   refPwr = std::max(std::min(refPwr_temp, 500.0f), 4.0f);
 
-  tempInten = (51 * refPwr) / realPwr;
+  tempInten = (intensityFactor * refPwr) / realPwr;
   if (numOfLasers == 32)
   {
     tempInten = tempInten * CurvesRate[calIdx];

@@ -162,6 +162,7 @@ public:
   bool is_init_angle_;
   int block_num = 0;
   int intensity_mode_;
+  int intensityFactor;
 };
 
 float VERT_ANGLE[32];

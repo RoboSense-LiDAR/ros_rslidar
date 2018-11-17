@@ -36,8 +36,6 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   private_nh.param("angle_path", anglePath, std::string(""));
   private_nh.param("channel_path", channelPath, std::string(""));
   private_nh.param("curves_rate_path", curvesRatePath, std::string(""));
-  private_nh.param("intensity_mode", intensity_mode_, 1);
-  private_nh.param("intensity_factor", intensityFactor, 51);
 
   private_nh.param("model", model, std::string("RS16"));
   if (model == "RS16")
@@ -49,6 +47,9 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     numOfLasers = 32;
     TEMPERATURE_RANGE = 50;
   }
+
+  intensityFactor = 51;
+  intensity_mode_ = 1;
 
   /// 读参数文件 2017-02-27
   FILE* f_inten = fopen(curvesPath.c_str(), "r");
@@ -90,7 +91,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
       else if (numOfLasers == 32)
       {
         int tmp = fscanf(f_inten, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,"
-                         "%f,%f,%f,%f\n",
+                                  "%f,%f,%f,%f\n",
                          &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10], &a[11], &a[12],
                          &a[13], &a[14], &a[15], &a[16], &a[17], &a[18], &a[19], &a[20], &a[21], &a[22], &a[23], &a[24],
                          &a[25], &a[26], &a[27], &a[28], &a[29], &a[30], &a[31]);
@@ -166,12 +167,12 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
       else
       {
         int tmp = fscanf(
-          f_channel, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%"
-          "d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
-          &c[0], &c[1], &c[2], &c[3], &c[4], &c[5], &c[6], &c[7], &c[8], &c[9], &c[10], &c[11], &c[12], &c[13],
-          &c[14], &c[15], &c[16], &c[17], &c[18], &c[19], &c[20], &c[21], &c[22], &c[23], &c[24], &c[25], &c[26],
-          &c[27], &c[28], &c[29], &c[30], &c[31], &c[32], &c[33], &c[34], &c[35], &c[36], &c[37], &c[38], &c[39],
-          &c[40], &c[41], &c[42], &c[43], &c[44], &c[45], &c[46], &c[47], &c[48], &c[49], &c[50]);
+            f_channel, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%"
+                       "d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
+            &c[0], &c[1], &c[2], &c[3], &c[4], &c[5], &c[6], &c[7], &c[8], &c[9], &c[10], &c[11], &c[12], &c[13],
+            &c[14], &c[15], &c[16], &c[17], &c[18], &c[19], &c[20], &c[21], &c[22], &c[23], &c[24], &c[25], &c[26],
+            &c[27], &c[28], &c[29], &c[30], &c[31], &c[32], &c[33], &c[34], &c[35], &c[36], &c[37], &c[38], &c[39],
+            &c[40], &c[41], &c[42], &c[43], &c[44], &c[45], &c[46], &c[47], &c[48], &c[49], &c[50]);
       }
       //                if (c[1] < 100 || c[1] > 3000)
       //                {
@@ -278,15 +279,28 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
           bit1 = static_cast<int>(*(data + 50 + loopn * 15 + 12));
           bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 13));
           aIntensityCal[6][loopn] = (bit1 * 256 + bit2) * 0.001;
-          // std::cout << aIntensityCal[0][loopn] << "\t" << aIntensityCal[1][loopn] << "\t" << aIntensityCal[2][loopn]
-          //         << "\t" << aIntensityCal[3][loopn] << "\t" << aIntensityCal[4][loopn] << "\t"
-          //          << aIntensityCal[5][loopn] << "\t" << aIntensityCal[6][loopn] << std::endl;
-          ;
         }
         this->is_init_curve_ = true;
         std::cout << "this->is_init_curve_ = "
                   << "true!" << std::endl;
         Curvesis_new = true;
+      }
+
+      if ((data[290] != 0x00) && (data[290] != 0xff))
+      {
+        intensityFactor = static_cast<int>(*(data + 290));  // intensity factor introduced since than 20181115
+        std::cout << intensityFactor << std::endl;
+      }
+
+      if ((data[291] == 0x00) || (data[291] == 0xff) || (data[291] == 0xa1))
+      {
+        intensity_mode_ = 1;  // mode for the top firmware lower than T6R23V8(16) or T9R23V6(32)
+        std::cout << "intensity mode is 1" << std::endl;
+      }
+      else if (data[291] == 0xb1)
+      {
+        intensity_mode_ = 2;  // mode for the top firmware higher than T6R23V8(16) or T9R23V6(32)
+        std::cout << "intensity mode is 2" << std::endl;
       }
     }
   }
@@ -410,7 +424,6 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
     std::cout << "The intensity mode is not right" << std::endl;
   }
 
-
   int indexTemper = estimateTemperature(temper) - TEMPERATURE_MIN;
   uplimitDist = g_ChannelNum[calIdx][indexTemper] + 20000;
   // limit sDist
@@ -430,8 +443,8 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
     if (distance_f <= endOfSection1)
     {
       refPwr_temp =
-        aIntensityCal[0][calIdx] * exp(aIntensityCal[1][calIdx] - aIntensityCal[2][calIdx] * distance_f / 100.0f) +
-        aIntensityCal[3][calIdx];
+          aIntensityCal[0][calIdx] * exp(aIntensityCal[1][calIdx] - aIntensityCal[2][calIdx] * distance_f / 100.0f) +
+          aIntensityCal[3][calIdx];
       //   printf("a-calIdx=%d,distance_f=%f,refPwr=%f\n",calIdx,distance_f,refPwr_temp);
     }
     else
@@ -448,8 +461,8 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
     if (distance_f <= endOfSection1)
     {
       refPwr_temp =
-        aIntensityCal[0][calIdx] * exp(aIntensityCal[1][calIdx] - aIntensityCal[2][calIdx] * distance_f / 100.0f) +
-        aIntensityCal[3][calIdx];
+          aIntensityCal[0][calIdx] * exp(aIntensityCal[1][calIdx] - aIntensityCal[2][calIdx] * distance_f / 100.0f) +
+          aIntensityCal[3][calIdx];
       //   printf("a-calIdx=%d,distance_f=%f,refPwr=%f\n",calIdx,distance_f,refPwr_temp);
     }
     else if (distance_f > endOfSection1 && distance_f <= endOfSection2)

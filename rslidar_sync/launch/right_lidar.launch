@@ -1,0 +1,24 @@
+<launch>
+  <group ns="right">
+    <arg name="lidar_model" default="RS16" />
+    <arg name="lidar_param_path" default="/home/robosense/p3_ws/src/usr_config/lidar_param/right_lidar"/>
+
+    <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
+      <param name="model" value="$(arg lidar_model)"/>
+      <param name="device_ip" value="192.168.1.202"/>
+      <param name="msop_port" value="2031"/>
+      <param name="difop_port" value="2032"/>
+
+      <param name="time_synchronization" value="true"/>
+    </node>
+
+    <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
+      <param name="model" value="$(arg lidar_model)"/>
+      <param name="curves_path" value="$(arg lidar_param_path)/curves.csv" />
+      <param name="angle_path" value="$(arg lidar_param_path)/angle.csv" />
+      <param name="channel_path" value="$(arg lidar_param_path)/ChannelNum.csv" />
+      <!--param name="start_angle" value="90" /-->
+      <!--param name="end_angle" value="180" /-->
+    </node>
+  </group>
+</launch>

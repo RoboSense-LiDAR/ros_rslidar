@@ -163,6 +163,12 @@ public:
   int block_num = 0;
   int intensity_mode_;
   int intensityFactor;
+private:
+  float R1_;
+  float R2_;
+  bool angle_flag_;
+  float start_angle_;
+  float end_angle_;
 };
 
 float VERT_ANGLE[32];

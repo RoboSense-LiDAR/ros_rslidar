@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package>
+  <name>rslidar_sync</name>
+  <version>1.0.0</version>
+  <description>synchronizing lidar data with time stamps</description>
+
+  <maintainer email="bxzhang@robosense.ai">baoxianzhang</maintainer>
+  <author>baoxianzhang</author>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>message_filters</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>message_filters</run_depend>
+</package>

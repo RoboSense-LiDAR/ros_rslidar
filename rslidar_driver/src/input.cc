@@ -44,6 +44,7 @@ Input::Input(ros::NodeHandle private_nh, uint16_t port) : private_nh_(private_nh
   private_nh.param("device_ip", devip_str_, std::string(""));
   if (!devip_str_.empty())
     ROS_INFO_STREAM("Only accepting packets from IP address: " << devip_str_);
+  private_nh.param("time_synchronization", time_synchronization_, false);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -105,7 +106,8 @@ InputSocket::~InputSocket(void)
 }
 
 /** @brief Get one rslidar packet. */
-int InputSocket::getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_offset)
+int InputSocket::getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_offset,
+                           sensor_msgs::TimeReference& sync_header)
 {
   double time1 = ros::Time::now().toSec();
   struct pollfd fds[1];
@@ -172,6 +174,26 @@ int InputSocket::getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_o
   {
     abort();
   }
+
+  // time_synchronization use the machine time
+  if (time_synchronization_ == true)
+  {
+    if (pkt->data[0] == 0x55 && pkt->data[1] == 0xaa && pkt->data[2] == 0x05 && pkt->data[3] == 0x0a)
+    {
+      memset(&stm_, 0, sizeof(stm_));
+      stm_.tm_year = (int)pkt->data[20] + 100;
+      stm_.tm_mon = (int)pkt->data[21] - 1;
+      stm_.tm_mday = (int)pkt->data[22];
+      stm_.tm_hour = (int)pkt->data[23];
+      stm_.tm_min = (int)pkt->data[24];
+      stm_.tm_sec = (int)pkt->data[25];
+      double stamp_double = mktime(&stm_) + 0.001 * (256 * pkt->data[26] + pkt->data[27]) +
+                            0.000001 * (256 * pkt->data[28] + pkt->data[29]);
+      // pkt->stamp = ros::Time(stamp_double);
+      sync_header.header.stamp = ros::Time(stamp_double);
+      //            ROS_INFO_STREAM("ros time msop is:" << pkt->stamp);
+    }
+  }
   // Average the times at which we begin and end reading.  Use that to
   // estimate when the scan occurred. Add the time offset.
   double time2 = ros::Time::now().toSec();
@@ -235,7 +257,8 @@ InputPCAP::~InputPCAP(void)
 }
 
 /** @brief Get one rslidar packet. */
-int InputPCAP::getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_offset)
+int InputPCAP::getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_offset,
+                         sensor_msgs::TimeReference& sync_header)
 {
   struct pcap_pkthdr* header;
   const u_char* pkt_data;
@@ -253,6 +276,25 @@ int InputPCAP::getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_off
       // Keep the reader from blowing through the file.
       if (read_fast_ == false)
         packet_rate_.sleep();
+
+      // time synchronization use machine time
+      if (time_synchronization_ == true)
+      {
+        if (pkt->data[0] == 0x55 && pkt->data[1] == 0xaa && pkt->data[2] == 0x05 && pkt->data[3] == 0x0a)
+        {
+          memset(&stm_, 0, sizeof(stm_));
+          stm_.tm_year = (int)pkt->data[20] + 100;
+          stm_.tm_mon = (int)pkt->data[21] - 1;
+          stm_.tm_mday = (int)pkt->data[22];
+          stm_.tm_hour = (int)pkt->data[23];
+          stm_.tm_min = (int)pkt->data[24];
+          stm_.tm_sec = (int)pkt->data[25];
+          double stamp_double = mktime(&stm_) + 0.001 * (256 * pkt->data[26] + pkt->data[27]) +
+                                0.000001 * (256 * pkt->data[28] + pkt->data[29]);
+          // pkt->stamp = ros::Time(stamp_double);
+          sync_header.header.stamp = ros::Time(stamp_double);
+        }
+      }
 
       memcpy(&pkt->data[0], pkt_data + 42, packet_size);
       pkt->stamp = ros::Time::now();  // time_offset not considered here, as no

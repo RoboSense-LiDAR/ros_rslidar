@@ -19,6 +19,7 @@ namespace rslidar_driver
 {
 rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
 {
+  skip_num_ = 0;
   // use private node handle to get parameters
   private_nh.param("frame_id", config_.frame_id, std::string("rslidar"));
 
@@ -123,9 +124,25 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
   }
 
   // raw packet output topic
-  msop_output_ = node.advertise<rslidar_msgs::rslidarScan>("rslidar_packets", 10);
-  difop_output_ = node.advertise<rslidar_msgs::rslidarPacket>("rslidar_packets_difop", 10);
+  std::string output_packets_topic;
+  private_nh.param("output_packets_topic", output_packets_topic, std::string("rslidar_packets"));
+  msop_output_ = node.advertise<rslidar_msgs::rslidarScan>(output_packets_topic, 10);
+
+  std::string output_difop_topic;
+  private_nh.param("output_difop_topic", output_difop_topic, std::string("rslidar_packets_difop"));
+  difop_output_ = node.advertise<rslidar_msgs::rslidarPacket>(output_difop_topic, 10);
+
   difop_thread_ = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&rslidarDriver::difopPoll, this)));
+
+  private_nh.param("time_synchronization", time_synchronization_, false);
+
+  if (time_synchronization_)
+  {
+    output_sync_ = node.advertise<sensor_msgs::TimeReference>("sync_header", 1);
+    skip_num_sub_ = node.subscribe<std_msgs::Int32>("skippackets_num", 1, &rslidarDriver::skipNumCallback,
+                                                    (rslidarDriver*)this, ros::TransportHints().tcpNoDelay(true));
+  }
+
 }
 
 /** poll the device
@@ -143,11 +160,12 @@ bool rslidarDriver::poll(void)
   {
     scan->packets.reserve(config_.npackets);
     rslidar_msgs::rslidarPacket tmp_packet;
+    sensor_msgs::TimeReference sync_header;  // not really use in cut_angle
     while (true)
     {
       while (true)
       {
-        int rc = msop_input_->getPacket(&tmp_packet, config_.time_offset);
+        int rc = msop_input_->getPacket(&tmp_packet, config_.time_offset, sync_header);
         if (rc == 0)
           break;  // got a full packet?
         if (rc < 0)
@@ -178,17 +196,37 @@ bool rslidarDriver::poll(void)
   else  // standard behaviour
   {
     scan->packets.resize(config_.npackets);
-    for (int i = 0; i < config_.npackets; ++i)
+    // use in standard behaviour only
+    sensor_msgs::TimeReference sync_headers[config_.npackets];
+    while (skip_num_)
     {
       while (true)
       {
         // keep reading until full packet received
-        int rc = msop_input_->getPacket(&scan->packets[i], config_.time_offset);
+        int rc = msop_input_->getPacket(&scan->packets[0], config_.time_offset, sync_headers[0]);
         if (rc == 0)
           break;  // got a full packet?
         if (rc < 0)
           return false;  // end of file reached?
       }
+      --skip_num_;
+    }
+
+    for (int i = 0; i < config_.npackets; ++i)
+    {
+      while (true)
+      {
+        // keep reading until full packet received
+        int rc = msop_input_->getPacket(&scan->packets[i], config_.time_offset, sync_headers[i]);
+        if (rc == 0)
+          break;  // got a full packet?
+        if (rc < 0)
+          return false;  // end of file reached?
+      }
+    }
+    if (time_synchronization_)
+    {
+      output_sync_.publish(sync_headers[0]);
     }
   }
 
@@ -213,7 +251,8 @@ void rslidarDriver::difopPoll(void)
   {
     // keep reading
     rslidar_msgs::rslidarPacket difop_packet_msg;
-    int rc = difop_input_->getPacket(&difop_packet_msg, config_.time_offset);
+    sensor_msgs::TimeReference sync_header;  // not really use in difop
+    int rc = difop_input_->getPacket(&difop_packet_msg, config_.time_offset, sync_header);
     if (rc == 0)
     {
       // std::cout << "Publishing a difop data." << std::endl;
@@ -231,5 +270,12 @@ void rslidarDriver::callback(rslidar_driver::rslidarNodeConfig& config, uint32_t
 {
   ROS_INFO("Reconfigure Request");
   config_.time_offset = config.time_offset;
+}
+
+// add for time synchronization
+void rslidarDriver::skipNumCallback(const std_msgs::Int32::ConstPtr& skip_num)
+{
+  // std::cout << "Enter skipNumCallback: " << skip_num->data << std::endl;
+  skip_num_ = skip_num->data;
 }
 }

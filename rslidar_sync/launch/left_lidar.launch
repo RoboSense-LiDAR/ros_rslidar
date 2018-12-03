@@ -1,0 +1,26 @@
+<launch>
+  <group ns="left">
+    <arg name="lidar_model" default="RS16" />
+    <arg name="lidar_param_path" default="/home/robosense/p3_ws/src/usr_config/lidar_param/left_lidar" />
+
+    <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
+      <param name="model" value="$(arg lidar_model)"/>
+      <param name="device_ip" value="192.168.1.201"/>
+      <param name="msop_port" value="2011"/>
+      <param name="difop_port" value="2012"/>
+      <param name="time_synchronization" value="true"/>
+    </node>
+
+    <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
+      <param name="model" value="$(arg lidar_model)"/>
+      <param name="curves_path" value="$(arg lidar_param_path)/curves.csv" />
+      <param name="angle_path" value="$(arg lidar_param_path)/angle.csv" />
+      <param name="channel_path" value="$(arg lidar_param_path)/ChannelNum.csv" />
+      <param name="curves_rate_path" value="$(arg lidar_param_path)/CurveRate.csv" />
+      <!-- if start_angle and end_angle set at [0, 360] degree, the feature activate, the angle is clock-wise from top-view/-->
+      <!--param name="start_angle" value="100" /-->
+      <!--param name="end_angle" value="280" /-->
+
+    </node>
+  </group>
+</launch>

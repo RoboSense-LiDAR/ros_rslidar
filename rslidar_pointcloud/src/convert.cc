@@ -27,7 +27,9 @@ Convert::Convert(ros::NodeHandle node, ros::NodeHandle private_nh) : data_(new r
   private_nh.param("model", model, std::string("RS16"));
 
   // advertise output point cloud (before subscribing to input data)
-  output_ = node.advertise<sensor_msgs::PointCloud2>("rslidar_points", 10);
+  std::string output_points_topic;
+  private_nh.param("output_points_topic", output_points_topic, std::string("rslidar_points"));
+  output_ = node.advertise<sensor_msgs::PointCloud2>(output_points_topic, 10);
 
   srv_ = boost::make_shared<dynamic_reconfigure::Server<rslidar_pointcloud::CloudNodeConfig> >(private_nh);
   dynamic_reconfigure::Server<rslidar_pointcloud::CloudNodeConfig>::CallbackType f;
@@ -35,7 +37,9 @@ Convert::Convert(ros::NodeHandle node, ros::NodeHandle private_nh) : data_(new r
   srv_->setCallback(f);
 
   // subscribe to rslidarScan packets
-  rslidar_scan_ = node.subscribe("rslidar_packets", 10, &Convert::processScan, (Convert*)this,
+  std::string input_packets_topic;
+  private_nh.param("input_packets_topic", input_packets_topic, std::string("rslidar_packets"));
+  rslidar_scan_ = node.subscribe(input_packets_topic, 10, &Convert::processScan, (Convert*)this,
                                  ros::TransportHints().tcpNoDelay(true));
 }
 

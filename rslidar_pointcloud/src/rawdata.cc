@@ -198,6 +198,10 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     if (!f_curvesRate)
     {
       ROS_ERROR_STREAM(curvesRatePath << " does not exist");
+      for (int i = 0; i < 32; ++i)
+      {
+        CurvesRate[i] = 1.0;
+      }
     }
     else
     {

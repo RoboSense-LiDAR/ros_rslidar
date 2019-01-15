@@ -710,7 +710,7 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
           intensity = calibrateIntensity_old(intensity, dsr, distance);
 
         float distance2 = pixelToDistance(distance, dsr);
-        if (dis_resolution_mode = 0)  // distance resolution is 0.5cm
+        if (0 == dis_resolution_mode)  // distance resolution is 0.5cm
         {
           distance2 = distance2 * DISTANCE_RESOLUTION_NEW;
         }

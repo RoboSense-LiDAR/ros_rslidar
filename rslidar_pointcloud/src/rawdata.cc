@@ -38,6 +38,11 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   private_nh.param("channel_path", channelPath, std::string(""));
   private_nh.param("curves_rate_path", curvesRatePath, std::string(""));
 
+  private_nh.param("max_distance", max_distance, 200.0f);
+  private_nh.param("min_distance", min_distance, 0.2f);
+
+  ROS_INFO_STREAM("distance threshlod, max: "<<max_distance<<", min: "<<min_distance);
+
   private_nh.param("model", model, std::string("RS16"));
   if (model == "RS16")
   {
@@ -723,7 +728,7 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
         float arg_vert = VERT_ANGLE[dsr];
         pcl::PointXYZI point;
 
-        if (distance2 > DISTANCE_MAX || distance2 < DISTANCE_MIN)  // invalid data
+        if (distance2 > max_distance || distance2 < min_distance)  // invalid distance
         {
           point.x = NAN;
           point.y = NAN;
@@ -839,7 +844,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         float arg_vert = VERT_ANGLE[dsr];
         pcl::PointXYZI point;
 
-        if (distance2 > DISTANCE_MAX || distance2 < DISTANCE_MIN)  // invalid data
+        if (distance2 > max_distance || distance2 < min_distance)  // invalid distance
         {
           point.x = NAN;
           point.y = NAN;
@@ -916,7 +921,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         float arg_vert = VERT_ANGLE[dsr];
         pcl::PointXYZI point;
 
-        if (distance2 > DISTANCE_MAX || distance2 < DISTANCE_MIN)  // invalid data
+        if (distance2 > max_distance || distance2 < min_distance)  // invalid distance
         {
           point.x = NAN;
           point.y = NAN;

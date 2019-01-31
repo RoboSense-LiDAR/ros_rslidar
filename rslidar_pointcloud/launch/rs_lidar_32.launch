@@ -20,6 +20,8 @@
     <param name="channel_path" value="$(arg lidar_param_path)/ChannelNum.csv" />
     <param name="curves_rate_path" value="$(arg lidar_param_path)/CurveRate.csv" />
     <param name="intensity_mode" value="1" />
+    <param name="max_distance" value="200"/>
+    <param name="min_distance" value="0.2"/>
   </node>
 
   <node name="rviz" pkg="rviz" type="rviz"  args="-d $(find rslidar_pointcloud)/rviz_cfg/rslidar.rviz" />

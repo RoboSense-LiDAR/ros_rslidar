@@ -166,6 +166,8 @@ public:
   int intensity_mode_;
   int intensityFactor;
   int dis_resolution_mode = 0;
+  float max_distance;
+  float min_distance;
 };
 
 float VERT_ANGLE[32];

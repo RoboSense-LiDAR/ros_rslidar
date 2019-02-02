@@ -43,9 +43,10 @@ static const int BLOCK_DATA_SIZE = (SCANS_PER_BLOCK * RAW_SCAN_SIZE);  // 96
 static const float ROTATION_RESOLUTION = 0.01f;   /**< degrees 旋转角分辨率*/
 static const uint16_t ROTATION_MAX_UNITS = 36000; /**< hundredths of degrees */
 
-static const float DISTANCE_MAX = 200.0f;       /**< meters */
-static const float DISTANCE_MIN = 0.2f;         /**< meters */
-static const float DISTANCE_RESOLUTION = 0.01f; /**< meters */
+static const float DISTANCE_MAX = 200.0f;            /**< meters */
+static const float DISTANCE_MIN = 0.2f;              /**< meters */
+static const float DISTANCE_RESOLUTION = 0.01f;      /**< meters */
+static const float DISTANCE_RESOLUTION_NEW = 0.005f; /**< meters */
 static const float DISTANCE_MAX_UNITS = (DISTANCE_MAX / DISTANCE_RESOLUTION + 1.0f);
 /** @todo make this work for both big and little-endian machines */
 static const uint16_t UPPER_BANK = 0xeeff;  //
@@ -160,6 +161,7 @@ public:
   ros::Subscriber difop_sub_;
   bool is_init_curve_;
   bool is_init_angle_;
+  bool is_init_top_fw_;
   int block_num = 0;
   int intensity_mode_;
   int intensityFactor;
@@ -170,10 +172,9 @@ private:
   bool angle_flag_;
   float start_angle_;
   float end_angle_;
-
   float max_distance;
   float min_distance;
-
+  int dis_resolution_mode = 0;
 };
 
 float VERT_ANGLE[32];

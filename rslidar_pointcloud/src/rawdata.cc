@@ -25,6 +25,7 @@ RawData::RawData()
 {
   this->is_init_angle_ = false;
   this->is_init_curve_ = false;
+  this->is_init_top_fw_ = false;
 }
 
 void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
@@ -57,14 +58,20 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     ROS_INFO_STREAM("Start angle is smaller than end angle, not the normal state!");
   }
 
-  std::cout <<"start_angle: "<< start_angle_<< " end_angle: "<< end_angle_<<" angle_flag: "<<angle_flag_ <<std::endl;
-  start_angle_ = start_angle_/180*M_PI;
-  end_angle_ = end_angle_/180*M_PI;
+  std::cout << "start_angle: " << start_angle_ << " end_angle: " << end_angle_ << " angle_flag: " << angle_flag_
+            << std::endl;
+  start_angle_ = start_angle_ / 180 * M_PI;
+  end_angle_ = end_angle_ / 180 * M_PI;
 
   private_nh.param("max_distance", max_distance, 200.0f);
   private_nh.param("min_distance", min_distance, 0.2f);
 
-  ROS_INFO_STREAM("distance threshlod, max: "<<max_distance<<", min: "<<min_distance);
+  ROS_INFO_STREAM("distance threshlod, max: " << max_distance << ", min: " << min_distance);
+
+  private_nh.param("max_distance", max_distance, 200.0f);
+  private_nh.param("min_distance", min_distance, 0.2f);
+
+  ROS_INFO_STREAM("distance threshlod, max: " << max_distance << ", min: " << min_distance);
 
   private_nh.param("model", model, std::string("RS16"));
   if (model == "RS16")
@@ -97,7 +104,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   {
     fseek(f_inten, 0, SEEK_END);  //定位到文件末
     int size = ftell(f_inten);    //文件长度
-    ROS_INFO_STREAM("size is::::::::::::::::::::::::::::: " << size);
+
     if (size > 10000)  //老版的curve
     {
       Curvesis_new = false;
@@ -260,6 +267,23 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
   // std::cout << "Enter difop callback!" << std::endl;
   const uint8_t* data = &difop_msg->data[0];
 
+  if (!this->is_init_top_fw_)
+  {
+    if ((data[41] == 0x00 && data[42] == 0x00 && data[43] == 0x00) ||
+        (data[41] == 0xff && data[42] == 0xff && data[43] == 0xff) ||
+        (data[41] == 0x55 && data[42] == 0xaa && data[43] == 0x5a))
+    {
+      dis_resolution_mode = 1;  // 1cm resolution
+      std::cout << "The distance resolution is 1cm" << std::endl;
+    }
+    else
+    {
+      dis_resolution_mode = 0;  // 0.5cm resolution
+      std::cout << "The distance resolution is 0.5cm" << std::endl;
+    }
+    this->is_init_top_fw_ = true;
+  }
+
   if (!this->is_init_curve_)
   {
     // check header
@@ -326,7 +350,7 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
       if ((data[290] != 0x00) && (data[290] != 0xff))
       {
         intensityFactor = static_cast<int>(*(data + 290));  // intensity factor introduced since than 20181115
-        std::cout << intensityFactor << std::endl;
+        // std::cout << intensityFactor << std::endl;
       }
 
       if ((data[291] == 0x00) || (data[291] == 0xff) || (data[291] == 0xa1))
@@ -462,7 +486,7 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
   }
 
   int indexTemper = estimateTemperature(temper) - TEMPERATURE_MIN;
-  uplimitDist = g_ChannelNum[calIdx][indexTemper] + 20000;
+  uplimitDist = g_ChannelNum[calIdx][indexTemper] + DISTANCE_MAX_UNITS;
   // limit sDist
   sDist = (distance > g_ChannelNum[calIdx][indexTemper]) ? distance : g_ChannelNum[calIdx][indexTemper];
   sDist = (sDist < uplimitDist) ? sDist : uplimitDist;
@@ -472,23 +496,31 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
   // calculate intensity ref curves
   float refPwr_temp = 0.0f;
   int order = 3;
-  endOfSection1 = 500.0f;
-  endOfSection2 = 4000.0;
-  distance_f = (float)algDist;
+  endOfSection1 = 5.0f;
+  endOfSection2 = 40.0;
+
+  if (dis_resolution_mode == 0)
+  {
+    distance_f = (float)algDist * DISTANCE_RESOLUTION_NEW;
+  }
+  else
+  {
+    distance_f = (float)algDist * DISTANCE_RESOLUTION;
+  }
+
   if (intensity_mode_ == 1)
   {
     if (distance_f <= endOfSection1)
     {
-      refPwr_temp =
-          aIntensityCal[0][calIdx] * exp(aIntensityCal[1][calIdx] - aIntensityCal[2][calIdx] * distance_f / 100.0f) +
-          aIntensityCal[3][calIdx];
+      refPwr_temp = aIntensityCal[0][calIdx] * exp(aIntensityCal[1][calIdx] - aIntensityCal[2][calIdx] * distance_f) +
+                    aIntensityCal[3][calIdx];
       //   printf("a-calIdx=%d,distance_f=%f,refPwr=%f\n",calIdx,distance_f,refPwr_temp);
     }
     else
     {
       for (int i = 0; i < order; i++)
       {
-        refPwr_temp += aIntensityCal[i + 4][calIdx] * (pow(distance_f / 100.0f, order - 1 - i));
+        refPwr_temp += aIntensityCal[i + 4][calIdx] * (pow(distance_f, order - 1 - i));
       }
       // printf("b-calIdx=%d,distance_f=%f,refPwr=%f\n",calIdx,distance_f,refPwr_temp);
     }
@@ -497,16 +529,15 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
   {
     if (distance_f <= endOfSection1)
     {
-      refPwr_temp =
-          aIntensityCal[0][calIdx] * exp(aIntensityCal[1][calIdx] - aIntensityCal[2][calIdx] * distance_f / 100.0f) +
-          aIntensityCal[3][calIdx];
+      refPwr_temp = aIntensityCal[0][calIdx] * exp(aIntensityCal[1][calIdx] - aIntensityCal[2][calIdx] * distance_f) +
+                    aIntensityCal[3][calIdx];
       //   printf("a-calIdx=%d,distance_f=%f,refPwr=%f\n",calIdx,distance_f,refPwr_temp);
     }
     else if (distance_f > endOfSection1 && distance_f <= endOfSection2)
     {
       for (int i = 0; i < order; i++)
       {
-        refPwr_temp += aIntensityCal[i + 4][calIdx] * (pow(distance_f / 100.0f, order - 1 - i));
+        refPwr_temp += aIntensityCal[i + 4][calIdx] * (pow(distance_f, order - 1 - i));
       }
       // printf("b-calIdx=%d,distance_f=%f,refPwr=%f\n",calIdx,distance_f,refPwr_temp);
     }
@@ -516,10 +547,10 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
       float refPwr_temp1 = 0.0f;
       for (int i = 0; i < order; i++)
       {
-        refPwr_temp0 += aIntensityCal[i + 4][calIdx] * (pow(4000.0f / 100.0f, order - 1 - i));
-        refPwr_temp1 += aIntensityCal[i + 4][calIdx] * (pow(3900.0f / 100.0f, order - 1 - i));
+        refPwr_temp0 += aIntensityCal[i + 4][calIdx] * (pow(40.0f, order - 1 - i));
+        refPwr_temp1 += aIntensityCal[i + 4][calIdx] * (pow(39.0f, order - 1 - i));
       }
-      refPwr_temp = 0.3f * (refPwr_temp0 - refPwr_temp1) * distance_f / 100.0f + refPwr_temp0;
+      refPwr_temp = 0.3f * (refPwr_temp0 - refPwr_temp1) * distance_f + refPwr_temp0;
     }
   }
   else
@@ -718,7 +749,14 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
           intensity = calibrateIntensity_old(intensity, dsr, distance);
 
         float distance2 = pixelToDistance(distance, dsr);
-        distance2 = distance2 * DISTANCE_RESOLUTION;
+        if (dis_resolution_mode == 0)  // distance resolution is 0.5cm
+        {
+          distance2 = distance2 * DISTANCE_RESOLUTION_NEW;
+        }
+        else
+        {
+          distance2 = distance2 * DISTANCE_RESOLUTION;
+        }
 
         float arg_horiz = (float)azimuth_corrected / 18000.0f * M_PI;
         float arg_horiz_orginal = arg_horiz;
@@ -743,9 +781,9 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
 
           // If you want to fix the rslidar X aixs to the front side of the cable, please use the two line below
 
-          point.x = distance2*cos(arg_vert)*cos(arg_horiz)+R1_*cos(arg_horiz_orginal);
-          point.y = -distance2*cos(arg_vert)*sin(arg_horiz)-R1_*sin(arg_horiz_orginal);
-          point.z = distance2*sin(arg_vert)-R2_;
+          point.x = distance2 * cos(arg_vert) * cos(arg_horiz) + R1_ * cos(arg_horiz_orginal);
+          point.y = -distance2 * cos(arg_vert) * sin(arg_horiz) - R1_ * sin(arg_horiz_orginal);
+          point.z = distance2 * sin(arg_vert) - R2_;
           point.intensity = intensity;
           pointcloud->at(2 * this->block_num + firing, dsr) = point;
         }
@@ -812,84 +850,139 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
       }
     }
 
-    // Estimate the type of packet
-    union two_bytes tmp_flag;
-    tmp_flag.bytes[1] = raw->blocks[block].data[0];
-    tmp_flag.bytes[0] = raw->blocks[block].data[1];
-    int ABflag = isABPacket(tmp_flag.uint);
-
-    int k = 0;
-    int index;
-    for (int dsr = 0; dsr < RS32_SCANS_PER_FIRING * RS32_FIRINGS_PER_BLOCK; dsr++, k += RAW_SCAN_SIZE)  // 16   3
+    if (dis_resolution_mode == 0)  // distance resolution is 0.5cm and delete the AB packet mechanism
     {
-      if (ABflag == 1 && dsr < 16)
+      for (int dsr = 0, k = 0; dsr < RS32_SCANS_PER_FIRING * RS32_FIRINGS_PER_BLOCK; dsr++, k += RAW_SCAN_SIZE)  // 16 3
       {
-        index = k + 48;
-      }
-      else if (ABflag == 1 && dsr >= 16)
-      {
-        index = k - 48;
-      }
-      else
-      {
-        index = k;
-      }
+        int dsr_temp;
+        if (dsr >= 16)
+        {
+          dsr_temp = dsr - 16;
+        }
+        else
+        {
+          dsr_temp = dsr;
+        }
+        azimuth_corrected_f = azimuth + (azimuth_diff * ((dsr_temp * RS32_DSR_TOFFSET)) / RS32_BLOCK_TDURATION);
+        azimuth_corrected = correctAzimuth(azimuth_corrected_f, dsr);
 
-      int dsr_temp;
-      if (dsr >= 16)
-      {
-        dsr_temp = dsr - 16;
-      }
-      else
-      {
-        dsr_temp = dsr;
-      }
-      azimuth_corrected_f = azimuth + (azimuth_diff * ((dsr_temp * RS32_DSR_TOFFSET)) / RS32_BLOCK_TDURATION);
-      azimuth_corrected = correctAzimuth(azimuth_corrected_f, dsr);
+        union two_bytes tmp;
+        tmp.bytes[1] = raw->blocks[block].data[k];
+        tmp.bytes[0] = raw->blocks[block].data[k + 1];
+        int distance = tmp.uint;
 
-      union two_bytes tmp;
-      tmp.bytes[1] = raw->blocks[block].data[index];
-      tmp.bytes[0] = raw->blocks[block].data[index + 1];
-      int ab_flag_in_block = isABPacket(tmp.uint);
-      int distance = tmp.uint - ab_flag_in_block * 32768;
-
-      // read intensity
-      intensity = (float)raw->blocks[block].data[index + 2];
-      if (Curvesis_new)
+        // read intensity
+        intensity = (float)raw->blocks[block].data[k + 2];
         intensity = calibrateIntensity(intensity, dsr, distance);
-      else
-        intensity = calibrateIntensity_old(intensity, dsr, distance);
 
-      float distance2 = pixelToDistance(distance, dsr);
-      distance2 = distance2 * DISTANCE_RESOLUTION;
+        float distance2 = pixelToDistance(distance, dsr);
+        distance2 = distance2 * DISTANCE_RESOLUTION_NEW;
 
-      float arg_horiz_orginal = (float)azimuth_corrected_f/180000.0f*M_PI;
-      float arg_horiz = (float)azimuth_corrected / 18000.0f * M_PI;
-      float arg_vert = VERT_ANGLE[dsr];
-      pcl::PointXYZI point;
+        float arg_horiz = (float)azimuth_corrected / 18000.0f * M_PI;
+        float arg_vert = VERT_ANGLE[dsr];
+        pcl::PointXYZI point;
 
-      if (distance2 > max_distance || distance2 < min_distance ||
-          (angle_flag_ && (arg_horiz < start_angle_ || arg_horiz > end_angle_)) ||
-          (!angle_flag_ && (arg_horiz > end_angle_ && arg_horiz < start_angle_)))  // invalid distance
-      {
-        point.x = NAN;
-        point.y = NAN;
-        point.z = NAN;
-        point.intensity = 0;
-        pointcloud->at(this->block_num, dsr) = point;
+        if (distance2 > max_distance || distance2 < min_distance)  // invalid distance
+        {
+          point.x = NAN;
+          point.y = NAN;
+          point.z = NAN;
+          point.intensity = 0;
+          pointcloud->at(this->block_num, dsr) = point;
+        }
+        else
+        {
+          // If you want to fix the rslidar Y aixs to the front side of the cable, please use the two line below
+          // point.x = dis * cos(arg_vert) * sin(arg_horiz);
+          // point.y = dis * cos(arg_vert) * cos(arg_horiz);
+
+          // If you want to fix the rslidar X aixs to the front side of the cable, please use the two line below
+          point.y = -distance2 * cos(arg_vert) * sin(arg_horiz);
+          point.x = distance2 * cos(arg_vert) * cos(arg_horiz);
+          point.z = distance2 * sin(arg_vert);
+          point.intensity = intensity;
+          pointcloud->at(this->block_num, dsr) = point;
+        }
       }
-      else
-      {
-        // If you want to fix the rslidar Y aixs to the front side of the cable, please use the two line below
-        // point.x = dis * cos(arg_vert) * sin(arg_horiz);
-        // point.y = dis * cos(arg_vert) * cos(arg_horiz);
+    }
+    else
+    {
+      // Estimate the type of packet
+      union two_bytes tmp_flag;
+      tmp_flag.bytes[1] = raw->blocks[block].data[0];
+      tmp_flag.bytes[0] = raw->blocks[block].data[1];
+      int ABflag = isABPacket(tmp_flag.uint);
 
-        // If you want to fix the rslidar X aixs to the front side of the cable, please use the two line below
-        point.x = distance2 * cos(arg_vert) * cos(arg_horiz)+R1_*cos(arg_horiz_orginal);
-        point.y = -distance2 * cos(arg_vert) * sin(arg_horiz)-R1_*sin(arg_horiz_orginal);
-        point.z = distance2 * sin(arg_vert)-R2_;
-        point.intensity = intensity;
-        pointcloud->at(this->block_num, dsr) = point;
+      int k = 0;
+      int index;
+      for (int dsr = 0; dsr < RS32_SCANS_PER_FIRING * RS32_FIRINGS_PER_BLOCK; dsr++, k += RAW_SCAN_SIZE)  // 16   3
+      {
+        if (ABflag == 1 && dsr < 16)
+        {
+          index = k + 48;
+        }
+        else if (ABflag == 1 && dsr >= 16)
+        {
+          index = k - 48;
+        }
+        else
+        {
+          index = k;
+        }
+
+        int dsr_temp;
+        if (dsr >= 16)
+        {
+          dsr_temp = dsr - 16;
+        }
+        else
+        {
+          dsr_temp = dsr;
+        }
+        azimuth_corrected_f = azimuth + (azimuth_diff * ((dsr_temp * RS32_DSR_TOFFSET)) / RS32_BLOCK_TDURATION);
+        azimuth_corrected = correctAzimuth(azimuth_corrected_f, dsr);
+
+        union two_bytes tmp;
+        tmp.bytes[1] = raw->blocks[block].data[index];
+        tmp.bytes[0] = raw->blocks[block].data[index + 1];
+        int ab_flag_in_block = isABPacket(tmp.uint);
+        int distance = tmp.uint - ab_flag_in_block * 32768;
+
+        // read intensity
+        intensity = (float)raw->blocks[block].data[index + 2];
+        intensity = calibrateIntensity(intensity, dsr, distance);
+
+        float distance2 = pixelToDistance(distance, dsr);
+        distance2 = distance2 * DISTANCE_RESOLUTION;
+
+        float arg_horiz_orginal = (float)azimuth_corrected_f / 180000.0f * M_PI;
+        float arg_horiz = (float)azimuth_corrected / 18000.0f * M_PI;
+        float arg_vert = VERT_ANGLE[dsr];
+        pcl::PointXYZI point;
+
+        if (distance2 > max_distance || distance2 < min_distance ||
+            (angle_flag_ && (arg_horiz < start_angle_ || arg_horiz > end_angle_)) ||
+            (!angle_flag_ && (arg_horiz > end_angle_ && arg_horiz < start_angle_)))  // invalid distance
+        {
+          point.x = NAN;
+          point.y = NAN;
+          point.z = NAN;
+          point.intensity = 0;
+          pointcloud->at(this->block_num, dsr) = point;
+        }
+        else
+        {
+          // If you want to fix the rslidar Y aixs to the front side of the cable, please use the two line below
+          // point.x = dis * cos(arg_vert) * sin(arg_horiz);
+          // point.y = dis * cos(arg_vert) * cos(arg_horiz);
+
+          // If you want to fix the rslidar X aixs to the front side of the cable, please use the two line below
+          point.x = distance2 * cos(arg_vert) * cos(arg_horiz) + R1_ * cos(arg_horiz_orginal);
+          point.y = -distance2 * cos(arg_vert) * sin(arg_horiz) - R1_ * sin(arg_horiz_orginal);
+          point.z = distance2 * sin(arg_vert) - R2_;
+          point.intensity = intensity;
+          pointcloud->at(this->block_num, dsr) = point;
+        }
       }
     }
   }

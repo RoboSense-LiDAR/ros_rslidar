@@ -28,3 +28,18 @@ target_link_libraries(rslidar_node
         ${libpcap_LIBRARIES}
         )
 
+install(TARGETS rslidar_node
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        COMPONENT main
+        )
+install(TARGETS rsdriver_nodelet
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        )
+
+install(TARGETS rslidar_input
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        )
+
+install(TARGETS rslidar_driver
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        )

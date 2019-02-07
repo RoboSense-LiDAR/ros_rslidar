@@ -23,3 +23,11 @@ target_link_libraries(rscloud_node
         rslidar_point
         ${catkin_LIBRARIES}
         ${libpcap_LIBRARIES})
+
+install(TARGETS
+        rslidar_data
+        rscloud_nodelet
+        rscloud_node
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        )

@@ -43,7 +43,7 @@ void CloudNodelet::onInit()
 
 }  // namespace velodyne_pointcloud
 
-// Register this plugin with pluginlib.  Names must match nodelets.xml.
+// Register this plugin with pluginlib.  Names must match rs_nodelets.xml.
 //
 // parameters: class type, base class type
 PLUGINLIB_EXPORT_CLASS(rslidar_pointcloud::CloudNodelet, nodelet::Nodelet)

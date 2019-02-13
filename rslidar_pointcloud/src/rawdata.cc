@@ -882,7 +882,9 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         float arg_vert = VERT_ANGLE[dsr];
         pcl::PointXYZI point;
 
-        if (distance2 > max_distance || distance2 < min_distance)  // invalid distance
+        if (distance2 > max_distance || distance2 < min_distance ||
+            (angle_flag_ && (arg_horiz < start_angle_ || arg_horiz > end_angle_)) ||
+            (!angle_flag_ && (arg_horiz > end_angle_ && arg_horiz < start_angle_)))  // invalid distance
         {
           point.x = NAN;
           point.y = NAN;

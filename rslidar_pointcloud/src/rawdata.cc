@@ -271,7 +271,8 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
   {
     if ((data[41] == 0x00 && data[42] == 0x00 && data[43] == 0x00) ||
         (data[41] == 0xff && data[42] == 0xff && data[43] == 0xff) ||
-        (data[41] == 0x55 && data[42] == 0xaa && data[43] == 0x5a))
+        (data[41] == 0x55 && data[42] == 0xaa && data[43] == 0x5a) ||
+        (data[41] == 0xe9 && data[42] == 0x01 && data[43] == 0x00))
     {
       dis_resolution_mode = 1;  // 1cm resolution
       std::cout << "The distance resolution is 1cm" << std::endl;
@@ -878,6 +879,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         float distance2 = pixelToDistance(distance, dsr);
         distance2 = distance2 * DISTANCE_RESOLUTION_NEW;
 
+        float arg_horiz_orginal = (float)azimuth_corrected_f / 180000.0f * M_PI;
         float arg_horiz = (float)azimuth_corrected / 18000.0f * M_PI;
         float arg_vert = VERT_ANGLE[dsr];
         pcl::PointXYZI point;
@@ -899,9 +901,9 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
           // point.y = dis * cos(arg_vert) * cos(arg_horiz);
 
           // If you want to fix the rslidar X aixs to the front side of the cable, please use the two line below
-          point.y = -distance2 * cos(arg_vert) * sin(arg_horiz);
-          point.x = distance2 * cos(arg_vert) * cos(arg_horiz);
-          point.z = distance2 * sin(arg_vert);
+          point.x = distance2 * cos(arg_vert) * cos(arg_horiz) + R1_ * cos(arg_horiz_orginal);
+          point.y = -distance2 * cos(arg_vert) * sin(arg_horiz) - R1_ * sin(arg_horiz_orginal);
+          point.z = distance2 * sin(arg_vert) - R2_;
           point.intensity = intensity;
           pointcloud->at(this->block_num, dsr) = point;
         }

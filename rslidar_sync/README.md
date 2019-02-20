@@ -17,13 +17,15 @@ roslaunch rslidar_sync rslidar_sync_3lidar.launch
 
 + Check the time synchronization result.
 ```
-rostopic echo /sync_packet_diff
+rostopic echo /sync_packets_diff
 ```
 It shows like this, n < 4 says good time synchronization. n >= 4 says bad result.
 ```
 sync diff packets: n
 ```
-If it doesn't show any message, please check the GPS connection. You may also check the lidar timestamp below.
+If it doesn't show any message, please check the synchronization board or GPS connection. And you may also check the scanx_topic timestamp are near enough (no more than 0.1s).
 ```
-rostopic echo YOUR_LIDAR_TOPIC --noarr
+rostopic echo /left/sync_header
+rostopic echo /right/sync_header
+rostopic echo /middle/sync_header
 ```

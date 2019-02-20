@@ -1,7 +1,7 @@
 <launch>
 
-  <include file="$(find rslidar_sync)/launch/left_lidar.launch" />
-  <include file="$(find rslidar_sync)/launch/middle_lidar.launch" />
+  <!-- <include file="$(find rslidar_sync)/launch/left_lidar.launch" /> -->
+  <!-- <include file="$(find rslidar_sync)/launch/middle_lidar.launch" /> -->
   <node  name="rslidar_sync_2lidar" pkg="rslidar_sync" type="rslidar_sync_2lidar_node" output="screen" >
     <param name="scan1_topic" value="/left/sync_header"/>
     <param name="scan2_topic" value="/middle/sync_header"/>
@@ -9,6 +9,6 @@
     <param name="skippackets1_topic" value="/left/skippackets_num"/>
     <param name="skippackets2_topic" value="/middle/skippackets_num"/>
 
-    <param name="sync_packet_diff_topic" value="/sync_packet_diff"/>
+    <param name="sync_packets_diff_topic" value="/sync_packets_diff"/>
   </node>
 </launch>

@@ -60,15 +60,44 @@ int main(int argc, char** argv)
   ros::NodeHandle nh_private("~");
 
   // get the topic parameters
-  std::string scan1_topic;
-  std::string scan2_topic;
-  nh_private.getParam(std::string("scan1_topic"), scan1_topic);
-  nh_private.getParam(std::string("scan2_topic"), scan2_topic);
+  std::string scan1_topic("/left/sync_header");
+  std::string scan2_topic("/right/sync_header");
+  if (!nh_private.getParam(std::string("scan1_topic"), scan1_topic))
+  {
+    ROS_ERROR("Can't get scan1_topic, use the default scan1_topic: %s", scan1_topic.c_str());
+  }
+  else
+  {
+    ROS_INFO("scan1_topic: %s", scan1_topic.c_str());
+  }
+  if (!nh_private.getParam(std::string("scan2_topic"), scan2_topic))
+  {
+    ROS_ERROR("Can't get scan2_topic, use the default scan2_topic: %s", scan2_topic.c_str());
+  }
+  else
+  {
+    ROS_INFO("scan2_topic: %s", scan2_topic.c_str());
+  }
 
-  std::string skippackets1_topic;
-  std::string skippackets2_topic;
-  nh_private.getParam(std::string("skippackets1_topic"), skippackets1_topic);
-  nh_private.getParam(std::string("skippackets2_topic"), skippackets2_topic);
+  std::string skippackets1_topic("/left/skippackets_num");
+  std::string skippackets2_topic("/right/skippackets_num");
+  if (!nh_private.getParam(std::string("skippackets1_topic"), skippackets1_topic))
+  {
+    ROS_ERROR("Can't get skippackets1_topic, use the default skippackets1_topic: %s", skippackets1_topic.c_str());
+  }
+  else
+  {
+    ROS_INFO("skippackets1_topic: %s", skippackets1_topic.c_str());
+  }
+
+  if (!nh_private.getParam(std::string("skippackets2_topic"), skippackets2_topic))
+  {
+    ROS_ERROR("Can't get skippackets2_topic, use the default skippackets2_topic: %s", skippackets2_topic.c_str());
+  }
+  else
+  {
+    ROS_INFO("skippackets2_topic: %s", skippackets2_topic.c_str());
+  }
 
   // sync the rslidarscan
   message_filters::Subscriber<sensor_msgs::TimeReference> scan_sub1(nh, scan1_topic, 1);
@@ -81,9 +110,18 @@ int main(int argc, char** argv)
   g_skippackets_num_pub1 = nh.advertise<std_msgs::Int32>(skippackets1_topic, 1, true);
   g_skippackets_num_pub2 = nh.advertise<std_msgs::Int32>(skippackets2_topic, true);
 
-  std::string sync_packet_diff_topic("sync_packet_diff");
-  nh_private.getParam(std::string("sync_packet_diff_topic"), sync_packet_diff_topic);
-  g_maxnum_diff_packetnum_pub = nh.advertise<std_msgs::String>(sync_packet_diff_topic, 1, true);
+  std::string sync_packets_diff_topic("/sync_packets_diff");
+  if (!nh_private.getParam(std::string("sync_packets_diff_topic"), sync_packets_diff_topic))
+  {
+    ROS_ERROR("Can't get sync_packets_diff_topic, use the default sync_packets_diff_topic: %s",
+              sync_packets_diff_topic.c_str());
+  }
+  else
+  {
+    ROS_INFO("sync_packets_diff: %s", sync_packets_diff_topic.c_str());
+  }
+
+  g_maxnum_diff_packetnum_pub = nh.advertise<std_msgs::String>(sync_packets_diff_topic, 1, true);
 
   ros::spin();
   return 0;

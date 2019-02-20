@@ -1,6 +1,6 @@
 #### 1. Prerequisites
 (1) Install a ubuntu PC. We suggested Ubuntu 14.04 or Ubuntu 16.04. Please do not use virtual machine.
-(2) Install ros full-desktop version. We tried Indigo and Kinect.
+(2) Install ros full-desktop version. We tried Indigo and Kinetic.
 (3) Please also install libpcap-dev.
 
 ####  2. Install

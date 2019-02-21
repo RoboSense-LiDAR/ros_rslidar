@@ -17,7 +17,7 @@ roslaunch rslidar_sync rslidar_sync_3lidar.launch
 
 + Check the time synchronization result.
 ```
-rostopic echo /sync_packets_diff
+rostopic echo /sync_packet_diff
 ```
 It shows like this, n < 4 says good time synchronization. n >= 4 says bad result.
 ```

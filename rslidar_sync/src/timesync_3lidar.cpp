@@ -209,17 +209,17 @@ int main(int argc, char** argv)
   g_skippackets_num_pub2 = nh.advertise<std_msgs::Int32>(skippackets2_topic.c_str(), 1, true);
   g_skippackets_num_pub3 = nh.advertise<std_msgs::Int32>(skippackets3_topic.c_str(), 1, true);
 
-  std::string sync_packets_diff_topic("/sync_packets_diff");
-  if (!nh_private.getParam(std::string("sync_packets_diff_topic"), sync_packets_diff_topic))
+  std::string sync_packet_diff_topic("/sync_packet_diff");
+  if (!nh_private.getParam(std::string("sync_packet_diff_topic"), sync_packet_diff_topic))
   {
-    ROS_ERROR("Can't get sync_packets_diff_topic, use the default sync_packets_diff_topic: %s",
-              sync_packets_diff_topic.c_str());
+    ROS_ERROR("Can't get sync_packet_diff_topic, use the default sync_packet_diff_topic: %s",
+              sync_packet_diff_topic.c_str());
   }
   else
   {
-    ROS_INFO("sync_packets_diff: %s", sync_packets_diff_topic.c_str());
+    ROS_INFO("sync_packet_diff: %s", sync_packet_diff_topic.c_str());
   }
-  g_maxnum_diff_packetnum_pub = nh.advertise<std_msgs::String>(sync_packets_diff_topic, 1, true);
+  g_maxnum_diff_packetnum_pub = nh.advertise<std_msgs::String>(sync_packet_diff_topic, 1, true);
 
   ros::spin();
   return 0;

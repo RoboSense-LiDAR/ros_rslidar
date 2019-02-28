@@ -63,15 +63,15 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   start_angle_ = start_angle_ / 180 * M_PI;
   end_angle_ = end_angle_ / 180 * M_PI;
 
-  private_nh.param("max_distance", max_distance, 200.0f);
-  private_nh.param("min_distance", min_distance, 0.2f);
+  private_nh.param("max_distance", max_distance_, 200.0f);
+  private_nh.param("min_distance", min_distance_, 0.2f);
 
-  ROS_INFO_STREAM("distance threshlod, max: " << max_distance << ", min: " << min_distance);
+  ROS_INFO_STREAM("distance threshlod, max: " << max_distance_ << ", min: " << min_distance_);
 
-  private_nh.param("max_distance", max_distance, 200.0f);
-  private_nh.param("min_distance", min_distance, 0.2f);
+  private_nh.param("resolution_type", dis_resolution_mode_, 0);
+  private_nh.param("intensity_mode", intensity_mode_, 1);
 
-  ROS_INFO_STREAM("distance threshlod, max: " << max_distance << ", min: " << min_distance);
+  ROS_INFO_STREAM("initialize distance resolution type: " << dis_resolution_mode_ << ", intensity mode: " << intensity_mode_);
 
   private_nh.param("model", model, std::string("RS16"));
   if (model == "RS16")
@@ -274,12 +274,12 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
         (data[41] == 0x55 && data[42] == 0xaa && data[43] == 0x5a) ||
         (data[41] == 0xe9 && data[42] == 0x01 && data[43] == 0x00))
     {
-      dis_resolution_mode = 1;  // 1cm resolution
+      dis_resolution_mode_ = 1;  // 1cm resolution
       std::cout << "The distance resolution is 1cm" << std::endl;
     }
     else
     {
-      dis_resolution_mode = 0;  // 0.5cm resolution
+      dis_resolution_mode_ = 0;  // 0.5cm resolution
       std::cout << "The distance resolution is 0.5cm" << std::endl;
     }
     this->is_init_top_fw_ = true;
@@ -511,7 +511,7 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
     endOfSection1 = 5.0f;
     endOfSection2 = 40.0;
 
-    if (dis_resolution_mode == 0)
+    if (dis_resolution_mode_ == 0)
     {
       distance_f = (float)algDist * DISTANCE_RESOLUTION_NEW;
     }
@@ -762,7 +762,7 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
           intensity = calibrateIntensity_old(intensity, dsr, distance);
 
         float distance2 = pixelToDistance(distance, dsr);
-        if (dis_resolution_mode == 0)  // distance resolution is 0.5cm
+        if (dis_resolution_mode_ == 0)  // distance resolution is 0.5cm
         {
           distance2 = distance2 * DISTANCE_RESOLUTION_NEW;
         }
@@ -776,7 +776,7 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
         float arg_vert = VERT_ANGLE[dsr];
         pcl::PointXYZI point;
 
-        if (distance2 > max_distance || distance2 < min_distance ||
+        if (distance2 > max_distance_ || distance2 < min_distance_ ||
             (angle_flag_ && (arg_horiz < start_angle_ || arg_horiz > end_angle_)) ||
             (!angle_flag_ && (arg_horiz > end_angle_ && arg_horiz < start_angle_)))  // invalid distance
         {
@@ -863,7 +863,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
       }
     }
 
-    if (dis_resolution_mode == 0)  // distance resolution is 0.5cm and delete the AB packet mechanism
+    if (dis_resolution_mode_ == 0)  // distance resolution is 0.5cm and delete the AB packet mechanism
     {
       for (int dsr = 0, k = 0; dsr < RS32_SCANS_PER_FIRING * RS32_FIRINGS_PER_BLOCK; dsr++, k += RAW_SCAN_SIZE)  // 16 3
       {
@@ -896,7 +896,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         float arg_vert = VERT_ANGLE[dsr];
         pcl::PointXYZI point;
 
-        if (distance2 > max_distance || distance2 < min_distance ||
+        if (distance2 > max_distance_ || distance2 < min_distance_ ||
             (angle_flag_ && (arg_horiz < start_angle_ || arg_horiz > end_angle_)) ||
             (!angle_flag_ && (arg_horiz > end_angle_ && arg_horiz < start_angle_)))  // invalid distance
         {
@@ -976,7 +976,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         float arg_vert = VERT_ANGLE[dsr];
         pcl::PointXYZI point;
 
-        if (distance2 > max_distance || distance2 < min_distance ||
+        if (distance2 > max_distance_ || distance2 < min_distance_ ||
             (angle_flag_ && (arg_horiz < start_angle_ || arg_horiz > end_angle_)) ||
             (!angle_flag_ && (arg_horiz > end_angle_ && arg_horiz < start_angle_)))  // invalid distance
         {

@@ -89,7 +89,6 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   }
 
   intensityFactor = 51;
-  intensity_mode_ = 1;
 
   /// 读参数文件 2017-02-27
   FILE* f_inten = fopen(curvesPath.c_str(), "r");

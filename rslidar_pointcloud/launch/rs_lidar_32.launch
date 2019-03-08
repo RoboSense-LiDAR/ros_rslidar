@@ -10,6 +10,7 @@
     <param name="device_ip" value="$(arg device_ip)" />
     <param name="msop_port" value="$(arg msop_port)" />
     <param name="difop_port" value="$(arg difop_port)"/>
+    <param name="cut_angle" value="0.0"/>
     <!--param name="pcap" value="path_to_pcap"/-->
   </node>
 
@@ -19,8 +20,6 @@
     <param name="angle_path" value="$(arg lidar_param_path)/angle.csv" />
     <param name="channel_path" value="$(arg lidar_param_path)/ChannelNum.csv" />
     <param name="curves_rate_path" value="$(arg lidar_param_path)/CurveRate.csv" />
-    <param name="resolution_type" value="0" />
-    <param name="intensity_mode" value="1" />
     <param name="max_distance" value="200"/>
     <param name="min_distance" value="0.2"/>
   </node>

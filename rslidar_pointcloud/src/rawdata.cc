@@ -68,8 +68,10 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
 
   ROS_INFO_STREAM("distance threshlod, max: " << max_distance_ << ", min: " << min_distance_);
 
-  private_nh.param("resolution_type", dis_resolution_mode_, 0);
-  private_nh.param("intensity_mode", intensity_mode_, 1);
+  dis_resolution_mode_ = 0;
+  intensity_mode_ = 1;
+//  private_nh.param("resolution_type", dis_resolution_mode_, 0);
+//  private_nh.param("intensity_mode", intensity_mode_, 1);
 
   ROS_INFO_STREAM("initialize distance resolution type: " << dis_resolution_mode_ << ", intensity mode: " << intensity_mode_);
 

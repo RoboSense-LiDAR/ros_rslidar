@@ -175,6 +175,7 @@ private:
   float max_distance_;
   float min_distance_;
   int dis_resolution_mode_;
+  int return_mode_;
 };
 
 float VERT_ANGLE[32];

@@ -90,6 +90,9 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
 
   intensityFactor = 51;
 
+  //return mode default
+  return_mode_ = 1;
+
   /// 读参数文件 2017-02-27
   FILE* f_inten = fopen(curvesPath.c_str(), "r");
   int loopi = 0;
@@ -213,10 +216,6 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
             &c[27], &c[28], &c[29], &c[30], &c[31], &c[32], &c[33], &c[34], &c[35], &c[36], &c[37], &c[38], &c[39],
             &c[40], &c[41], &c[42], &c[43], &c[44], &c[45], &c[46], &c[47], &c[48], &c[49], &c[50]);
       }
-      //                if (c[1] < 100 || c[1] > 3000)
-      //                {
-      //                    tempMode = 0;
-      //                }
       for (loopl = 0; loopl < TEMPERATURE_RANGE + 1; loopl++)
       {
         g_ChannelNum[loopm][loopl] = c[tempMode * loopl];
@@ -266,6 +265,23 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
   // std::cout << "Enter difop callback!" << std::endl;
   const uint8_t* data = &difop_msg->data[0];
 
+  //return mode check
+  if ((8 == data[45] && 0x02 == data[46] && data[47] >= 9) || (data[45] > 8) || (8 == data[45] && data[46] > 0x02))
+  {
+    if (1 == data[300] || 2 == data[300])
+    {
+      return_mode_ = data[300];
+    }
+    else
+    {
+      return_mode_ = 0;
+    }
+  }
+  else
+  {
+    return_mode_ = 1;
+  }
+  //
   if (!this->is_init_top_fw_)
   {
     if ((data[41] == 0x00 && data[42] == 0x00 && data[43] == 0x00) ||
@@ -744,8 +760,15 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
     {
       for (int dsr = 0; dsr < RS16_SCANS_PER_FIRING; dsr++, k += RAW_SCAN_SIZE)  // 16   3
       {
-        azimuth_corrected_f = azimuth + (azimuth_diff * ((dsr * RS16_DSR_TOFFSET) + (firing * RS16_FIRING_TOFFSET)) /
-                                         RS16_BLOCK_TDURATION);
+        if (0 == return_mode_)
+        {
+          azimuth_corrected_f = azimuth + (azimuth_diff * (dsr * RS16_DSR_TOFFSET)) / RS16_BLOCK_TDURATION;
+        }
+        else
+        {
+          azimuth_corrected_f = azimuth + (azimuth_diff * ((dsr * RS16_DSR_TOFFSET) + (firing * RS16_FIRING_TOFFSET)) /
+                                           RS16_BLOCK_TDURATION);
+        }
         azimuth_corrected = ((int)round(azimuth_corrected_f)) % 36000;  // convert to integral value...
 
         union two_bytes tmp;
@@ -835,31 +858,38 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
 
     azimuth = (float)(256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2);
 
-    if (block < (BLOCKS_PER_PACKET - 1))  // 12
-    {
-      int azi1, azi2;
-      azi1 = 256 * raw->blocks[block + 1].rotation_1 + raw->blocks[block + 1].rotation_2;
-      azi2 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
-      azimuth_diff = (float)((36000 + azi1 - azi2) % 36000);
-
-      // Ingnore the block if the azimuth change abnormal
-      if (azimuth_diff <= 0.0 || azimuth_diff > 25.0)
+    int azi1, azi2;
+    if (0 == return_mode_)
+    {//dual return mode
+      if (block < (BLOCKS_PER_PACKET - 2))  // 12
       {
-        continue;
+        azi1 = 256 * raw->blocks[(block/2)*2+2].rotation_1 + raw->blocks[(block/2)*2+2].rotation_2;
+        azi2 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
+      }
+      else
+      {
+        azi1 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
+        azi2 = 256 * raw->blocks[block - 2].rotation_1 + raw->blocks[block - 2].rotation_2;
       }
     }
     else
     {
-      int azi1, azi2;
-      azi1 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
-      azi2 = 256 * raw->blocks[block - 1].rotation_1 + raw->blocks[block - 1].rotation_2;
-      azimuth_diff = (float)((36000 + azi1 - azi2) % 36000);
-
-      // Ingnore the block if the azimuth change abnormal
-      if (azimuth_diff <= 0.0 || azimuth_diff > 25.0)
+      if (block < (BLOCKS_PER_PACKET - 1))  // 12
       {
-        continue;
+        azi1 = 256 * raw->blocks[block + 1].rotation_1 + raw->blocks[block + 1].rotation_2;
+        azi2 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
       }
+      else
+      {
+        azi1 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
+        azi2 = 256 * raw->blocks[block - 1].rotation_1 + raw->blocks[block - 1].rotation_2;
+      }
+    }
+    azimuth_diff = (float)((36000 + azi1 - azi2) % 36000);
+    // Ingnore the block if the azimuth change abnormal
+    if (azimuth_diff <= 0.0 || azimuth_diff > 25.0)
+    {
+      continue;
     }
 
     if (dis_resolution_mode_ == 0)  // distance resolution is 0.5cm and delete the AB packet mechanism

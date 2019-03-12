@@ -58,8 +58,9 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     ROS_INFO_STREAM("Start angle is smaller than end angle, not the normal state!");
   }
 
-  std::cout << "start_angle: " << start_angle_ << " end_angle: " << end_angle_ << " angle_flag: " << angle_flag_
-            << std::endl;
+  ROS_INFO_STREAM("start_angle: " << start_angle_ << " end_angle: " << end_angle_ << " angle_flag: " << angle_flag_);
+  //std::cout << "start_angle: " << start_angle_ << " end_angle: " << end_angle_ << " angle_flag: " << angle_flag_
+  //          << std::endl;
   start_angle_ = start_angle_ / 180 * M_PI;
   end_angle_ = end_angle_ / 180 * M_PI;
 
@@ -73,7 +74,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
 //  private_nh.param("resolution_type", dis_resolution_mode_, 0);
 //  private_nh.param("intensity_mode", intensity_mode_, 1);
 
-  ROS_INFO_STREAM("initialize distance resolution type: " << dis_resolution_mode_ << ", intensity mode: " << intensity_mode_);
+  //ROS_INFO_STREAM("initialize distance resolution type: " << dis_resolution_mode_ << ", intensity mode: " << intensity_mode_);
 
   private_nh.param("model", model, std::string("RS16"));
   if (model == "RS16")
@@ -266,10 +267,12 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
 {
   // std::cout << "Enter difop callback!" << std::endl;
   const uint8_t* data = &difop_msg->data[0];
+  bool is_support_dual_return = false;
 
   //return mode check
   if ((8 == data[45] && 0x02 == data[46] && data[47] >= 9) || (data[45] > 8) || (8 == data[45] && data[46] > 0x02))
   {
+    is_support_dual_return = true;
     if (1 == data[300] || 2 == data[300])
     {
       return_mode_ = data[300];
@@ -281,6 +284,7 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
   }
   else
   {
+    is_support_dual_return = false;
     return_mode_ = 1;
   }
   //
@@ -292,12 +296,12 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
         (data[41] == 0xe9 && data[42] == 0x01 && data[43] == 0x00))
     {
       dis_resolution_mode_ = 1;  // 1cm resolution
-      std::cout << "The distance resolution is 1cm" << std::endl;
+      //std::cout << "The distance resolution is 1cm" << std::endl;
     }
     else
     {
       dis_resolution_mode_ = 0;  // 0.5cm resolution
-      std::cout << "The distance resolution is 0.5cm" << std::endl;
+      //std::cout << "The distance resolution is 0.5cm" << std::endl;
     }
     this->is_init_top_fw_ = true;
   }
@@ -360,8 +364,9 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
           aIntensityCal[6][loopn] = (bit1 * 256 + bit2) * 0.001;
         }
         this->is_init_curve_ = true;
-        std::cout << "this->is_init_curve_ = "
-                  << "true!" << std::endl;
+        ROS_INFO_STREAM("curves data is wrote in difop packet!");
+        //std::cout << "this->is_init_curve_ = "
+        //          << "true!" << std::endl;
         Curvesis_new = true;
       }
 
@@ -386,6 +391,26 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
         intensity_mode_ = 3;  // mode for the top firmware higher than T6R23V9
         // std::cout << "intensity mode is 2" << std::endl;
       }
+      
+      //print info
+      float prin_dis;
+      if (dis_resolution_mode_ == 0)
+        prin_dis = 0.5;
+      else
+        prin_dis = 1;
+      ROS_INFO_STREAM("distance resolution is: " << prin_dis << "cm, intensity mode is: Mode" << intensity_mode_);
+      if (is_support_dual_return == false)
+        ROS_INFO_STREAM("lidar only support single return wave!");
+      else
+      {
+        if (return_mode_ == 0)
+          ROS_INFO_STREAM("lidar support dual return wave, the current mode is: dual return wave mode!");
+        else if (return_mode_ == 1)
+          ROS_INFO_STREAM("lidar support dual return wave, the current mode is: strongest return wave mode!");
+        else if (return_mode_ == 2)
+          ROS_INFO_STREAM("lidar support dual return wave, the current mode is: last return wave mode!");
+      }
+      
     }
   }
 
@@ -425,8 +450,9 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
           HORI_ANGLE[loopn] = 0;
         }
         this->is_init_angle_ = true;
-        std::cout << "this->is_init_angle_ = "
-                  << "true!" << std::endl;
+        ROS_INFO_STREAM("angle data is wrote in difop packet!");
+        //std::cout << "this->is_init_angle_ = "
+        //          << "true!" << std::endl;
       }
     }
   }

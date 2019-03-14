@@ -10,6 +10,7 @@ ros::Publisher g_skippackets_num_pub1;
 ros::Publisher g_skippackets_num_pub2;
 ros::Publisher g_skippackets_num_pub3;
 ros::Publisher g_maxnum_diff_packetnum_pub;
+int g_packet_duration_us = 1200;
 bool comparePair(const std::pair<unsigned, double> a, const std::pair<unsigned, double> b)
 {
   return a.second < b.second;
@@ -31,8 +32,8 @@ void scanCallback(const sensor_msgs::TimeReference::ConstPtr& scan_msg1,
 
   std::sort(lidar_vector.begin(), lidar_vector.end(), comparePair);
 
-  unsigned skip_big = (lidar_vector[2].second - lidar_vector[0].second) / 1200;
-  unsigned skip_small = (lidar_vector[1].second - lidar_vector[0].second) / 1200;
+  unsigned skip_big = (lidar_vector[2].second - lidar_vector[0].second) / g_packet_duration_us;
+  unsigned skip_small = (lidar_vector[1].second - lidar_vector[0].second) / g_packet_duration_us;
 
   std_msgs::String msg;
   std::stringstream ss;
@@ -194,6 +195,25 @@ int main(int argc, char** argv)
   {
     ROS_INFO("skippackets3_topic: %s", skippackets3_topic.c_str());
   }
+
+  bool is_all_rs32_lidars("false");
+  if (!nh_private.getParam(std::string("is_all_rs32_lidars"), is_all_rs32_lidars))
+  {
+    ROS_ERROR("Can't get all_rs32_lidars, use the default all_rs32_lidars: %B", is_all_rs32_lidars);
+  }
+  else
+  {
+    ROS_INFO("skippackets1_topic: %B", is_all_rs32_lidars);
+  }
+  if (is_all_rs32_lidars)
+  {
+    g_packet_duration_us = 600;
+  }
+  else
+  {
+    g_packet_duration_us = 1200;
+  }
+
 
   // sync the rslidarscan
   message_filters::Subscriber<sensor_msgs::TimeReference> scan_sub1(nh, scan1_topic, 1);

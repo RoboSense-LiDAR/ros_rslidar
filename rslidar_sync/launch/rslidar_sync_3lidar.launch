@@ -13,5 +13,8 @@
     <param name="skippackets3_topic" value="/right/skippackets_num"/>
 
     <param name="sync_packet_diff_topic" value="/sync_packet_diff"/>
+
+    <!-- setting if the three lidars are all RS32 -->
+    <param name="is_all_rs32_lidars" value="false"/>
   </node>
 </launch>

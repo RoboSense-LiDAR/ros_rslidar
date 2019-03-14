@@ -94,8 +94,6 @@ private:
   int sockfd_;
   in_addr devip_;
 
-  int Ret;
-  int len;
 };
 
 /** @brief rslidar input from PCAP dump file.

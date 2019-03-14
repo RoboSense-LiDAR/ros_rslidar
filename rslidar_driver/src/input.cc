@@ -277,6 +277,9 @@ int InputPCAP::getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_off
       if (read_fast_ == false)
         packet_rate_.sleep();
 
+
+      memcpy(&pkt->data[0], pkt_data + 42, packet_size);
+
       // time synchronization use machine time
       if (time_synchronization_ == true)
       {
@@ -290,13 +293,12 @@ int InputPCAP::getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_off
           stm_.tm_min = (int)pkt->data[24];
           stm_.tm_sec = (int)pkt->data[25];
           double stamp_double = mktime(&stm_) + 0.001 * (256 * pkt->data[26] + pkt->data[27]) +
-                                0.000001 * (256 * pkt->data[28] + pkt->data[29]);
+            0.000001 * (256 * pkt->data[28] + pkt->data[29]);
           // pkt->stamp = ros::Time(stamp_double);
           sync_header.header.stamp = ros::Time(stamp_double);
         }
       }
 
-      memcpy(&pkt->data[0], pkt_data + 42, packet_size);
       pkt->stamp = ros::Time::now();  // time_offset not considered here, as no
                                       // synchronization required
       empty_ = false;

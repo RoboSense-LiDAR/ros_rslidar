@@ -142,7 +142,6 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
     skip_num_sub_ = node.subscribe<std_msgs::Int32>("skippackets_num", 1, &rslidarDriver::skipNumCallback,
                                                     (rslidarDriver*)this, ros::TransportHints().tcpNoDelay(true));
   }
-
 }
 
 /** poll the device
@@ -150,8 +149,7 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
  *  @returns true unless end of file reached
  */
 bool rslidarDriver::poll(void)
-{
-  // Allocate a new shared pointer for zero-copy sharing with other nodelets.
+{  // Allocate a new shared pointer for zero-copy sharing with other nodelets.
   rslidar_msgs::rslidarScanPtr scan(new rslidar_msgs::rslidarScan);
 
   // Since the rslidar delivers data at a very high rate, keep
@@ -160,12 +158,11 @@ bool rslidarDriver::poll(void)
   {
     scan->packets.reserve(config_.npackets);
     rslidar_msgs::rslidarPacket tmp_packet;
-    sensor_msgs::TimeReference sync_header;  // not really use in cut_angle
     while (true)
     {
       while (true)
       {
-        int rc = msop_input_->getPacket(&tmp_packet, config_.time_offset, sync_header);
+        int rc = msop_input_->getPacket(&tmp_packet, config_.time_offset);
         if (rc == 0)
           break;  // got a full packet?
         if (rc < 0)
@@ -197,13 +194,12 @@ bool rslidarDriver::poll(void)
   {
     scan->packets.resize(config_.npackets);
     // use in standard behaviour only
-    sensor_msgs::TimeReference sync_headers[config_.npackets];
     while (skip_num_)
     {
       while (true)
       {
         // keep reading until full packet received
-        int rc = msop_input_->getPacket(&scan->packets[0], config_.time_offset, sync_headers[0]);
+        int rc = msop_input_->getPacket(&scan->packets[0], config_.time_offset);
         if (rc == 0)
           break;  // got a full packet?
         if (rc < 0)
@@ -217,16 +213,34 @@ bool rslidarDriver::poll(void)
       while (true)
       {
         // keep reading until full packet received
-        int rc = msop_input_->getPacket(&scan->packets[i], config_.time_offset, sync_headers[i]);
+        int rc = msop_input_->getPacket(&scan->packets[i], config_.time_offset);
         if (rc == 0)
           break;  // got a full packet?
         if (rc < 0)
           return false;  // end of file reached?
       }
     }
+
     if (time_synchronization_)
     {
-      output_sync_.publish(sync_headers[0]);
+      sensor_msgs::TimeReference sync_header;
+      // it is already the msop msg
+      // if (pkt->data[0] == 0x55 && pkt->data[1] == 0xaa && pkt->data[2] == 0x05 && pkt->data[3] == 0x0a)
+      // use the first packets
+      rslidar_msgs::rslidarPacket pkt = scan->packets[0];
+      struct tm stm;
+      memset(&stm, 0, sizeof(stm));
+      stm.tm_year = (int)pkt.data[20] + 100;
+      stm.tm_mon  = (int)pkt.data[21] - 1;
+      stm.tm_mday = (int)pkt.data[22];
+      stm.tm_hour = (int)pkt.data[23];
+      stm.tm_min  = (int)pkt.data[24];
+      stm.tm_sec  = (int)pkt.data[25];
+      double stamp_double = mktime(&stm) + 0.001 * (256 * pkt.data[26] + pkt.data[27]) +
+                            0.000001 * (256 * pkt.data[28] + pkt.data[29]);
+      sync_header.header.stamp = ros::Time(stamp_double);
+
+      output_sync_.publish(sync_header);
     }
   }
 
@@ -251,8 +265,7 @@ void rslidarDriver::difopPoll(void)
   {
     // keep reading
     rslidar_msgs::rslidarPacket difop_packet_msg;
-    sensor_msgs::TimeReference sync_header;  // not really use in difop
-    int rc = difop_input_->getPacket(&difop_packet_msg, config_.time_offset, sync_header);
+    int rc = difop_input_->getPacket(&difop_packet_msg, config_.time_offset);
     if (rc == 0)
     {
       // std::cout << "Publishing a difop data." << std::endl;
@@ -278,4 +291,4 @@ void rslidarDriver::skipNumCallback(const std_msgs::Int32::ConstPtr& skip_num)
   // std::cout << "Enter skipNumCallback: " << skip_num->data << std::endl;
   skip_num_ = skip_num->data;
 }
-}
+}  // namespace rslidar_driver

@@ -67,15 +67,12 @@ public:
   {
   }
 
-  virtual int getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_offset,
-                        sensor_msgs::TimeReference& sync_header) = 0;
+  virtual int getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_offset) = 0;
 
 protected:
   ros::NodeHandle private_nh_;
   uint16_t port_;
   std::string devip_str_;
-  bool time_synchronization_;
-  struct tm stm_;
 };
 
 /** @brief Live rslidar input from socket. */
@@ -86,8 +83,7 @@ public:
 
   virtual ~InputSocket();
 
-  virtual int getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_offset,
-                        sensor_msgs::TimeReference& sync_header);
+  virtual int getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_offset);
 
 private:
 private:
@@ -108,8 +104,7 @@ public:
 
   virtual ~InputPCAP();
 
-  virtual int getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_offset,
-                        sensor_msgs::TimeReference& sync_header);
+  virtual int getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_offset);
 
 private:
   ros::Rate packet_rate_;

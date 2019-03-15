@@ -71,6 +71,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
 
   dis_resolution_mode_ = 0;
   intensity_mode_ = 1;
+  info_print_flag_ = false;
 //  private_nh.param("resolution_type", dis_resolution_mode_, 0);
 //  private_nh.param("intensity_mode", intensity_mode_, 1);
 
@@ -270,10 +271,10 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
   bool is_support_dual_return = false;
 
   //return mode check
-  if ((8 == data[45] && 0x02 == data[46] && data[47] >= 9) || (data[45] > 8) || (8 == data[45] && data[46] > 0x02))
+  if ((data[45] == 0x08 && data[46] == 0x02 && data[47] >= 0x09) || (data[45] > 0x08) || (data[45] == 0x08 && data[46] > 0x02))
   {
     is_support_dual_return = true;
-    if (1 == data[300] || 2 == data[300])
+    if (data[300] == 0x01 || data[300] == 0x02)
     {
       return_mode_ = data[300];
     }
@@ -391,26 +392,6 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
         intensity_mode_ = 3;  // mode for the top firmware higher than T6R23V9
         // std::cout << "intensity mode is 2" << std::endl;
       }
-      
-      //print info
-      float prin_dis;
-      if (dis_resolution_mode_ == 0)
-        prin_dis = 0.5;
-      else
-        prin_dis = 1;
-      ROS_INFO_STREAM("distance resolution is: " << prin_dis << "cm, intensity mode is: Mode" << intensity_mode_);
-      if (is_support_dual_return == false)
-        ROS_INFO_STREAM("lidar only support single return wave!");
-      else
-      {
-        if (return_mode_ == 0)
-          ROS_INFO_STREAM("lidar support dual return wave, the current mode is: dual return wave mode!");
-        else if (return_mode_ == 1)
-          ROS_INFO_STREAM("lidar support dual return wave, the current mode is: strongest return wave mode!");
-        else if (return_mode_ == 2)
-          ROS_INFO_STREAM("lidar support dual return wave, the current mode is: last return wave mode!");
-      }
-      
     }
   }
 
@@ -454,6 +435,30 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
         //std::cout << "this->is_init_angle_ = "
         //          << "true!" << std::endl;
       }
+    }
+  }
+
+  if (!info_print_flag_)
+  {
+    info_print_flag_ = true;
+
+    //print info
+    float prin_dis;
+    if (dis_resolution_mode_ == 0)
+      prin_dis = 0.5;
+    else
+      prin_dis = 1;
+    ROS_INFO_STREAM("distance resolution is: " << prin_dis << "cm, intensity mode is: Mode" << intensity_mode_);
+    if (is_support_dual_return == false)
+      ROS_INFO_STREAM("lidar only support single return wave!");
+    else
+    {
+      if (return_mode_ == 0)
+        ROS_INFO_STREAM("lidar support dual return wave, the current mode is: dual return wave mode!");
+      else if (return_mode_ == 1)
+        ROS_INFO_STREAM("lidar support dual return wave, the current mode is: strongest return wave mode!");
+      else if (return_mode_ == 2)
+        ROS_INFO_STREAM("lidar support dual return wave, the current mode is: last return wave mode!");
     }
   }
   // std::cout << "DIFOP data! +++++++++++++" << std::endl;
@@ -790,7 +795,7 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
       {
         if (0 == return_mode_)
         {
-          azimuth_corrected_f = azimuth + (azimuth_diff * (dsr * RS16_DSR_TOFFSET)) / RS16_BLOCK_TDURATION;
+          azimuth_corrected_f = azimuth + (azimuth_diff * (dsr * RS16_DSR_TOFFSET)) / RS16_FIRING_TOFFSET;
         }
         else
         {
@@ -891,7 +896,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
     {//dual return mode
       if (block < (BLOCKS_PER_PACKET - 2))  // 12
       {
-        azi1 = 256 * raw->blocks[(block/2)*2+2].rotation_1 + raw->blocks[(block/2)*2+2].rotation_2;
+        azi1 = 256 * raw->blocks[block+2].rotation_1 + raw->blocks[block+2].rotation_2;
         azi2 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
       }
       else

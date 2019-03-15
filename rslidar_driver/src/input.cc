@@ -41,11 +41,34 @@ static const size_t packet_size = sizeof(rslidar_msgs::rslidarPacket().data);
  */
 Input::Input(ros::NodeHandle private_nh, uint16_t port) : private_nh_(private_nh), port_(port)
 {
+  npkt_update_flag_ = false;
+  cur_rpm_ = 600;
+  return_mode_ = 1;
+
   private_nh.param("device_ip", devip_str_, std::string(""));
   if (!devip_str_.empty())
     ROS_INFO_STREAM("Only accepting packets from IP address: " << devip_str_);
 }
 
+int Input::getRpm(void)
+{
+  return cur_rpm_;
+}
+
+int Input::getReturnMode(void)
+{
+  return return_mode_;
+}
+
+bool Input::getUpdateFlag(void)
+{
+  return npkt_update_flag_;
+}
+
+void Input::clearUpdateFlag(void)
+{
+  npkt_update_flag_ = false;
+}
 ////////////////////////////////////////////////////////////////////////
 // InputSocket class implementation
 ////////////////////////////////////////////////////////////////////////
@@ -173,6 +196,28 @@ int InputSocket::getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_o
     abort();
   }
 
+  if (pkt->data[0] == 0xA5 && pkt->data[1] == 0xFF && pkt->data[2] == 0x00 && pkt->data[3] == 0x5A)
+  {//difop
+    int rpm = (pkt->data[8]<<8)|pkt->data[9];
+    int mode = 1;
+
+    if ((pkt->data[45] == 0x08 && pkt->data[46] == 0x02 && pkt->data[47] >= 0x09) || (pkt->data[45] > 0x08)
+        || (pkt->data[45] == 0x08 && pkt->data[46] > 0x02))
+    {
+      if (pkt->data[300] != 0x01 && pkt->data[300] != 0x02)
+      {
+        mode = 0;
+      }
+    }
+
+    if (cur_rpm_ != rpm || return_mode_ != mode)
+    {
+      cur_rpm_ = rpm;
+      return_mode_ = mode;
+
+      npkt_update_flag_ = true;
+    }
+  }
   // Average the times at which we begin and end reading.  Use that to
   // estimate when the scan occurred. Add the time offset.
   double time2 = ros::Time::now().toSec();
@@ -257,6 +302,29 @@ int InputPCAP::getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_off
 
 
       memcpy(&pkt->data[0], pkt_data + 42, packet_size);
+
+      if (pkt->data[0] == 0xA5 && pkt->data[1] == 0xFF && pkt->data[2] == 0x00 && pkt->data[3] == 0x5A)
+      {//difop
+        int rpm = (pkt->data[8]<<8)|pkt->data[9];
+        int mode = 1;
+
+        if ((pkt->data[45] == 0x08 && pkt->data[46] == 0x02 && pkt->data[47] >= 0x09) || (pkt->data[45] > 0x08)
+            || (pkt->data[45] == 0x08 && pkt->data[46] > 0x02))
+        {
+          if (pkt->data[300] != 0x01 && pkt->data[300] != 0x02)
+          {
+            mode = 0;
+          }
+        }
+
+        if (cur_rpm_ != rpm || return_mode_ != mode)
+        {
+          cur_rpm_ = rpm;
+          return_mode_ = mode;
+
+          npkt_update_flag_ = true;
+        }
+      }
 
       pkt->stamp = ros::Time::now();  // time_offset not considered here, as no
                                       // synchronization required

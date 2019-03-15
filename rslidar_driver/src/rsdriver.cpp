@@ -17,6 +17,9 @@
 
 namespace rslidar_driver
 {
+  static const unsigned int POINTS_ONE_CHANNEL_PER_SECOND = 20000;
+  static const unsigned int BLOCKS_ONE_CHANNEL_PER_PKT = 12;
+
 rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
 {
   skip_num_ = 0;
@@ -192,6 +195,23 @@ bool rslidarDriver::poll(void)
   }
   else  // standard behaviour
   {
+    if (difop_input_->getUpdateFlag())
+    {
+      int packets_rate = ceil(POINTS_ONE_CHANNEL_PER_SECOND/BLOCKS_ONE_CHANNEL_PER_PKT);
+      int mode = difop_input_->getReturnMode();
+      if (config_.model == "RS16" && (mode == 1))
+      {
+        packets_rate = ceil(packets_rate/2);
+      }
+      else if (config_.model == "RS32" && (mode == 0))
+      {
+        packets_rate = packets_rate*2;
+      }
+      config_.rpm = difop_input_->getRpm();
+      config_.npackets = ceil(packets_rate*60/config_.rpm);
+
+      difop_input_->clearUpdateFlag();
+    }
     scan->packets.resize(config_.npackets);
     // use in standard behaviour only
     while (skip_num_)

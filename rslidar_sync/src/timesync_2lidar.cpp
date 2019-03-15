@@ -65,49 +65,49 @@ int main(int argc, char** argv)
   std::string scan2_topic("/right/sync_header");
   if (!nh_private.getParam(std::string("scan1_topic"), scan1_topic))
   {
-    ROS_ERROR("Can't get scan1_topic, use the default scan1_topic: %s", scan1_topic.c_str());
+    ROS_ERROR_STREAM("Can't get scan1_topic, use the default scan1_topic:  "<<scan1_topic);
   }
   else
   {
-    ROS_INFO("scan1_topic: %s", scan1_topic.c_str());
+    ROS_INFO_STREAM("scan1_topic:  "<<scan1_topic);
   }
   if (!nh_private.getParam(std::string("scan2_topic"), scan2_topic))
   {
-    ROS_ERROR("Can't get scan2_topic, use the default scan2_topic: %s", scan2_topic.c_str());
+    ROS_ERROR_STREAM("Can't get scan2_topic, use the default scan2_topic:  "<<scan2_topic);
   }
   else
   {
-    ROS_INFO("scan2_topic: %s", scan2_topic.c_str());
+    ROS_INFO_STREAM("scan2_topic:  "<<scan2_topic);
   }
 
   std::string skippackets1_topic("/left/skippackets_num");
   std::string skippackets2_topic("/right/skippackets_num");
   if (!nh_private.getParam(std::string("skippackets1_topic"), skippackets1_topic))
   {
-    ROS_ERROR("Can't get skippackets1_topic, use the default skippackets1_topic: %s", skippackets1_topic.c_str());
+    ROS_ERROR_STREAM("Can't get skippackets1_topic, use the default skippackets1_topic:  "<<skippackets1_topic);
   }
   else
   {
-    ROS_INFO("skippackets1_topic: %s", skippackets1_topic.c_str());
+    ROS_INFO_STREAM("skippackets1_topic:  "<<skippackets1_topic);
   }
 
   if (!nh_private.getParam(std::string("skippackets2_topic"), skippackets2_topic))
   {
-    ROS_ERROR("Can't get skippackets2_topic, use the default skippackets2_topic: %s", skippackets2_topic.c_str());
+    ROS_ERROR_STREAM("Can't get skippackets2_topic, use the default skippackets2_topic:  "<<skippackets2_topic);
   }
   else
   {
-    ROS_INFO("skippackets2_topic: %s", skippackets2_topic.c_str());
+    ROS_INFO_STREAM("skippackets2_topic:  "<<skippackets2_topic);
   }
 
   bool is_all_rs32_lidars("false");
   if (!nh_private.getParam(std::string("is_all_rs32_lidars"), is_all_rs32_lidars))
   {
-    ROS_ERROR("Can't get all_rs32_lidars, use the default all_rs32_lidars: %B", is_all_rs32_lidars);
+    ROS_ERROR_STREAM("Can't get all_rs32_lidars, use the default all_rs32_lidars: "<<is_all_rs32_lidars);
   }
   else
   {
-    ROS_INFO("skippackets1_topic: %B", is_all_rs32_lidars);
+    ROS_INFO_STREAM("skippackets1_topic: "<<is_all_rs32_lidars);
   }
   if (is_all_rs32_lidars)
   {
@@ -132,12 +132,12 @@ int main(int argc, char** argv)
   std::string sync_packet_diff_topic("/sync_packet_diff");
   if (!nh_private.getParam(std::string("sync_packet_diff_topic"), sync_packet_diff_topic))
   {
-    ROS_ERROR("Can't get sync_packet_diff_topic, use the default sync_packet_diff_topic: %s",
-              sync_packet_diff_topic.c_str());
+    ROS_ERROR_STREAM("Can't get sync_packet_diff_topic, use the default sync_packet_diff_topic: "
+              <<sync_packet_diff_topic);
   }
   else
   {
-    ROS_INFO("sync_packet_diff: %s", sync_packet_diff_topic.c_str());
+    ROS_INFO_STREAM("sync_packet_diff:  "<<sync_packet_diff_topic);
   }
 
   g_maxnum_diff_packetnum_pub = nh.advertise<std_msgs::String>(sync_packet_diff_topic, 1, true);

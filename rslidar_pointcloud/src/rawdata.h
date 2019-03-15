@@ -176,6 +176,7 @@ private:
   float min_distance_;
   int dis_resolution_mode_;
   int return_mode_;
+  bool info_print_flag_;
 };
 
 float VERT_ANGLE[32];

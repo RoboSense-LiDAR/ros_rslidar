@@ -10,7 +10,6 @@
     <param name="device_ip" value="$(arg device_ip)" />
     <param name="msop_port" value="$(arg msop_port)" />
     <param name="difop_port" value="$(arg difop_port)"/>
-    <param name="cut_angle" value="0.0"/>
     <!--param name="pcap" value="path_to_pcap"/-->
   </node>
 

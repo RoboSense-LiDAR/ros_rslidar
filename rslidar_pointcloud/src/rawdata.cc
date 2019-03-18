@@ -32,6 +32,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
 {
   std::string anglePath, curvesPath, channelPath, curvesRatePath;
   std::string model;
+  std::string resolution_param;
 
   private_nh.param("curves_path", curvesPath, std::string(""));
   private_nh.param("angle_path", anglePath, std::string(""));
@@ -69,13 +70,22 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
 
   ROS_INFO_STREAM("distance threshlod, max: " << max_distance_ << ", min: " << min_distance_);
 
-  dis_resolution_mode_ = 0;
+
   intensity_mode_ = 1;
   info_print_flag_ = false;
-//  private_nh.param("resolution_type", dis_resolution_mode_, 0);
-//  private_nh.param("intensity_mode", intensity_mode_, 1);
+  private_nh.param("resolution_type", resolution_param, std::string("0.5cm"));
+  private_nh.param("intensity_mode", intensity_mode_, 1);
 
-  //ROS_INFO_STREAM("initialize distance resolution type: " << dis_resolution_mode_ << ", intensity mode: " << intensity_mode_);
+  if (resolution_param == "0.5cm")
+  {
+    dis_resolution_mode_ = 0;
+  }
+  else
+  {
+    dis_resolution_mode_ = 1;
+  }
+
+  ROS_INFO_STREAM("initialize resolution type: " << (dis_resolution_mode_?"1cm":"0.5cm") << ", intensity mode: " << intensity_mode_);
 
   private_nh.param("model", model, std::string("RS16"));
   if (model == "RS16")

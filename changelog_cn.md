@@ -13,4 +13,5 @@
 * 增加支持反射率模式3
 * 新增支持解析雷达**双回波模式**数据
 * 将多雷达同步功能的获取时间戳代码从input.cc移到rsdriver.cpp
+* 增加**resolution**和**intensity**通过launch文件设置
 

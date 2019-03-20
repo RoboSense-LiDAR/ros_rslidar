@@ -14,5 +14,6 @@ point cloud and min_distance is for minimum distance.
 * 4.Add new feature: Support to new mode of intensity(Mode3)
 * 5.Add 'Dual Return' packet parser support
 * 6.Move timestamp getting code for multiple lidar 's synchronization from input.cc to rsdriver.cpp
+* 7.Add 'Resolution' and 'Intensity' config by luanch file
 
 

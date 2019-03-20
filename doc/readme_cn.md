@@ -72,3 +72,6 @@ roslaunch rslidar_pointcloud cloud_nodelet.launch
 * curves_rate_path：指定静态文件CurveRate.csv完整路径
 * max_distance：指定点云距离上限
 * min_distance：指定点云距离下限
+* resolution_type：指定雷达精度类型，"0.5cm" 和 "1cm" 二选一
+* intensity_mode：指定雷达反射率模式，分别为1,2,3 三选一
+* cut_angle：采用角度分帧方式

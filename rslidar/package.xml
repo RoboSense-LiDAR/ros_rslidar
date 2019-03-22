@@ -1,7 +1,7 @@
 <package>
 
     <name>rslidar</name>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <description>
         Basic ROS support for the Robosense 3D LIDARs.
     </description>

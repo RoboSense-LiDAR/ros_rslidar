@@ -2,8 +2,8 @@
 Changelog for package rslidar_pointcloud
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.1 (2019-03-22)
+------------------
 * Fixes to packages and missing install commands
 * install commands
 * renamed conflicts on install space

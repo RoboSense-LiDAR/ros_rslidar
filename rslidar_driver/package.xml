@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
     <name>rslidar_driver</name>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <description>segmentation</description>
 
     <maintainer email="tony.zhang@robosense.cn">Tony</maintainer>

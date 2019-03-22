@@ -2,8 +2,8 @@
 Changelog for package rslidar_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.1 (2019-03-22)
+------------------
 * Fixes to packages and missing install commands
 * Added install commands
 * Fixed conflict with velodyne when installing on shared space

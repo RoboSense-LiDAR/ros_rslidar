@@ -2,8 +2,8 @@
 Changelog for package rslidar_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.1 (2019-03-22)
+------------------
 * Fixed CMake, packages and Launch files
 * perf:improve the ordered pointcloud code
 * 1. Covert double to float 2. Remove the re-defined variable.

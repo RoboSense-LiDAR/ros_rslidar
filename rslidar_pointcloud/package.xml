@@ -5,7 +5,8 @@
     <description>
         Point cloud conversions for rslidar 3D LIDARs.
     </description>
-    <maintainer email="tony.zhang@robosense.cn">Tony</maintainer>
+    <maintainer email="abrahammonrroy@yahoo.com">Abraham Monrroy</maintainer>
+    <author email="tony.zhang@robosense.cn">Tony Zhang</author>
     <author>Tony Zhang</author>
     <author>George Wang</author>
     <author>Piyush Khandelwal</author>

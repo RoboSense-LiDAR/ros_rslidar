@@ -5,7 +5,8 @@
     <description>
         ROS message definitions for Rslidar 3D LIDARs.
     </description>
-    <maintainer email="tony.zhang@robosense.cn">Tony Zhang</maintainer>
+    <maintainer email="abrahammonrroy@yahoo.com">Abraham Monrroy</maintainer>
+    <author email="tony.zhang@robosense.cn">Tony Zhang</author>
     <author>Tony Zhang</author>
     <license>BSD</license>
 

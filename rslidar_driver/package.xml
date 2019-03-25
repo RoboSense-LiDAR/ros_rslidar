@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
     <name>rslidar_driver</name>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <description>segmentation</description>
 
     <maintainer email="abrahammonrroy@yahoo.com">Abraham Monrroy</maintainer>

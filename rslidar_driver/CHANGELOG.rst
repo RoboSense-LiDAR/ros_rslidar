@@ -2,6 +2,12 @@
 Changelog for package rslidar_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Updated maintainer for this fork
+* Added license to source files
+* Contributors: amc-nu
+
 1.0.1 (2019-03-22)
 ------------------
 * Fixes to packages and missing install commands

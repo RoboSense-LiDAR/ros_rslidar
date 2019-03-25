@@ -2,6 +2,9 @@
 Changelog for package rslidar_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.0.1 (2019-03-22)
 ------------------
 * Fixed CMake, packages and Launch files

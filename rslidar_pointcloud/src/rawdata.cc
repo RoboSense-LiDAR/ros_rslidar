@@ -280,6 +280,12 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
   const uint8_t* data = &difop_msg->data[0];
   bool is_support_dual_return = false;
 
+  // check header
+  if (data[0] != 0xa5 || data[1] != 0xff || data[2] != 0x00 || data[3] != 0x5a)
+  {
+    return;
+  }
+
   //return mode check
   if ((data[45] == 0x08 && data[46] == 0x02 && data[47] >= 0x09) || (data[45] > 0x08) || (data[45] == 0x08 && data[46] > 0x02))
   {
@@ -319,9 +325,6 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
 
   if (!this->is_init_curve_)
   {
-    // check header
-    if (data[0] == 0xa5 && data[1] == 0xff && data[2] == 0x00 && data[3] == 0x5a)
-    {
       bool curve_flag = true;
       // check difop reigon has beed flashed the right data
       if ((data[50] == 0x00 || data[50] == 0xff) && (data[51] == 0x00 || data[51] == 0xff) &&
@@ -402,13 +405,12 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
         intensity_mode_ = 3;  // mode for the top firmware higher than T6R23V9
         // std::cout << "intensity mode is 2" << std::endl;
       }
-    }
   }
 
   if (!this->is_init_angle_)
   {
     // check header
-    if (data[0] == 0xa5 && data[1] == 0xff && data[2] == 0x00 && data[3] == 0x5a)
+//    if (data[0] == 0xa5 && data[1] == 0xff && data[2] == 0x00 && data[3] == 0x5a)
     {
       bool angle_flag = true;
       // check difop reigon has beed flashed the right data
@@ -738,6 +740,12 @@ int RawData::estimateTemperature(float Temper)
  */
 void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud)
 {
+  //check pkt header
+  if (pkt.data[0] != 0x55 || pkt.data[1] != 0xAA || pkt.data[2] != 0x05 || pkt.data[3] != 0x0A)
+  {
+    return;
+  }
+
   if (numOfLasers == 32)
   {
     unpack_RS32(pkt, pointcloud);
@@ -778,12 +786,6 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
       azi1 = 256 * raw->blocks[block + 1].rotation_1 + raw->blocks[block + 1].rotation_2;
       azi2 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
       azimuth_diff = (float)((36000 + azi1 - azi2) % 36000);
-
-      // Ingnore the block if the azimuth change abnormal
-      if (azimuth_diff <= 0.0 || azimuth_diff > 75.0)
-      {
-        continue;
-      }
     }
     else
     {
@@ -791,12 +793,6 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
       azi1 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
       azi2 = 256 * raw->blocks[block - 1].rotation_1 + raw->blocks[block - 1].rotation_2;
       azimuth_diff = (float)((36000 + azi1 - azi2) % 36000);
-
-      // Ingnore the block if the azimuth change abnormal
-      if (azimuth_diff <= 0.0 || azimuth_diff > 75.0)
-      {
-        continue;
-      }
     }
 
     for (int firing = 0, k = 0; firing < RS16_FIRINGS_PER_BLOCK; firing++)  // 2
@@ -880,6 +876,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
 
   const raw_packet_t* raw = (const raw_packet_t*)&pkt.data[42];
 
+
   for (int block = 0; block < BLOCKS_PER_PACKET; block++, this->block_num++)  // 1 packet:12 data blocks
   {
     if (UPPER_BANK != raw->blocks[block].header)
@@ -929,11 +926,6 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
       }
     }
     azimuth_diff = (float)((36000 + azi1 - azi2) % 36000);
-    // Ingnore the block if the azimuth change abnormal
-    if (azimuth_diff <= 0.0 || azimuth_diff > 25.0)
-    {
-      continue;
-    }
 
     if (dis_resolution_mode_ == 0)  // distance resolution is 0.5cm and delete the AB packet mechanism
     {

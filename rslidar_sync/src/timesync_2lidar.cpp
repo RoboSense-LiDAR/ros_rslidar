@@ -100,14 +100,14 @@ int main(int argc, char** argv)
     ROS_INFO_STREAM("skippackets2_topic:  "<<skippackets2_topic);
   }
 
-  bool is_all_rs32_lidars("false");
+  bool is_all_rs32_lidars = false;
   if (!nh_private.getParam(std::string("is_all_rs32_lidars"), is_all_rs32_lidars))
   {
-    ROS_ERROR_STREAM("Can't get all_rs32_lidars, use the default all_rs32_lidars: "<<is_all_rs32_lidars);
+    ROS_ERROR_STREAM("Can't get is_all_rs32_lidars, use the default is_all_rs32_lidars: " << is_all_rs32_lidars);
   }
   else
   {
-    ROS_INFO_STREAM("skippackets1_topic: "<<is_all_rs32_lidars);
+    ROS_INFO_STREAM("The is_all_rs32_lidars: " << is_all_rs32_lidars);
   }
   if (is_all_rs32_lidars)
   {

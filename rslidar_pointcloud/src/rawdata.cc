@@ -520,17 +520,15 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
   {
     int algDist;
     int sDist;
-    int uplimitDist;
+//    int uplimitDist;
     float realPwr;
     float refPwr;
     float tempInten;
     float distance_f;
     float endOfSection1, endOfSection2;
-
     int temp = estimateTemperature(temper);
 
     realPwr = std::max((float)(intensity / (1 + (temp - TEMPERATURE_MIN) / 24.0f)), 1.0f);
-    // realPwr = intensity;
 
     if (intensity_mode_ == 1)
     {
@@ -558,19 +556,12 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
     }
 
     int indexTemper = estimateTemperature(temper) - TEMPERATURE_MIN;
-    uplimitDist = g_ChannelNum[calIdx][indexTemper] + DISTANCE_MAX_UNITS;
+
     // limit sDist
     sDist = (distance > g_ChannelNum[calIdx][indexTemper]) ? distance : g_ChannelNum[calIdx][indexTemper];
-    sDist = (sDist < uplimitDist) ? sDist : uplimitDist;
+
     // minus the static offset (this data is For the intensity cal useage only)
     algDist = sDist - g_ChannelNum[calIdx][indexTemper];
-
-    // calculate intensity ref curves
-    float refPwr_temp = 0.0f;
-    int order = 3;
-    endOfSection1 = 5.0f;
-    endOfSection2 = 40.0;
-
     if (dis_resolution_mode_ == 0)
     {
       distance_f = (float)algDist * DISTANCE_RESOLUTION_NEW;
@@ -579,6 +570,13 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
     {
       distance_f = (float)algDist * DISTANCE_RESOLUTION;
     }
+    distance_f = (distance_f > this->max_distance_) ? this->max_distance_ : distance_f;
+
+    // calculate intensity ref curves
+    float refPwr_temp = 0.0f;
+    int order = 3;
+    endOfSection1 = 5.0f;
+    endOfSection2 = 40.0;
 
     if (intensity_mode_ == 1)
     {

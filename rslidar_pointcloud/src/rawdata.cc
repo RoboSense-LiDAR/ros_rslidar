@@ -953,7 +953,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         float distance2 = pixelToDistance(distance, dsr);
         distance2 = distance2 * DISTANCE_RESOLUTION_NEW;
 
-        float arg_horiz_orginal = (float)azimuth_corrected_f / 180000.0f * M_PI;
+        float arg_horiz_orginal = (float)azimuth_corrected_f / 18000.0f * M_PI;
         float arg_horiz = (float)azimuth_corrected / 18000.0f * M_PI;
         float arg_vert = VERT_ANGLE[dsr];
         pcl::PointXYZI point;
@@ -1033,7 +1033,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         float distance2 = pixelToDistance(distance, dsr);
         distance2 = distance2 * DISTANCE_RESOLUTION;
 
-        float arg_horiz_orginal = (float)azimuth_corrected_f / 180000.0f * M_PI;
+        float arg_horiz_orginal = (float)azimuth_corrected_f / 18000.0f * M_PI;
         float arg_horiz = (float)azimuth_corrected / 18000.0f * M_PI;
         float arg_vert = VERT_ANGLE[dsr];
         pcl::PointXYZI point;

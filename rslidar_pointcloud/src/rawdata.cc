@@ -3,9 +3,44 @@
  *  Copyright (C) 2009, 2010, 2012 Austin Robot Technology, Jack O'Quin
  *	Copyright (C) 2017 Robosense, Tony Zhang
  *
- *  License: Modified BSD Software License Agreement
  *
- *  $Id$
+
+ Copyright (C) 2010-2013 Austin Robot Technology, and others
+ All rights reserved.
+
+
+Modified BSD License:
+--------------------
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+
+    * Neither the names of the University of Texas at Austin, nor
+      Austin Robot Technology, nor the names of other contributors may
+      be used to endorse or promote products derived from this
+      software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
  */
 
 /**
@@ -64,7 +99,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   int loop_num;
   if (!f_inten)
   {
-    ROS_ERROR_STREAM(curvesPath << " does not exist");
+    ROS_ERROR_STREAM("curves_path: '" << curvesPath << "' does not exist");
   }
   else
   {
@@ -124,7 +159,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   FILE* f_angle = fopen(anglePath.c_str(), "r");
   if (!f_angle)
   {
-    ROS_ERROR_STREAM(anglePath << " does not exist");
+    ROS_ERROR_STREAM("angle_path: '" << anglePath << "' does not exist");
   }
   else
   {
@@ -150,7 +185,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   FILE* f_channel = fopen(channelPath.c_str(), "r");
   if (!f_channel)
   {
-    ROS_ERROR_STREAM(channelPath << " does not exist");
+    ROS_ERROR_STREAM("channel_path: '" << channelPath << "' does not exist");
   }
   else
   {
@@ -202,7 +237,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     FILE* f_curvesRate = fopen(curvesRatePath.c_str(), "r");
     if (!f_curvesRate)
     {
-      ROS_ERROR_STREAM(curvesRatePath << " does not exist");
+      ROS_ERROR_STREAM("curves_path: '" << curvesRatePath << "' does not exist");
       for (int i = 0; i < 32; ++i)
       {
         CurvesRate[i] = 1.0;
@@ -521,7 +556,7 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
   }
   else
   {
-    std::cout << "The intensity mode is not right" << std::endl;
+    std::cout << "Invalid intensity mode selected" << std::endl;
   }
 
   refPwr = std::max(std::min(refPwr_temp, 500.0f), 4.0f);

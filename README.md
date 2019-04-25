@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/CPFL/robosense.svg?branch=develop-curves-function)](https://travis-ci.org/CPFL/robosense)
+
 #### 1. Prerequisites
 (1) Install a ubuntu PC. We suggested Ubuntu 14.04 or Ubuntu 16.04. Please do not use virtual machine.
 (2) Install ros full-desktop version. We tried Indigo and Kinect.
@@ -50,7 +52,9 @@ Open a new terminal and run:
 ```
 cd ~/catkin_ws
 source devel/setup.bash
-roslaunch rslidar_pointcloud cloud_nodelet.launch
+roslaunch rslidar_pointcloud rs_cloud_nodelet_16.launch
+# or
+roslaunch rslidar_pointcloud rs_cloud_nodelet_32.launch
 ```
 Then we can run view the pointcloud via "rviz"
 

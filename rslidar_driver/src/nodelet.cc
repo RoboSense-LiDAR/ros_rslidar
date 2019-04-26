@@ -73,7 +73,7 @@ void DriverNodelet::devicePoll()
 }
 }
 
-// Register this plugin with pluginlib.  Names must match nodelet_velodyne.xml.
+// Register this plugin with pluginlib.  Names must match nodelet_rslidar.xml.
 //
 // parameters are: class type, base class type
 PLUGINLIB_EXPORT_CLASS(rslidar_driver::DriverNodelet, nodelet::Nodelet)

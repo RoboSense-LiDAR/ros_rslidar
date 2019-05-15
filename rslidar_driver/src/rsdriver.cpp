@@ -199,7 +199,7 @@ bool rslidarDriver::poll(void)
     {
       int packets_rate = ceil(POINTS_ONE_CHANNEL_PER_SECOND/BLOCKS_ONE_CHANNEL_PER_PKT);
       int mode = difop_input_->getReturnMode();
-      if (config_.model == "RS16" && (mode == 1))
+      if (config_.model == "RS16" && (mode == 1 || mode == 2))
       {
         packets_rate = ceil(packets_rate/2);
       }

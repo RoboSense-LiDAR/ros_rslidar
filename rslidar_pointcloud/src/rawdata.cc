@@ -413,39 +413,78 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
 //    if (data[0] == 0xa5 && data[1] == 0xff && data[2] == 0x00 && data[3] == 0x5a)
     {
       bool angle_flag = true;
-      // check difop reigon has beed flashed the right data
-      if ((data[1165] == 0x00 || data[1165] == 0xff) && (data[1166] == 0x00 || data[1166] == 0xff) &&
-          (data[1167] == 0x00 || data[1167] == 0xff) && (data[1168] == 0x00 || data[1168] == 0xff))
+      if (numOfLasers == 16)
       {
-        angle_flag = false;
+        // check difop reigon has beed flashed the right data
+        if ((data[1165] == 0x00 || data[1165] == 0xff) && (data[1166] == 0x00 || data[1166] == 0xff) &&
+            (data[1167] == 0x00 || data[1167] == 0xff) && (data[1168] == 0x00 || data[1168] == 0xff))
+        {
+          angle_flag = false;
+        }
       }
+      else if (numOfLasers == 32)
+      {
+        if ((data[468] == 0x00 || data[468] == 0xff) && (data[469] == 0x00 || data[469] == 0xff) &&
+            (data[470] == 0x00 || data[470] == 0xff))
+        {
+          angle_flag = false;
+        }
+      }
+     
       // angle
       if (angle_flag)
       {
         // TODO check the HORI_ANGLE
         int bit1, bit2, bit3, symbolbit;
-        for (int loopn = 0; loopn < numOfLasers; ++loopn)
+        if (numOfLasers == 16)
         {
-          if (loopn < 8 && numOfLasers == 16)
+          for (int loopn = 0; loopn < 16; ++loopn)
           {
-            symbolbit = -1;
+            if (loopn < 8)
+            {
+              symbolbit = -1;
+            }
+            else
+            {
+              symbolbit = 1;
+            }
+            bit1 = static_cast<int>(*(data + 1165 + loopn * 3));
+            bit2 = static_cast<int>(*(data + 1165 + loopn * 3 + 1));
+            bit3 = static_cast<int>(*(data + 1165 + loopn * 3 + 2));
+            VERT_ANGLE[loopn] = (bit1 * 256 * 256 + bit2 * 256 + bit3) * symbolbit * 0.0001f / 180 * M_PI;
+            // std::cout << VERT_ANGLE[loopn] << std::endl;
+            // TODO
+            HORI_ANGLE[loopn] = 0;
           }
-          else
-          {
-            symbolbit = 1;
-          }
-          bit1 = static_cast<int>(*(data + 1165 + loopn * 3));
-          bit2 = static_cast<int>(*(data + 1165 + loopn * 3 + 1));
-          bit3 = static_cast<int>(*(data + 1165 + loopn * 3 + 2));
-          VERT_ANGLE[loopn] = (bit1 * 256 * 256 + bit2 * 256 + bit3) * symbolbit * 0.0001f / 180 * M_PI;
-          // std::cout << VERT_ANGLE[loopn] << std::endl;
-          // TODO
-          HORI_ANGLE[loopn] = 0;
         }
+        else if (numOfLasers == 32)
+        {
+          for (int loopn = 0; loopn < 32; ++loopn)
+          {
+            //vertical angle
+            bit1 = static_cast<int>(*(data + 468 + loopn * 3));
+            if (bit1 == 0)
+              symbolbit = 1;
+            else if (bit1 == 1)
+              symbolbit = -1;
+            bit2 = static_cast<int>(*(data + 468 + loopn * 3 + 1));
+            bit3 = static_cast<int>(*(data + 468 + loopn * 3 + 2));
+            VERT_ANGLE[loopn] = (bit2 * 256 + bit3) * symbolbit * 0.001f / 180 * M_PI; // rad
+            
+            //horizontal offset angle
+            bit1 = static_cast<int>(*(data + 564 + loopn * 3));
+            if (bit1 == 0)
+              symbolbit = 1;
+            else if (bit1 == 1)
+              symbolbit = -1;
+            bit2 = static_cast<int>(*(data + 564 + loopn * 3 + 1));
+            bit3 = static_cast<int>(*(data + 564 + loopn * 3 + 2));
+            HORI_ANGLE[loopn] = (bit2 * 256 + bit3) * symbolbit * 0.001f * 100;// 1/100 degree
+          }
+        }
+        
         this->is_init_angle_ = true;
         ROS_INFO_STREAM("angle data is wrote in difop packet!");
-        //std::cout << "this->is_init_angle_ = "
-        //          << "true!" << std::endl;
       }
     }
   }

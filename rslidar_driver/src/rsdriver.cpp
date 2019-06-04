@@ -48,7 +48,7 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
   }
   else
   {
-    ROS_ERROR_STREAM("unknown LIDAR model: " << config_.model);
+    ROS_ERROR_STREAM("[driver] unknown LIDAR model: " << config_.model);
     packet_rate = 2600.0;
   }
   std::string deviceName(std::string("Robosense ") + model_full_name);
@@ -61,7 +61,7 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
 
   int npackets = (int)ceil(packet_rate / frequency);
   private_nh.param("npackets", config_.npackets, npackets);
-  ROS_INFO_STREAM("publishing " << config_.npackets << " packets per scan");
+  ROS_INFO_STREAM("[driver] publishing " << config_.npackets << " packets per scan");
 
   std::string dump_file;
   private_nh.param("pcap", dump_file, std::string(""));
@@ -75,17 +75,17 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
   private_nh.param("cut_angle", cut_angle, -0.01);
   if (cut_angle < 0.0)
   {
-    ROS_INFO_STREAM("Cut at specific angle feature deactivated.");
+    ROS_INFO_STREAM("[driver] Cut at specific angle feature deactivated.");
   }
   else if (cut_angle < 360)
   {
-    ROS_INFO_STREAM("Cut at specific angle feature activated. "
+    ROS_INFO_STREAM("[driver] Cut at specific angle feature activated. "
                     "Cutting rslidar points always at "
                     << cut_angle << " degree.");
   }
   else
   {
-    ROS_ERROR_STREAM("cut_angle parameter is out of range. Allowed range is "
+    ROS_ERROR_STREAM("[driver] cut_angle parameter is out of range. Allowed range is "
                      << "between 0.0 and 360 negative values to deactivate this feature.");
     cut_angle = -0.01;
   }
@@ -211,6 +211,8 @@ bool rslidarDriver::poll(void)
       config_.npackets = ceil(packets_rate*60/config_.rpm);
 
       difop_input_->clearUpdateFlag();
+
+      ROS_INFO_STREAM("[driver] update npackets. rpm: "<<config_.rpm<<", npkts: "<<config_.npackets);
     }
     scan->packets.resize(config_.npackets);
     // use in standard behaviour only
@@ -265,7 +267,7 @@ bool rslidarDriver::poll(void)
   }
 
   // publish message using time of last packet read
-  ROS_DEBUG("Publishing a full rslidar scan.");
+//  ROS_DEBUG("[driver] Publishing a full rslidar scan.");
   scan->header.stamp = scan->packets.back().stamp;
   scan->header.frame_id = config_.frame_id;
   msop_output_.publish(scan);
@@ -288,8 +290,7 @@ void rslidarDriver::difopPoll(void)
     int rc = difop_input_->getPacket(&difop_packet_msg, config_.time_offset);
     if (rc == 0)
     {
-      // std::cout << "Publishing a difop data." << std::endl;
-      ROS_DEBUG("Publishing a difop data.");
+//      ROS_DEBUG("[driver] Publishing a difop data.");
       *difop_packet_ptr = difop_packet_msg;
       difop_output_.publish(difop_packet_ptr);
     }
@@ -301,7 +302,7 @@ void rslidarDriver::difopPoll(void)
 
 void rslidarDriver::callback(rslidar_driver::rslidarNodeConfig& config, uint32_t level)
 {
-  ROS_INFO("Reconfigure Request");
+//  ROS_INFO("[driver] Reconfigure Request");
   config_.time_offset = config.time_offset;
 }
 

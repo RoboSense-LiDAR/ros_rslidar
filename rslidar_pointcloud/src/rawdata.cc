@@ -34,6 +34,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   std::string model;
   std::string resolution_param;
 
+  private_nh.param("model", model, std::string("RS16"));
   private_nh.param("curves_path", curvesPath, std::string(""));
   private_nh.param("angle_path", anglePath, std::string(""));
   private_nh.param("channel_path", channelPath, std::string(""));
@@ -41,35 +42,33 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   private_nh.param("start_angle", start_angle_, float(0));
   private_nh.param("end_angle", end_angle_, float(360));
 
+  ROS_INFO_STREAM("[cloud][rawdata] lidar model: "<<model);
   if (start_angle_ < 0 || start_angle_ > 360 || end_angle_ < 0 || end_angle_ > 360)
   {
     start_angle_ = 0;
     end_angle_ = 360;
-    ROS_INFO_STREAM("start angle and end angle select feature deactivated.");
+    ROS_INFO_STREAM("[cloud][rawdata] start and end angle select feature deactivated.");
   }
   else
   {
-    ROS_INFO_STREAM("start angle and end angle select feature activated.");
+    ROS_INFO_STREAM("[cloud][rawdata] start and end angle feature activated.");
   }
 
   angle_flag_ = true;
   if (start_angle_ > end_angle_)
   {
     angle_flag_ = false;
-    ROS_INFO_STREAM("Start angle is smaller than end angle, not the normal state!");
+//    ROS_INFO_STREAM("[cloud][rawdata] Start angle is smaller than end angle, not the normal state!");
   }
 
-  ROS_INFO_STREAM("start_angle: " << start_angle_ << " end_angle: " << end_angle_ << " angle_flag: " << angle_flag_);
-  //std::cout << "start_angle: " << start_angle_ << " end_angle: " << end_angle_ << " angle_flag: " << angle_flag_
-  //          << std::endl;
+  ROS_INFO_STREAM("[cloud][rawdata] start_angle: " << start_angle_ << " end_angle: " << end_angle_ << " angle_flag: " << angle_flag_);
   start_angle_ = start_angle_ / 180 * M_PI;
   end_angle_ = end_angle_ / 180 * M_PI;
 
   private_nh.param("max_distance", max_distance_, 200.0f);
   private_nh.param("min_distance", min_distance_, 0.2f);
 
-  ROS_INFO_STREAM("distance threshlod, max: " << max_distance_ << ", min: " << min_distance_);
-
+  ROS_INFO_STREAM("[cloud][rawdata] distance threshlod, max: " << max_distance_ << " m, min: " << min_distance_<<" m");
 
   intensity_mode_ = 1;
   info_print_flag_ = false;
@@ -85,9 +84,8 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     dis_resolution_mode_ = 1;
   }
 
-  ROS_INFO_STREAM("initialize resolution type: " << (dis_resolution_mode_?"1cm":"0.5cm") << ", intensity mode: " << intensity_mode_);
+  ROS_INFO_STREAM("[cloud][rawdata] initialize resolution type: " << (dis_resolution_mode_?"1 cm":"0.5 cm") << ", intensity mode: " << intensity_mode_);
 
-  private_nh.param("model", model, std::string("RS16"));
   if (model == "RS16")
   {
     numOfLasers = 16;
@@ -114,7 +112,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   int loop_num;
   if (!f_inten)
   {
-    ROS_ERROR_STREAM(curvesPath << " does not exist");
+    ROS_WARN_STREAM("[cloud][rawdata] "<< curvesPath << " does not exist");
   }
   else
   {
@@ -174,7 +172,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   FILE* f_angle = fopen(anglePath.c_str(), "r");
   if (!f_angle)
   {
-    ROS_ERROR_STREAM(anglePath << " does not exist");
+    ROS_WARN_STREAM("[cloud][rawdata] "<<anglePath << " does not exist");
   }
   else
   {
@@ -200,7 +198,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   FILE* f_channel = fopen(channelPath.c_str(), "r");
   if (!f_channel)
   {
-    ROS_ERROR_STREAM(channelPath << " does not exist");
+    ROS_WARN_STREAM("[cloud][rawdata] "<<channelPath << " does not exist");
   }
   else
   {
@@ -248,7 +246,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     FILE* f_curvesRate = fopen(curvesRatePath.c_str(), "r");
     if (!f_curvesRate)
     {
-      ROS_ERROR_STREAM(curvesRatePath << " does not exist");
+      ROS_WARN_STREAM("[cloud][rawdata] "<<curvesRatePath << " does not exist");
       for (int i = 0; i < 32; ++i)
       {
         CurvesRate[i] = 1.0;
@@ -378,39 +376,32 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
           aIntensityCal[6][loopn] = (bit1 * 256 + bit2) * 0.001;
         }
         this->is_init_curve_ = true;
-        ROS_INFO_STREAM("curves data is wrote in difop packet!");
-        //std::cout << "this->is_init_curve_ = "
-        //          << "true!" << std::endl;
+        ROS_INFO_STREAM("[cloud][rawdata] curves data is wrote in difop packet!");
         Curvesis_new = true;
       }
 
       if ((data[290] != 0x00) && (data[290] != 0xff))
       {
         intensityFactor = static_cast<int>(*(data + 290));  // intensity factor introduced since than 20181115
-        // std::cout << intensityFactor << std::endl;
       }
 
       if ((data[291] == 0x00) || (data[291] == 0xff) || (data[291] == 0xa1))
       {
         intensity_mode_ = 1;  // mode for the top firmware lower than T6R23V8(16) or T9R23V6(32)
-        // std::cout << "intensity mode is 1" << std::endl;
       }
       else if (data[291] == 0xb1)
       {
         intensity_mode_ = 2;  // mode for the top firmware higher than T6R23V8(16) or T9R23V6(32)
-        // std::cout << "intensity mode is 2" << std::endl;
       }
       else if (data[291] == 0xc1)
       {
         intensity_mode_ = 3;  // mode for the top firmware higher than T6R23V9
-        // std::cout << "intensity mode is 2" << std::endl;
       }
   }
 
   if (!this->is_init_angle_)
   {
     // check header
-//    if (data[0] == 0xa5 && data[1] == 0xff && data[2] == 0x00 && data[3] == 0x5a)
     {
       bool angle_flag = true;
       if (numOfLasers == 16)
@@ -484,7 +475,7 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
         }
         
         this->is_init_angle_ = true;
-        ROS_INFO_STREAM("angle data is wrote in difop packet!");
+        ROS_INFO_STREAM("[cloud][rawdata] angle data is wrote in difop packet!");
       }
     }
   }
@@ -496,23 +487,34 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
     //print info
     float prin_dis;
     if (dis_resolution_mode_ == 0)
+    {
       prin_dis = 0.5;
+    }
     else
+    {
       prin_dis = 1;
-    ROS_INFO_STREAM("distance resolution is: " << prin_dis << "cm, intensity mode is: Mode" << intensity_mode_);
+    }
+    ROS_INFO_STREAM("[cloud][rawdata] distance resolution is: " << prin_dis << " cm, intensity mode is: Mode " << intensity_mode_);
     if (is_support_dual_return == false)
-      ROS_INFO_STREAM("lidar only support single return wave!");
+    {
+      ROS_INFO_STREAM("[cloud][rawdata] lidar only support single return wave!");
+    }
     else
     {
       if (return_mode_ == 0)
-        ROS_INFO_STREAM("lidar support dual return wave, the current mode is: dual return wave mode!");
+      {
+        ROS_INFO_STREAM("[cloud][rawdata] lidar support dual return wave, the current mode is: dual");
+      }
       else if (return_mode_ == 1)
-        ROS_INFO_STREAM("lidar support dual return wave, the current mode is: strongest return wave mode!");
+      {
+        ROS_INFO_STREAM("[cloud][rawdata] lidar support dual return wave, the current mode is: strongest");
+      }
       else if (return_mode_ == 2)
-        ROS_INFO_STREAM("lidar support dual return wave, the current mode is: last return wave mode!");
+      {
+        ROS_INFO_STREAM("[cloud][rawdata] lidar support dual return wave, the current mode is: last");
+      }
     }
   }
-  // std::cout << "DIFOP data! +++++++++++++" << std::endl;
 }
 
 float RawData::pixelToDistance(int pixelValue, int passageway)
@@ -559,7 +561,6 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
   {
     int algDist;
     int sDist;
-//    int uplimitDist;
     float realPwr;
     float refPwr;
     float tempInten;
@@ -591,7 +592,7 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
     }
     else
     {
-      std::cout << "The intensity mode is not right" << std::endl;
+      ROS_WARN("[cloud][rawdata] The intensity mode is not right");
     }
 
     int indexTemper = estimateTemperature(temper) - TEMPERATURE_MIN;
@@ -623,7 +624,6 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
       {
         refPwr_temp = aIntensityCal[0][calIdx] * exp(aIntensityCal[1][calIdx] - aIntensityCal[2][calIdx] * distance_f) +
                       aIntensityCal[3][calIdx];
-        //   printf("a-calIdx=%d,distance_f=%f,refPwr=%f\n",calIdx,distance_f,refPwr_temp);
       }
       else
       {
@@ -631,7 +631,6 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
         {
           refPwr_temp += aIntensityCal[i + 4][calIdx] * (pow(distance_f, order - 1 - i));
         }
-        // printf("b-calIdx=%d,distance_f=%f,refPwr=%f\n",calIdx,distance_f,refPwr_temp);
       }
     }
     else if (intensity_mode_ == 2)
@@ -640,7 +639,6 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
       {
         refPwr_temp = aIntensityCal[0][calIdx] * exp(aIntensityCal[1][calIdx] - aIntensityCal[2][calIdx] * distance_f) +
                       aIntensityCal[3][calIdx];
-        //   printf("a-calIdx=%d,distance_f=%f,refPwr=%f\n",calIdx,distance_f,refPwr_temp);
       }
       else if (distance_f > endOfSection1 && distance_f <= endOfSection2)
       {
@@ -648,7 +646,6 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
         {
           refPwr_temp += aIntensityCal[i + 4][calIdx] * (pow(distance_f, order - 1 - i));
         }
-        // printf("b-calIdx=%d,distance_f=%f,refPwr=%f\n",calIdx,distance_f,refPwr_temp);
       }
       else
       {
@@ -664,7 +661,7 @@ float RawData::calibrateIntensity(float intensity, int calIdx, int distance)
     }
     else
     {
-      std::cout << "The intensity mode is not right" << std::endl;
+      ROS_WARN("[cloud][rawdata] The intensity mode is not right");
     }
 
     refPwr = std::max(std::min(refPwr_temp, 500.0f), 4.0f);
@@ -800,7 +797,7 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
   {
     if (UPPER_BANK != raw->blocks[block].header)
     {
-      ROS_INFO_STREAM_THROTTLE(180, "skipping RSLIDAR DIFOP packet");
+      ROS_INFO_STREAM_THROTTLE(180, "[cloud][rawdata] skipping RSLIDAR DIFOP packet");
       break;
     }
 
@@ -811,7 +808,6 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
     else
     {
       temper = computeTemperature(pkt.data[38], pkt.data[39]);
-      // ROS_INFO_STREAM("Temp is: " << temper);
       tempPacketNum = 1;
     }
 
@@ -918,7 +914,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
   {
     if (UPPER_BANK != raw->blocks[block].header)
     {
-      ROS_INFO_STREAM_THROTTLE(180, "skipping RSLIDAR DIFOP packet");
+      ROS_INFO_STREAM_THROTTLE(180, "[cloud][rawdata] skipping RSLIDAR DIFOP packet");
       break;
     }
 

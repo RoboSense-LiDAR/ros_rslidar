@@ -123,7 +123,8 @@ void scanCallback(const sensor_msgs::TimeReference::ConstPtr& scan_msg1,
     }
     else
     {
-      std::cerr << "Oldest lidar skip one packet!" << std::endl;
+      ROS_ERROR("[sync-3] Oldest lidar skip one packet!");
+//      std::cerr << "Oldest lidar skip one packet!" << std::endl;
     }
   }
   if (skip_big == 0)
@@ -145,27 +146,27 @@ int main(int argc, char** argv)
   std::string scan3_topic("/middle/sync_header");
   if (!nh_private.getParam(std::string("scan1_topic"), scan1_topic))
   {
-    ROS_ERROR_STREAM("Can't get scan1_topic, use the default scan1_topic: "<<scan1_topic);
+    ROS_ERROR_STREAM("[sync-3] Can't get scan1_topic, use the default scan1_topic: "<<scan1_topic);
   }
   else
   {
-    ROS_INFO_STREAM("scan1_topic: "<<scan1_topic);
+    ROS_INFO_STREAM("[sync-3] scan1_topic: "<<scan1_topic);
   }
   if (!nh_private.getParam(std::string("scan2_topic"), scan2_topic))
   {
-    ROS_ERROR_STREAM("Can't get scan2_topic, use the default scan2_topic: "<<scan2_topic);
+    ROS_ERROR_STREAM("[sync-3] Can't get scan2_topic, use the default scan2_topic: "<<scan2_topic);
   }
   else
   {
-    ROS_INFO_STREAM("scan2_topic: "<<scan2_topic);
+    ROS_INFO_STREAM("[sync-3] scan2_topic: "<<scan2_topic);
   }
   if (!nh_private.getParam(std::string("scan3_topic"), scan3_topic))
   {
-    ROS_ERROR_STREAM("Can't get scan3_topic, use the default scan3_topic: "<<scan3_topic);
+    ROS_ERROR_STREAM("[sync-3] Can't get scan3_topic, use the default scan3_topic: "<<scan3_topic);
   }
   else
   {
-    ROS_INFO_STREAM("scan3_topic: "<<scan3_topic);
+    ROS_INFO_STREAM("[sync-3] scan3_topic: "<<scan3_topic);
   }
 
   std::string skippackets1_topic("/left/skippackets_num");
@@ -173,37 +174,37 @@ int main(int argc, char** argv)
   std::string skippackets3_topic("/middle/skippackets_num");
   if (!nh_private.getParam(std::string("skippackets1_topic"), skippackets1_topic))
   {
-    ROS_ERROR_STREAM("Can't get skippackets1_topic, use the default skippackets1_topic: "<<skippackets1_topic);
+    ROS_ERROR_STREAM("[sync-3] Can't get skippackets1_topic, use the default skippackets1_topic: "<<skippackets1_topic);
   }
   else
   {
-    ROS_INFO_STREAM("skippackets1_topic: "<<skippackets1_topic);
+    ROS_INFO_STREAM("[sync-3] skippackets1_topic: "<<skippackets1_topic);
   }
   if (!nh_private.getParam(std::string("skippackets2_topic"), skippackets2_topic))
   {
-    ROS_ERROR_STREAM("Can't get skippackets2_topic, use the default skippackets2_topic: "<<skippackets2_topic);
+    ROS_ERROR_STREAM("[sync-3] Can't get skippackets2_topic, use the default skippackets2_topic: "<<skippackets2_topic);
   }
   else
   {
-    ROS_INFO_STREAM("skippackets2_topic: "<<skippackets2_topic);
+    ROS_INFO_STREAM("[sync-3] skippackets2_topic: "<<skippackets2_topic);
   }
   if (!nh_private.getParam(std::string("skippackets3_topic"), skippackets3_topic))
   {
-    ROS_ERROR_STREAM("Can't get skippackets3_topic, use the default skippackets3_topic: "<<skippackets3_topic);
+    ROS_ERROR_STREAM("[sync-3] Can't get skippackets3_topic, use the default skippackets3_topic: "<<skippackets3_topic);
   }
   else
   {
-    ROS_INFO_STREAM("skippackets3_topic: "<<skippackets3_topic);
+    ROS_INFO_STREAM("[sync-3] skippackets3_topic: "<<skippackets3_topic);
   }
 
   bool is_all_rs32_lidars = false;
   if (!nh_private.getParam(std::string("is_all_rs32_lidars"), is_all_rs32_lidars))
   {
-    ROS_ERROR_STREAM("Can't get is_all_rs32_lidars, use the default is_all_rs32_lidars: " << is_all_rs32_lidars);
+    ROS_ERROR_STREAM("[sync-3] Can't get is_all_rs32_lidars, use the default is_all_rs32_lidars: " << is_all_rs32_lidars);
   }
   else
   {
-    ROS_INFO_STREAM("The is_all_rs32_lidars: " << is_all_rs32_lidars);
+    ROS_INFO_STREAM("[sync-3] The is_all_rs32_lidars: " << is_all_rs32_lidars);
   }
   if (is_all_rs32_lidars)
   {
@@ -231,12 +232,12 @@ int main(int argc, char** argv)
   std::string sync_packet_diff_topic("/sync_packet_diff");
   if (!nh_private.getParam(std::string("sync_packet_diff_topic"), sync_packet_diff_topic))
   {
-    ROS_ERROR_STREAM("Can't get sync_packet_diff_topic, use the default sync_packet_diff_topic: "
+    ROS_ERROR_STREAM("[sync-3] Can't get sync_packet_diff_topic, use the default sync_packet_diff_topic: "
               <<sync_packet_diff_topic);
   }
   else
   {
-    ROS_INFO_STREAM("sync_packet_diff: "<<sync_packet_diff_topic);
+    ROS_INFO_STREAM("[sync-3] sync_packet_diff: "<<sync_packet_diff_topic);
   }
   g_maxnum_diff_packetnum_pub = nh.advertise<std_msgs::String>(sync_packet_diff_topic, 1, true);
 

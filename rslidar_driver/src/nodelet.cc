@@ -35,10 +35,10 @@ public:
   {
     if (running_)
     {
-      NODELET_INFO("shutting down driver thread");
+      NODELET_INFO("[driver][nodelet] shutting down driver thread");
       running_ = false;
       deviceThread_->join();
-      NODELET_INFO("driver thread stopped");
+      NODELET_INFO("[driver][nodelet] sdriver thread stopped");
     }
   }
 

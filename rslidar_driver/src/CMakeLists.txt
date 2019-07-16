@@ -9,8 +9,8 @@ target_link_libraries(rslidar_driver
   ${catkin_LIBRARIES})
 
 # build the nodelet version
-add_library(driver_nodelet nodelet.cc rsdriver.cpp)
-target_link_libraries(driver_nodelet
+add_library(rdriver_nodelet  nodelet.cc rsdriver.cpp)
+target_link_libraries(rdriver_nodelet 
   rslidar_input
   ${catkin_LIBRARIES}
 )

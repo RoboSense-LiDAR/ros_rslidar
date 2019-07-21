@@ -35,10 +35,10 @@ public:
   {
     if (running_)
     {
-      NODELET_INFO("shutting down driver thread");
+      NODELET_INFO("[driver][nodelet] shutting down driver thread");
       running_ = false;
       deviceThread_->join();
-      NODELET_INFO("driver thread stopped");
+      NODELET_INFO("[driver][nodelet] sdriver thread stopped");
     }
   }
 
@@ -73,7 +73,7 @@ void DriverNodelet::devicePoll()
 }
 }
 
-// Register this plugin with pluginlib.  Names must match nodelet_velodyne.xml.
+// Register this plugin with pluginlib.  Names must match nodelet_rslidar.xml.
 //
 // parameters are: class type, base class type
 PLUGINLIB_EXPORT_CLASS(rslidar_driver::DriverNodelet, nodelet::Nodelet)

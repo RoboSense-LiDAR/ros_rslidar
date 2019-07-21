@@ -45,7 +45,7 @@ Convert::Convert(ros::NodeHandle node, ros::NodeHandle private_nh) : data_(new r
 
 void Convert::callback(rslidar_pointcloud::CloudNodeConfig& config, uint32_t level)
 {
-  ROS_INFO("Reconfigure Request");
+//  ROS_INFO("[cloud][convert] Reconfigure Request");
   // config_.time_offset = config.time_offset;
 }
 

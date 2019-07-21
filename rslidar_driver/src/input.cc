@@ -47,7 +47,9 @@ Input::Input(ros::NodeHandle private_nh, uint16_t port) : private_nh_(private_nh
 
   private_nh.param("device_ip", devip_str_, std::string(""));
   if (!devip_str_.empty())
-    ROS_INFO_STREAM("Only accepting packets from IP address: " << devip_str_);
+  {
+    ROS_INFO_STREAM("[driver][input] accepting packets from IP address: " << devip_str_);
+  }
 }
 
 int Input::getRpm(void)
@@ -87,18 +89,18 @@ InputSocket::InputSocket(ros::NodeHandle private_nh, uint16_t port) : Input(priv
     inet_aton(devip_str_.c_str(), &devip_);
   }
 
-  ROS_INFO_STREAM("Opening UDP socket: port " << port);
+  ROS_INFO_STREAM("[driver][socket] Opening UDP socket: port " << port);
   sockfd_ = socket(PF_INET, SOCK_DGRAM, 0);
   if (sockfd_ == -1)
   {
-    perror("socket");  // TODO: ROS_ERROR errno
+    ROS_ERROR("[driver][socket] create socket fail");
     return;
   }
 
   int opt = 1;
   if (setsockopt(sockfd_, SOL_SOCKET, SO_REUSEADDR, (const void*)&opt, sizeof(opt)))
   {
-    perror("setsockopt error!\n");
+    ROS_ERROR("[driver][socket] setsockopt fail");
     return;
   }
 
@@ -110,13 +112,13 @@ InputSocket::InputSocket(ros::NodeHandle private_nh, uint16_t port) : Input(priv
 
   if (bind(sockfd_, (sockaddr*)&my_addr, sizeof(sockaddr)) == -1)
   {
-    perror("bind");  // TODO: ROS_ERROR errno
+    ROS_ERROR("[driver][socket] socket bind fail");
     return;
   }
 
   if (fcntl(sockfd_, F_SETFL, O_NONBLOCK | FASYNC) < 0)
   {
-    perror("non-block");
+    ROS_ERROR("[driver][socket] fcntl fail");
     return;
   }
 }
@@ -149,12 +151,14 @@ int InputSocket::getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_o
       if (retval < 0)  // poll() error?
       {
         if (errno != EINTR)
-          ROS_ERROR("poll() error: %s", strerror(errno));
+        {
+          ROS_ERROR("[driver][socket] poll() error: %s", strerror(errno));
+        }
         return 1;
       }
       if (retval == 0)  // poll() timeout?
       {
-        ROS_WARN("Rslidar poll() timeout");
+        ROS_WARN("[driver][socket] Rslidar poll() timeout");
 
         char buffer_data[8] = "re-con";
         memset(&sender_address, 0, sender_address_len);          // initialize to zeros
@@ -166,7 +170,7 @@ int InputSocket::getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_o
       }
       if ((fds[0].revents & POLLERR) || (fds[0].revents & POLLHUP) || (fds[0].revents & POLLNVAL))  // device error?
       {
-        ROS_ERROR("poll() reports Rslidar error");
+        ROS_ERROR("[driver][socket] poll() reports Rslidar error");
         return 1;
       }
     } while ((fds[0].revents & POLLIN) == 0);
@@ -176,20 +180,23 @@ int InputSocket::getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_o
     {
       if (errno != EWOULDBLOCK)
       {
-        perror("recvfail");
-        ROS_INFO("recvfail");
+        ROS_ERROR("[driver][socket] recvfail");
         return 1;
       }
     }
     else if ((size_t)nbytes == packet_size)
     {
       if (devip_str_ != "" && sender_address.sin_addr.s_addr != devip_.s_addr)
+      {
         continue;
+      }
       else
+      {
         break;  // done
+      }
     }
 
-    ROS_DEBUG_STREAM("incomplete rslidar packet read: " << nbytes << " bytes");
+    ROS_WARN_STREAM("[driver][socket] incomplete rslidar packet read: " << nbytes << " bytes");
   }
   if (flag == 0)
   {
@@ -250,18 +257,24 @@ InputPCAP::InputPCAP(ros::NodeHandle private_nh, uint16_t port, double packet_ra
   private_nh.param("repeat_delay", repeat_delay_, 0.0);
 
   if (read_once_)
-    ROS_INFO("Read input file only once.");
+  {
+    ROS_INFO("[driver][pcap] Read input file only once.");
+  }
   if (read_fast_)
-    ROS_INFO("Read input file as quickly as possible.");
+  {
+    ROS_INFO("[driver][pcap] Read input file as quickly as possible.");
+  }
   if (repeat_delay_ > 0.0)
-    ROS_INFO("Delay %.3f seconds before repeating input file.", repeat_delay_);
+  {
+    ROS_INFO("[driver][pcap] Delay %.3f seconds before repeating input file.", repeat_delay_);
+  }
 
   // Open the PCAP dump file
   // ROS_INFO("Opening PCAP file \"%s\"", filename_.c_str());
-  ROS_INFO_STREAM("Opening PCAP file " << filename_);
+  ROS_INFO_STREAM("[driver][pcap] Opening PCAP file " << filename_);
   if ((pcap_ = pcap_open_offline(filename_.c_str(), errbuf_)) == NULL)
   {
-    ROS_FATAL("Error opening rslidar socket dump file.");
+    ROS_FATAL("[driver][pcap] Error opening rslidar socket dump file.");
     return;
   }
 
@@ -271,7 +284,12 @@ InputPCAP::InputPCAP(ros::NodeHandle private_nh, uint16_t port, double packet_ra
     filter << "src host " << devip_str_ << " && ";
   }
   filter << "udp dst port " << port;
-  pcap_compile(pcap_, &pcap_packet_filter_, filter.str().c_str(), 1, PCAP_NETMASK_UNKNOWN);
+  int ret = pcap_compile(pcap_, &pcap_packet_filter_, filter.str().c_str(), 1, PCAP_NETMASK_UNKNOWN);
+  if (ret < 0)
+  {
+    ROS_FATAL_STREAM("[driver][pcap] pcap compile filter fail. filter: "<<filter.str());
+    return;
+  }
 }
 
 /** destructor */
@@ -334,23 +352,23 @@ int InputPCAP::getPacket(rslidar_msgs::rslidarPacket* pkt, const double time_off
 
     if (empty_)  // no data in file?
     {
-      ROS_WARN("Error %d reading rslidar packet: %s", res, pcap_geterr(pcap_));
+      ROS_ERROR("[driver][pcap] Error %d reading rslidar packet: %s", res, pcap_geterr(pcap_));
       return -1;
     }
 
     if (read_once_)
     {
-      ROS_INFO("end of file reached -- done reading.");
+      ROS_INFO("[driver][pcap] end of file reached -- done reading.");
       return -1;
     }
 
     if (repeat_delay_ > 0.0)
     {
-      ROS_INFO("end of file reached -- delaying %.3f seconds.", repeat_delay_);
+      ROS_INFO("[driver][pcap] end of file reached -- delaying %.3f seconds.", repeat_delay_);
       usleep(rint(repeat_delay_ * 1000000.0));
     }
 
-    ROS_DEBUG("replaying rslidar dump file");
+    ROS_INFO("[driver][pcap] replaying rslidar dump file");
 
     // I can't figure out how to rewind the file, because it
     // starts with some kind of header.  So, close the file

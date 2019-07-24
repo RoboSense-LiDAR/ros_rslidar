@@ -767,7 +767,7 @@ inline float RawData::computeTemperature(unsigned char bit1, unsigned char bit2)
 }
 
 //------------------------------------------------------------
-int RawData::estimateTemperature(float Temper)
+inline int RawData::estimateTemperature(float Temper)
 {
   int temp = (int)floor(Temper + 0.5);
   if (temp < TEMPERATURE_MIN)
@@ -902,11 +902,10 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
           // point.x = dis * cos(arg_vert) * sin(arg_horiz);
           // point.y = dis * cos(arg_vert) * cos(arg_horiz);
 
-          // If you want to fix the rslidar X aixs to the front side of the cable, please use the two line below
-
           const float cos_arg_vert  = COS_VERT_ANGLE[dsr];
           const float sin_arg_vert  = SIN_VERT_ANGLE[dsr];
 
+          // If you want to fix the rslidar X aixs to the front side of the cable, please use the two line below
           point.x = distance2 * cos_arg_vert * std::cos(arg_horiz)  + R1_ * std::cos(arg_horiz_orginal);
           point.y = -distance2 * cos_arg_vert * std::sin(arg_horiz) - R1_ * std::sin(arg_horiz_orginal);
           point.z = distance2 * sin_arg_vert - R2_;
@@ -1092,7 +1091,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
 
         float arg_horiz_orginal = (float)azimuth_corrected_f * 0.01f * DEG_TO_RAD;
         float arg_horiz = (float)azimuth_corrected * 0.01f * DEG_TO_RAD;
-        float arg_vert = VERT_ANGLE[dsr];
+
         pcl::PointXYZI point;
 
         if (distance2 > max_distance_ || distance2 < min_distance_ ||
@@ -1111,10 +1110,13 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
           // point.x = dis * cos(arg_vert) * sin(arg_horiz);
           // point.y = dis * cos(arg_vert) * cos(arg_horiz);
 
+          const float cos_arg_vert  = COS_VERT_ANGLE[dsr];
+          const float sin_arg_vert  = SIN_VERT_ANGLE[dsr];
+
           // If you want to fix the rslidar X aixs to the front side of the cable, please use the two line below
-          point.x = distance2 * cos(arg_vert) * cos(arg_horiz) + R1_ * cos(arg_horiz_orginal);
-          point.y = -distance2 * cos(arg_vert) * sin(arg_horiz) - R1_ * sin(arg_horiz_orginal);
-          point.z = distance2 * sin(arg_vert) - R2_;
+          point.x = distance2 * cos_arg_vert * std::cos(arg_horiz) + R1_ * std::cos(arg_horiz_orginal);
+          point.y = -distance2 * cos_arg_vert * std::sin(arg_horiz) - R1_ * std::sin(arg_horiz_orginal);
+          point.z = distance2 * sin_arg_vert - R2_;
           point.intensity = intensity;
           pointcloud->at(this->block_num, dsr) = point;
         }

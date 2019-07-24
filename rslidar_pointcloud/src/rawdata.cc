@@ -23,7 +23,15 @@ namespace rslidar_rawdata
 {
 
 static const float DEG_TO_RAD = M_PI/180.0;
-static const float RAD_TO_DEG = 180.0/M_PI;
+
+inline int FastMod_36000(int val)
+{
+  if(val < 0)
+    return val + 36000;
+  if(val > 36000)
+    return val - 36000;
+  return val;
+};
 
 RawData::RawData()
 {
@@ -525,7 +533,7 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
   }
 }
 
-float RawData::pixelToDistance(int pixelValue, int passageway)
+inline float RawData::pixelToDistance(int pixelValue, int passageway)
 {
   float DistanceValue;
   int indexTemper = estimateTemperature(temper) - TEMPERATURE_MIN;
@@ -740,7 +748,7 @@ int RawData::isABPacket(int distance)
 }
 
 //------------------------------------------------------------
-float RawData::computeTemperature(unsigned char bit1, unsigned char bit2)
+inline float RawData::computeTemperature(unsigned char bit1, unsigned char bit2)
 {
   float Temp;
   float bitneg = bit2 & 128;   // 10000000
@@ -826,14 +834,14 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
       int azi1, azi2;
       azi1 = 256 * raw->blocks[block + 1].rotation_1 + raw->blocks[block + 1].rotation_2;
       azi2 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
-      azimuth_diff = (float)((36000 + azi1 - azi2) % 36000);
+      azimuth_diff = (float)(FastMod_36000(azi1 - azi2));
     }
     else
     {
       int azi1, azi2;
       azi1 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
       azi2 = 256 * raw->blocks[block - 1].rotation_1 + raw->blocks[block - 1].rotation_2;
-      azimuth_diff = (float)((36000 + azi1 - azi2) % 36000);
+      azimuth_diff = (float)(FastMod_36000(azi1 - azi2));
     }
 
     for (int firing = 0, k = 0; firing < RS16_FIRINGS_PER_BLOCK; firing++)  // 2
@@ -849,7 +857,7 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
           azimuth_corrected_f = azimuth + (azimuth_diff * ((dsr * RS16_DSR_TOFFSET) + (firing * RS16_FIRING_TOFFSET)) /
                                            RS16_BLOCK_TDURATION);
         }
-        azimuth_corrected = ((int)round(azimuth_corrected_f)) % 36000;  // convert to integral value...
+        azimuth_corrected = FastMod_36000((int)round(azimuth_corrected_f));  // convert to integral value...
 
         union two_bytes tmp;
         tmp.bytes[1] = raw->blocks[block].data[k];

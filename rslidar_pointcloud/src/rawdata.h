@@ -180,6 +180,8 @@ private:
 };
 
 static float VERT_ANGLE[32];
+static float COS_VERT_ANGLE[32];
+static float SIN_VERT_ANGLE[32];
 static float HORI_ANGLE[32];
 static float aIntensityCal[7][32];
 static float aIntensityCal_old[1600][32];

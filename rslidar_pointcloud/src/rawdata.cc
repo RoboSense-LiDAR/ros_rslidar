@@ -39,8 +39,8 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   private_nh.param("angle_path", anglePath, std::string(""));
   private_nh.param("channel_path", channelPath, std::string(""));
   private_nh.param("curves_rate_path", curvesRatePath, std::string(""));
-  private_nh.param("start_angle", start_angle_, float(0));
-  private_nh.param("end_angle", end_angle_, float(360));
+  private_nh.param("start_angle", start_angle_, int(0));
+  private_nh.param("end_angle", end_angle_, int(360));
 
   ROS_INFO_STREAM("[cloud][rawdata] lidar model: "<<model);
   if (start_angle_ < 0 || start_angle_ > 360 || end_angle_ < 0 || end_angle_ > 360)
@@ -62,8 +62,8 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   }
 
   ROS_INFO_STREAM("[cloud][rawdata] start_angle: " << start_angle_ << " end_angle: " << end_angle_ << " angle_flag: " << angle_flag_);
-  start_angle_ = start_angle_ / 180 * M_PI;
-  end_angle_ = end_angle_ / 180 * M_PI;
+  start_angle_ = start_angle_*100;
+  end_angle_ = end_angle_*100;
 
   private_nh.param("max_distance", max_distance_, 200.0f);
   private_nh.param("min_distance", min_distance_, 0.2f);
@@ -104,6 +104,18 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
 
   //return mode default
   return_mode_ = 1;
+
+  //lookup table init
+  this->cos_lookup_table_.resize(36000);
+  this->sin_lookup_table_.resize(36000);
+  for (unsigned int i = 0; i < 36000; i++)
+  {
+    double rad = RS_TO_RADS(i/100.0f);
+
+    this->cos_lookup_table_[i] = std::cos(rad);
+    this->sin_lookup_table_[i] = std::sin(rad);
+  }
+
 
   /// 读参数文件 2017-02-27
   FILE* f_inten = fopen(curvesPath.c_str(), "r");
@@ -188,7 +200,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     }
     for (loopn = 0; loopn < numOfLasers; loopn++)
     {
-      VERT_ANGLE[loopn] = b[loopn] / 180 * M_PI;
+      VERT_ANGLE[loopn] = b[loopn] * 100;
       HORI_ANGLE[loopn] = d[loopn] * 100;
     }
     fclose(f_angle);
@@ -442,7 +454,7 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
             bit1 = static_cast<int>(*(data + 1165 + loopn * 3));
             bit2 = static_cast<int>(*(data + 1165 + loopn * 3 + 1));
             bit3 = static_cast<int>(*(data + 1165 + loopn * 3 + 2));
-            VERT_ANGLE[loopn] = (bit1 * 256 * 256 + bit2 * 256 + bit3) * symbolbit * 0.0001f / 180 * M_PI;
+            VERT_ANGLE[loopn] = (bit1 * 256 * 256 + bit2 * 256 + bit3) * symbolbit * 0.01f;
             // std::cout << VERT_ANGLE[loopn] << std::endl;
             // TODO
             HORI_ANGLE[loopn] = 0;
@@ -460,7 +472,7 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
               symbolbit = -1;
             bit2 = static_cast<int>(*(data + 468 + loopn * 3 + 1));
             bit3 = static_cast<int>(*(data + 468 + loopn * 3 + 2));
-            VERT_ANGLE[loopn] = (bit2 * 256 + bit3) * symbolbit * 0.001f / 180 * M_PI; // rad
+            VERT_ANGLE[loopn] = (bit2 * 256 + bit3) * symbolbit * 0.001f*100;
             
             //horizontal offset angle
             bit1 = static_cast<int>(*(data + 564 + loopn * 3));
@@ -470,7 +482,7 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
               symbolbit = -1;
             bit2 = static_cast<int>(*(data + 564 + loopn * 3 + 1));
             bit3 = static_cast<int>(*(data + 564 + loopn * 3 + 2));
-            HORI_ANGLE[loopn] = (bit2 * 256 + bit3) * symbolbit * 0.001f * 100;// 1/100 degree
+            HORI_ANGLE[loopn] = (bit2 * 256 + bit3) * symbolbit * 0.001f * 100;
           }
         }
         
@@ -865,9 +877,10 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
           distance2 = distance2 * DISTANCE_RESOLUTION;
         }
 
-        float arg_horiz = (float)azimuth_corrected / 18000.0f * M_PI;
-        float arg_horiz_orginal = arg_horiz;
-        float arg_vert = VERT_ANGLE[dsr];
+        int arg_horiz = (azimuth_corrected +36000)%36000;
+        int arg_horiz_orginal = arg_horiz;
+        int arg_vert = ((VERT_ANGLE[dsr])%36000+36000)%36000;
+
         pcl::PointXYZI point;
 
         if (distance2 > max_distance_ || distance2 < min_distance_ ||
@@ -882,15 +895,13 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
         }
         else
         {
-          // If you want to fix the rslidar Y aixs to the front side of the cable, please use the two line below
-          // point.x = dis * cos(arg_vert) * sin(arg_horiz);
-          // point.y = dis * cos(arg_vert) * cos(arg_horiz);
-
           // If you want to fix the rslidar X aixs to the front side of the cable, please use the two line below
 
-          point.x = distance2 * cos(arg_vert) * cos(arg_horiz) + R1_ * cos(arg_horiz_orginal);
-          point.y = -distance2 * cos(arg_vert) * sin(arg_horiz) - R1_ * sin(arg_horiz_orginal);
-          point.z = distance2 * sin(arg_vert) - R2_;
+          point.x = distance2 * this->cos_lookup_table_[arg_vert] * this->cos_lookup_table_[arg_horiz]
+              + R1_ * this->cos_lookup_table_[arg_horiz_orginal];
+          point.y = -distance2 * this->cos_lookup_table_[arg_vert] * this->sin_lookup_table_[arg_horiz]
+              - R1_ * this->sin_lookup_table_[arg_horiz_orginal];
+          point.z = distance2 * this->sin_lookup_table_[arg_vert] - R2_;
           point.intensity = intensity;
           pointcloud->at(2 * this->block_num + firing, dsr) = point;
         }
@@ -988,9 +999,9 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         float distance2 = pixelToDistance(distance, dsr);
         distance2 = distance2 * DISTANCE_RESOLUTION_NEW;
 
-        float arg_horiz_orginal = (float)azimuth_corrected_f / 18000.0f * M_PI;
-        float arg_horiz = (float)azimuth_corrected / 18000.0f * M_PI;
-        float arg_vert = VERT_ANGLE[dsr];
+        int arg_horiz_orginal = azimuth_corrected_f;
+        int arg_horiz = azimuth_corrected;
+        int arg_vert = ((VERT_ANGLE[dsr])%36000+36000)%36000;
         pcl::PointXYZI point;
 
         if (distance2 > max_distance_ || distance2 < min_distance_ ||
@@ -1005,14 +1016,13 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         }
         else
         {
-          // If you want to fix the rslidar Y aixs to the front side of the cable, please use the two line below
-          // point.x = dis * cos(arg_vert) * sin(arg_horiz);
-          // point.y = dis * cos(arg_vert) * cos(arg_horiz);
 
           // If you want to fix the rslidar X aixs to the front side of the cable, please use the two line below
-          point.x = distance2 * cos(arg_vert) * cos(arg_horiz) + R1_ * cos(arg_horiz_orginal);
-          point.y = -distance2 * cos(arg_vert) * sin(arg_horiz) - R1_ * sin(arg_horiz_orginal);
-          point.z = distance2 * sin(arg_vert) - R2_;
+          point.x = distance2 * this->cos_lookup_table_[arg_vert] * this->cos_lookup_table_[arg_horiz]
+              + R1_ * this->cos_lookup_table_[arg_horiz_orginal];
+          point.y = -distance2 * this->cos_lookup_table_[arg_vert] * this->sin_lookup_table_[arg_horiz]
+              - R1_ * this->sin_lookup_table_[arg_horiz_orginal];
+          point.z = distance2 * this->sin_lookup_table_[arg_vert] - R2_;
           point.intensity = intensity;
           pointcloud->at(this->block_num, dsr) = point;
         }
@@ -1068,9 +1078,10 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         float distance2 = pixelToDistance(distance, dsr);
         distance2 = distance2 * DISTANCE_RESOLUTION;
 
-        float arg_horiz_orginal = (float)azimuth_corrected_f / 18000.0f * M_PI;
-        float arg_horiz = (float)azimuth_corrected / 18000.0f * M_PI;
-        float arg_vert = VERT_ANGLE[dsr];
+        int arg_horiz_orginal = azimuth_corrected_f;
+        int arg_horiz = azimuth_corrected;
+        int arg_vert = ((VERT_ANGLE[dsr])%36000+36000)%36000;
+
         pcl::PointXYZI point;
 
         if (distance2 > max_distance_ || distance2 < min_distance_ ||
@@ -1085,14 +1096,12 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         }
         else
         {
-          // If you want to fix the rslidar Y aixs to the front side of the cable, please use the two line below
-          // point.x = dis * cos(arg_vert) * sin(arg_horiz);
-          // point.y = dis * cos(arg_vert) * cos(arg_horiz);
-
           // If you want to fix the rslidar X aixs to the front side of the cable, please use the two line below
-          point.x = distance2 * cos(arg_vert) * cos(arg_horiz) + R1_ * cos(arg_horiz_orginal);
-          point.y = -distance2 * cos(arg_vert) * sin(arg_horiz) - R1_ * sin(arg_horiz_orginal);
-          point.z = distance2 * sin(arg_vert) - R2_;
+          point.x = distance2 * this->cos_lookup_table_[arg_vert] * this->cos_lookup_table_[arg_horiz]
+              + R1_ * this->cos_lookup_table_[arg_horiz_orginal];
+          point.y = -distance2 * this->cos_lookup_table_[arg_vert] * this->sin_lookup_table_[arg_horiz]
+              - R1_ * this->sin_lookup_table_[arg_horiz_orginal];
+          point.z = distance2 * this->sin_lookup_table_[arg_vert] - R2_;
           point.intensity = intensity;
           pointcloud->at(this->block_num, dsr) = point;
         }

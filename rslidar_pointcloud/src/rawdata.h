@@ -68,6 +68,7 @@ static const float RL32_FIRING_TOFFSET = 50.0f;   // [µs]
 
 static const int TEMPERATURE_MIN = 31;
 
+#define RS_TO_RADS(x)         ((x)*(M_PI)/180)
 /** \brief Raw rslidar data block.
  *
  *  Each block contains data from either the upper or lower laser
@@ -127,6 +128,8 @@ public:
 
   ~RawData()
   {
+    this->cos_lookup_table_.clear();
+    this->sin_lookup_table_.clear();
   }
 
   /*load the cablibrated files: angle, distance, intensity*/
@@ -170,17 +173,21 @@ private:
   float R1_;
   float R2_;
   bool angle_flag_;
-  float start_angle_;
-  float end_angle_;
+  int start_angle_;
+  int end_angle_;
   float max_distance_;
   float min_distance_;
   int dis_resolution_mode_;
   int return_mode_;
   bool info_print_flag_;
+
+  /* cos/sin lookup table */
+  std::vector<double> cos_lookup_table_;
+  std::vector<double> sin_lookup_table_;
 };
 
-static float VERT_ANGLE[32];
-static float HORI_ANGLE[32];
+static int VERT_ANGLE[32];
+static int HORI_ANGLE[32];
 static float aIntensityCal[7][32];
 static float aIntensityCal_old[1600][32];
 static bool Curvesis_new = true;

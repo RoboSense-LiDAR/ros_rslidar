@@ -171,7 +171,6 @@ public:
 
 private:
   float R1_;
-  float R2_;
   bool angle_flag_;
   int start_angle_;
   int end_angle_;

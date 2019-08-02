@@ -90,14 +90,12 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   {
     numOfLasers = 16;
     R1_ = 0.04638;
-    R2_ = 0.010875;
   }
   else if (model == "RS32")
   {
     numOfLasers = 32;
     TEMPERATURE_RANGE = 50;
     R1_ = 0.04583;
-    R2_ = 0.010875;
   }
 
   intensityFactor = 51;
@@ -901,7 +899,7 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
               + R1_ * this->cos_lookup_table_[arg_horiz_orginal];
           point.y = -distance2 * this->cos_lookup_table_[arg_vert] * this->sin_lookup_table_[arg_horiz]
               - R1_ * this->sin_lookup_table_[arg_horiz_orginal];
-          point.z = distance2 * this->sin_lookup_table_[arg_vert] - R2_;
+          point.z = distance2 * this->sin_lookup_table_[arg_vert];
           point.intensity = intensity;
           pointcloud->at(2 * this->block_num + firing, dsr) = point;
         }
@@ -1022,7 +1020,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
               + R1_ * this->cos_lookup_table_[arg_horiz_orginal];
           point.y = -distance2 * this->cos_lookup_table_[arg_vert] * this->sin_lookup_table_[arg_horiz]
               - R1_ * this->sin_lookup_table_[arg_horiz_orginal];
-          point.z = distance2 * this->sin_lookup_table_[arg_vert] - R2_;
+          point.z = distance2 * this->sin_lookup_table_[arg_vert];
           point.intensity = intensity;
           pointcloud->at(this->block_num, dsr) = point;
         }
@@ -1101,7 +1099,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
               + R1_ * this->cos_lookup_table_[arg_horiz_orginal];
           point.y = -distance2 * this->cos_lookup_table_[arg_vert] * this->sin_lookup_table_[arg_horiz]
               - R1_ * this->sin_lookup_table_[arg_horiz_orginal];
-          point.z = distance2 * this->sin_lookup_table_[arg_vert] - R2_;
+          point.z = distance2 * this->sin_lookup_table_[arg_vert];
           point.intensity = intensity;
           pointcloud->at(this->block_num, dsr) = point;
         }

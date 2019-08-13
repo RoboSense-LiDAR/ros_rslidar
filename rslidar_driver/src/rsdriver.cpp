@@ -38,12 +38,18 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
   // product model
   if (config_.model == "RS16")
   {
-    packet_rate = 840;
+    //for 0.18 degree horizontal angle resolution
+    //packet_rate = 840;
+    //for 0.2 degree horizontal angle resolution
+    packet_rate = 750;
     model_full_name = "RS-LiDAR-16";
   }
   else if (config_.model == "RS32")
   {
-    packet_rate = 1690;
+    //for 0.18 degree horizontal angle resolution
+    //packet_rate = 1690;
+    //for 0.2 degree horizontal angle resolution
+    packet_rate = 1500;
     model_full_name = "RS-LiDAR-32";
   }
   else

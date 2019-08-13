@@ -68,7 +68,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   end_angle_ = end_angle_ * 100;
 
   private_nh.param("max_distance", max_distance_, 200.0f);
-  private_nh.param("min_distance", min_distance_, 0.2f);
+  private_nh.param("min_distance", min_distance_, 0.4f);
 
   ROS_INFO_STREAM("[cloud][rawdata] distance threshlod, max: " << max_distance_ << " m, min: " << min_distance_
                                                                << " m");

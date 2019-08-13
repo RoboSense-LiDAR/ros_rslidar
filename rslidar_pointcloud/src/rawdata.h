@@ -44,7 +44,7 @@ static const float ROTATION_RESOLUTION = 0.01f;   /**< degrees 旋转角分辨�
 static const uint16_t ROTATION_MAX_UNITS = 36000; /**< hundredths of degrees */
 
 static const float DISTANCE_MAX = 200.0f;            /**< meters */
-static const float DISTANCE_MIN = 0.2f;              /**< meters */
+static const float DISTANCE_MIN = 0.4f;              /**< meters */
 static const float DISTANCE_RESOLUTION = 0.01f;      /**< meters */
 static const float DISTANCE_RESOLUTION_NEW = 0.005f; /**< meters */
 static const float DISTANCE_MAX_UNITS = (DISTANCE_MAX / DISTANCE_RESOLUTION + 1.0f);

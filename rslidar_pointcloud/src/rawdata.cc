@@ -32,9 +32,10 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
 {
   std::string anglePath, curvesPath, channelPath, curvesRatePath;
   std::string model;
+  std::string sub_model;
   std::string resolution_param;
-
   private_nh.param("model", model, std::string("RS16"));
+  private_nh.param("sub_model", sub_model, std::string(""));
   private_nh.param("curves_path", curvesPath, std::string(""));
   private_nh.param("angle_path", anglePath, std::string(""));
   private_nh.param("channel_path", channelPath, std::string(""));
@@ -42,7 +43,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   private_nh.param("start_angle", start_angle_, int(0));
   private_nh.param("end_angle", end_angle_, int(360));
 
-  ROS_INFO_STREAM("[cloud][rawdata] lidar model: "<<model);
+  ROS_INFO_STREAM("[cloud][rawdata] lidar model: " << model);
   if (start_angle_ < 0 || start_angle_ > 360 || end_angle_ < 0 || end_angle_ > 360)
   {
     start_angle_ = 0;
@@ -58,17 +59,19 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   if (start_angle_ > end_angle_)
   {
     angle_flag_ = false;
-//    ROS_INFO_STREAM("[cloud][rawdata] Start angle is smaller than end angle, not the normal state!");
+    //    ROS_INFO_STREAM("[cloud][rawdata] Start angle is smaller than end angle, not the normal state!");
   }
 
-  ROS_INFO_STREAM("[cloud][rawdata] start_angle: " << start_angle_ << " end_angle: " << end_angle_ << " angle_flag: " << angle_flag_);
-  start_angle_ = start_angle_*100;
-  end_angle_ = end_angle_*100;
+  ROS_INFO_STREAM("[cloud][rawdata] start_angle: " << start_angle_ << " end_angle: " << end_angle_
+                                                   << " angle_flag: " << angle_flag_);
+  start_angle_ = start_angle_ * 100;
+  end_angle_ = end_angle_ * 100;
 
   private_nh.param("max_distance", max_distance_, 200.0f);
   private_nh.param("min_distance", min_distance_, 0.2f);
 
-  ROS_INFO_STREAM("[cloud][rawdata] distance threshlod, max: " << max_distance_ << " m, min: " << min_distance_<<" m");
+  ROS_INFO_STREAM("[cloud][rawdata] distance threshlod, max: " << max_distance_ << " m, min: " << min_distance_
+                                                               << " m");
 
   intensity_mode_ = 1;
   info_print_flag_ = false;
@@ -84,36 +87,53 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     dis_resolution_mode_ = 1;
   }
 
-  ROS_INFO_STREAM("[cloud][rawdata] initialize resolution type: " << (dis_resolution_mode_?"1 cm":"0.5 cm") << ", intensity mode: " << intensity_mode_);
+  ROS_INFO_STREAM("[cloud][rawdata] initialize resolution type: " << (dis_resolution_mode_ ? "1 cm" : "0.5 cm")
+                                                                  << ", intensity mode: " << intensity_mode_);
 
   if (model == "RS16")
   {
     numOfLasers = 16;
-    R1_ = 0.04638;
+    Rx_ = 0.03825;
+    Ry_ = -0.01088;
+    Rz_ = 0;
   }
   else if (model == "RS32")
   {
     numOfLasers = 32;
     TEMPERATURE_RANGE = 50;
-    R1_ = 0.04583;
+    if (sub_model == "yitian")
+    {
+      Rx_ = 0.01697;
+      Ry_ = -0.0085;
+      Rz_ = 0.12644;
+    }
+    else
+    {
+      Rx_ = 0.03997;
+      Ry_ = -0.01087;
+      Rz_ = 0;
+    }
+  }
+  else
+  {
+    std::cout << "Bad model!" << std::endl;
   }
 
   intensityFactor = 51;
 
-  //return mode default
+  // return mode default
   return_mode_ = 1;
 
-  //lookup table init
+  // lookup table init
   this->cos_lookup_table_.resize(36000);
   this->sin_lookup_table_.resize(36000);
   for (unsigned int i = 0; i < 36000; i++)
   {
-    double rad = RS_TO_RADS(i/100.0f);
+    double rad = RS_TO_RADS(i / 100.0f);
 
     this->cos_lookup_table_[i] = std::cos(rad);
     this->sin_lookup_table_[i] = std::sin(rad);
   }
-
 
   /// 读参数文件 2017-02-27
   FILE* f_inten = fopen(curvesPath.c_str(), "r");
@@ -122,7 +142,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   int loop_num;
   if (!f_inten)
   {
-    ROS_WARN_STREAM("[cloud][rawdata] "<< curvesPath << " does not exist");
+    ROS_WARN_STREAM("[cloud][rawdata] " << curvesPath << " does not exist");
   }
   else
   {
@@ -154,8 +174,9 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
       }
       else if (numOfLasers == 32)
       {
-        int tmp = fscanf(f_inten, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,"
-                                  "%f,%f,%f,%f\n",
+        int tmp = fscanf(f_inten,
+                         "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,"
+                         "%f,%f,%f,%f\n",
                          &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7], &a[8], &a[9], &a[10], &a[11], &a[12],
                          &a[13], &a[14], &a[15], &a[16], &a[17], &a[18], &a[19], &a[20], &a[21], &a[22], &a[23], &a[24],
                          &a[25], &a[26], &a[27], &a[28], &a[29], &a[30], &a[31]);
@@ -182,7 +203,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   FILE* f_angle = fopen(anglePath.c_str(), "r");
   if (!f_angle)
   {
-    ROS_WARN_STREAM("[cloud][rawdata] "<<anglePath << " does not exist");
+    ROS_WARN_STREAM("[cloud][rawdata] " << anglePath << " does not exist");
   }
   else
   {
@@ -208,7 +229,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   FILE* f_channel = fopen(channelPath.c_str(), "r");
   if (!f_channel)
   {
-    ROS_WARN_STREAM("[cloud][rawdata] "<<channelPath << " does not exist");
+    ROS_WARN_STREAM("[cloud][rawdata] " << channelPath << " does not exist");
   }
   else
   {
@@ -230,13 +251,14 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
       }
       else
       {
-        int tmp = fscanf(
-            f_channel, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%"
-                       "d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
-            &c[0], &c[1], &c[2], &c[3], &c[4], &c[5], &c[6], &c[7], &c[8], &c[9], &c[10], &c[11], &c[12], &c[13],
-            &c[14], &c[15], &c[16], &c[17], &c[18], &c[19], &c[20], &c[21], &c[22], &c[23], &c[24], &c[25], &c[26],
-            &c[27], &c[28], &c[29], &c[30], &c[31], &c[32], &c[33], &c[34], &c[35], &c[36], &c[37], &c[38], &c[39],
-            &c[40], &c[41], &c[42], &c[43], &c[44], &c[45], &c[46], &c[47], &c[48], &c[49], &c[50]);
+        int tmp = fscanf(f_channel,
+                         "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%"
+                         "d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
+                         &c[0], &c[1], &c[2], &c[3], &c[4], &c[5], &c[6], &c[7], &c[8], &c[9], &c[10], &c[11], &c[12],
+                         &c[13], &c[14], &c[15], &c[16], &c[17], &c[18], &c[19], &c[20], &c[21], &c[22], &c[23], &c[24],
+                         &c[25], &c[26], &c[27], &c[28], &c[29], &c[30], &c[31], &c[32], &c[33], &c[34], &c[35], &c[36],
+                         &c[37], &c[38], &c[39], &c[40], &c[41], &c[42], &c[43], &c[44], &c[45], &c[46], &c[47], &c[48],
+                         &c[49], &c[50]);
       }
       for (loopl = 0; loopl < TEMPERATURE_RANGE + 1; loopl++)
       {
@@ -256,7 +278,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     FILE* f_curvesRate = fopen(curvesRatePath.c_str(), "r");
     if (!f_curvesRate)
     {
-      ROS_WARN_STREAM("[cloud][rawdata] "<<curvesRatePath << " does not exist");
+      ROS_WARN_STREAM("[cloud][rawdata] " << curvesRatePath << " does not exist");
       for (int i = 0; i < 32; ++i)
       {
         CurvesRate[i] = 1.0;
@@ -294,8 +316,9 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
     return;
   }
 
-  //return mode check
-  if ((data[45] == 0x08 && data[46] == 0x02 && data[47] >= 0x09) || (data[45] > 0x08) || (data[45] == 0x08 && data[46] > 0x02))
+  // return mode check
+  if ((data[45] == 0x08 && data[46] == 0x02 && data[47] >= 0x09) || (data[45] > 0x08) ||
+      (data[45] == 0x08 && data[46] > 0x02))
   {
     is_support_dual_return = true;
     if (data[300] == 0x01 || data[300] == 0x02)
@@ -321,92 +344,92 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
         (data[41] == 0xe9 && data[42] == 0x01 && data[43] == 0x00))
     {
       dis_resolution_mode_ = 1;  // 1cm resolution
-      //std::cout << "The distance resolution is 1cm" << std::endl;
+      // std::cout << "The distance resolution is 1cm" << std::endl;
     }
     else
     {
       dis_resolution_mode_ = 0;  // 0.5cm resolution
-      //std::cout << "The distance resolution is 0.5cm" << std::endl;
+      // std::cout << "The distance resolution is 0.5cm" << std::endl;
     }
     this->is_init_top_fw_ = true;
   }
 
   if (!this->is_init_curve_)
   {
-      bool curve_flag = true;
-      // check difop reigon has beed flashed the right data
-      if ((data[50] == 0x00 || data[50] == 0xff) && (data[51] == 0x00 || data[51] == 0xff) &&
-          (data[52] == 0x00 || data[52] == 0xff) && (data[53] == 0x00 || data[53] == 0xff))
-      {
-        curve_flag = false;
-      }
+    bool curve_flag = true;
+    // check difop reigon has beed flashed the right data
+    if ((data[50] == 0x00 || data[50] == 0xff) && (data[51] == 0x00 || data[51] == 0xff) &&
+        (data[52] == 0x00 || data[52] == 0xff) && (data[53] == 0x00 || data[53] == 0xff))
+    {
+      curve_flag = false;
+    }
 
-      // TODO check why rsview here no 32 laser, be more careful the new, old version
-      // Init curves
-      if (curve_flag)
+    // TODO check why rsview here no 32 laser, be more careful the new, old version
+    // Init curves
+    if (curve_flag)
+    {
+      unsigned char checkbit;
+      int bit1, bit2;
+      for (int loopn = 0; loopn < numOfLasers; ++loopn)
       {
-        unsigned char checkbit;
-        int bit1, bit2;
-        for (int loopn = 0; loopn < numOfLasers; ++loopn)
+        // check the curves' parameter in difop
+        checkbit = *(data + 50 + loopn * 15) ^ *(data + 50 + loopn * 15 + 1);
+        for (int loopm = 1; loopm < 7; ++loopm)
         {
-          // check the curves' parameter in difop
-          checkbit = *(data + 50 + loopn * 15) ^ *(data + 50 + loopn * 15 + 1);
-          for (int loopm = 1; loopm < 7; ++loopm)
-          {
-            checkbit = checkbit ^ (*(data + 50 + loopn * 15 + loopm * 2)) ^ (*(data + 50 + loopn * 15 + loopm * 2 + 1));
-          }
-          if (checkbit != *(data + 50 + loopn * 15 + 14))
-          {
-            return;
-          }
+          checkbit = checkbit ^ (*(data + 50 + loopn * 15 + loopm * 2)) ^ (*(data + 50 + loopn * 15 + loopm * 2 + 1));
         }
-        for (int loopn = 0; loopn < numOfLasers; ++loopn)
+        if (checkbit != *(data + 50 + loopn * 15 + 14))
         {
-          // calculate curves' parameters
-          bit1 = static_cast<int>(*(data + 50 + loopn * 15));
-          bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 1));
-          aIntensityCal[0][loopn] = (bit1 * 256 + bit2) * 0.001;
-          bit1 = static_cast<int>(*(data + 50 + loopn * 15 + 2));
-          bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 3));
-          aIntensityCal[1][loopn] = (bit1 * 256 + bit2) * 0.001;
-          bit1 = static_cast<int>(*(data + 50 + loopn * 15 + 4));
-          bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 5));
-          aIntensityCal[2][loopn] = (bit1 * 256 + bit2) * 0.001;
-          bit1 = static_cast<int>(*(data + 50 + loopn * 15 + 6));
-          bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 7));
-          aIntensityCal[3][loopn] = (bit1 * 256 + bit2) * 0.001;
-          bit1 = static_cast<int>(*(data + 50 + loopn * 15 + 8));
-          bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 9));
-          aIntensityCal[4][loopn] = (bit1 * 256 + bit2) * 0.00001;
-          bit1 = static_cast<int>(*(data + 50 + loopn * 15 + 10));
-          bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 11));
-          aIntensityCal[5][loopn] = -(bit1 * 256 + bit2) * 0.0001;
-          bit1 = static_cast<int>(*(data + 50 + loopn * 15 + 12));
-          bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 13));
-          aIntensityCal[6][loopn] = (bit1 * 256 + bit2) * 0.001;
+          return;
         }
-        this->is_init_curve_ = true;
-        ROS_INFO_STREAM("[cloud][rawdata] curves data is wrote in difop packet!");
-        Curvesis_new = true;
       }
+      for (int loopn = 0; loopn < numOfLasers; ++loopn)
+      {
+        // calculate curves' parameters
+        bit1 = static_cast<int>(*(data + 50 + loopn * 15));
+        bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 1));
+        aIntensityCal[0][loopn] = (bit1 * 256 + bit2) * 0.001;
+        bit1 = static_cast<int>(*(data + 50 + loopn * 15 + 2));
+        bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 3));
+        aIntensityCal[1][loopn] = (bit1 * 256 + bit2) * 0.001;
+        bit1 = static_cast<int>(*(data + 50 + loopn * 15 + 4));
+        bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 5));
+        aIntensityCal[2][loopn] = (bit1 * 256 + bit2) * 0.001;
+        bit1 = static_cast<int>(*(data + 50 + loopn * 15 + 6));
+        bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 7));
+        aIntensityCal[3][loopn] = (bit1 * 256 + bit2) * 0.001;
+        bit1 = static_cast<int>(*(data + 50 + loopn * 15 + 8));
+        bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 9));
+        aIntensityCal[4][loopn] = (bit1 * 256 + bit2) * 0.00001;
+        bit1 = static_cast<int>(*(data + 50 + loopn * 15 + 10));
+        bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 11));
+        aIntensityCal[5][loopn] = -(bit1 * 256 + bit2) * 0.0001;
+        bit1 = static_cast<int>(*(data + 50 + loopn * 15 + 12));
+        bit2 = static_cast<int>(*(data + 50 + loopn * 15 + 13));
+        aIntensityCal[6][loopn] = (bit1 * 256 + bit2) * 0.001;
+      }
+      this->is_init_curve_ = true;
+      ROS_INFO_STREAM("[cloud][rawdata] curves data is wrote in difop packet!");
+      Curvesis_new = true;
+    }
 
-      if ((data[290] != 0x00) && (data[290] != 0xff))
-      {
-        intensityFactor = static_cast<int>(*(data + 290));  // intensity factor introduced since than 20181115
-      }
+    if ((data[290] != 0x00) && (data[290] != 0xff))
+    {
+      intensityFactor = static_cast<int>(*(data + 290));  // intensity factor introduced since than 20181115
+    }
 
-      if ((data[291] == 0x00) || (data[291] == 0xff) || (data[291] == 0xa1))
-      {
-        intensity_mode_ = 1;  // mode for the top firmware lower than T6R23V8(16) or T9R23V6(32)
-      }
-      else if (data[291] == 0xb1)
-      {
-        intensity_mode_ = 2;  // mode for the top firmware higher than T6R23V8(16) or T9R23V6(32)
-      }
-      else if (data[291] == 0xc1)
-      {
-        intensity_mode_ = 3;  // mode for the top firmware higher than T6R23V9
-      }
+    if ((data[291] == 0x00) || (data[291] == 0xff) || (data[291] == 0xa1))
+    {
+      intensity_mode_ = 1;  // mode for the top firmware lower than T6R23V8(16) or T9R23V6(32)
+    }
+    else if (data[291] == 0xb1)
+    {
+      intensity_mode_ = 2;  // mode for the top firmware higher than T6R23V8(16) or T9R23V6(32)
+    }
+    else if (data[291] == 0xc1)
+    {
+      intensity_mode_ = 3;  // mode for the top firmware higher than T6R23V9
+    }
   }
 
   if (!this->is_init_angle_)
@@ -431,7 +454,7 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
           angle_flag = false;
         }
       }
-     
+
       // angle
       if (angle_flag)
       {
@@ -462,7 +485,7 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
         {
           for (int loopn = 0; loopn < 32; ++loopn)
           {
-            //vertical angle
+            // vertical angle
             bit1 = static_cast<int>(*(data + 468 + loopn * 3));
             if (bit1 == 0)
               symbolbit = 1;
@@ -470,9 +493,9 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
               symbolbit = -1;
             bit2 = static_cast<int>(*(data + 468 + loopn * 3 + 1));
             bit3 = static_cast<int>(*(data + 468 + loopn * 3 + 2));
-            VERT_ANGLE[loopn] = (bit2 * 256 + bit3) * symbolbit * 0.001f*100;
-            
-            //horizontal offset angle
+            VERT_ANGLE[loopn] = (bit2 * 256 + bit3) * symbolbit * 0.001f * 100;
+
+            // horizontal offset angle
             bit1 = static_cast<int>(*(data + 564 + loopn * 3));
             if (bit1 == 0)
               symbolbit = 1;
@@ -483,7 +506,7 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
             HORI_ANGLE[loopn] = (bit2 * 256 + bit3) * symbolbit * 0.001f * 100;
           }
         }
-        
+
         this->is_init_angle_ = true;
         ROS_INFO_STREAM("[cloud][rawdata] angle data is wrote in difop packet!");
       }
@@ -494,7 +517,7 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
   {
     info_print_flag_ = true;
 
-    //print info
+    // print info
     float prin_dis;
     if (dis_resolution_mode_ == 0)
     {
@@ -504,7 +527,8 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
     {
       prin_dis = 1;
     }
-    ROS_INFO_STREAM("[cloud][rawdata] distance resolution is: " << prin_dis << " cm, intensity mode is: Mode " << intensity_mode_);
+    ROS_INFO_STREAM("[cloud][rawdata] distance resolution is: " << prin_dis << " cm, intensity mode is: Mode "
+                                                                << intensity_mode_);
     if (is_support_dual_return == false)
     {
       ROS_INFO_STREAM("[cloud][rawdata] lidar only support single return wave!");
@@ -784,7 +808,7 @@ int RawData::estimateTemperature(float Temper)
  */
 void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud)
 {
-  //check pkt header
+  // check pkt header
   if (pkt.data[0] != 0x55 || pkt.data[1] != 0xAA || pkt.data[2] != 0x05 || pkt.data[3] != 0x0A)
   {
     return;
@@ -875,9 +899,9 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
           distance2 = distance2 * DISTANCE_RESOLUTION;
         }
 
-        int arg_horiz = (azimuth_corrected +36000)%36000;
+        int arg_horiz = (azimuth_corrected + 36000) % 36000;
         int arg_horiz_orginal = arg_horiz;
-        int arg_vert = ((VERT_ANGLE[dsr])%36000+36000)%36000;
+        int arg_vert = ((VERT_ANGLE[dsr]) % 36000 + 36000) % 36000;
 
         pcl::PointXYZI point;
 
@@ -895,11 +919,11 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
         {
           // If you want to fix the rslidar X aixs to the front side of the cable, please use the two line below
 
-          point.x = distance2 * this->cos_lookup_table_[arg_vert] * this->cos_lookup_table_[arg_horiz]
-              + R1_ * this->cos_lookup_table_[arg_horiz_orginal];
-          point.y = -distance2 * this->cos_lookup_table_[arg_vert] * this->sin_lookup_table_[arg_horiz]
-              - R1_ * this->sin_lookup_table_[arg_horiz_orginal];
-          point.z = distance2 * this->sin_lookup_table_[arg_vert];
+          point.x = distance2 * this->cos_lookup_table_[arg_vert] * this->cos_lookup_table_[arg_horiz] +
+                    Rx_ * this->cos_lookup_table_[arg_horiz_orginal];
+          point.y = -distance2 * this->cos_lookup_table_[arg_vert] * this->sin_lookup_table_[arg_horiz] -
+                    Rx_ * this->sin_lookup_table_[arg_horiz_orginal];
+          point.z = distance2 * this->sin_lookup_table_[arg_vert] + Rz_;
           point.intensity = intensity;
           pointcloud->at(2 * this->block_num + firing, dsr) = point;
         }
@@ -917,7 +941,6 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
   int azimuth_corrected;
 
   const raw_packet_t* raw = (const raw_packet_t*)&pkt.data[42];
-
 
   for (int block = 0; block < BLOCKS_PER_PACKET; block++, this->block_num++)  // 1 packet:12 data blocks
   {
@@ -942,10 +965,10 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
 
     int azi1, azi2;
     if (0 == return_mode_)
-    {//dual return mode
+    {                                       // dual return mode
       if (block < (BLOCKS_PER_PACKET - 2))  // 12
       {
-        azi1 = 256 * raw->blocks[block+2].rotation_1 + raw->blocks[block+2].rotation_2;
+        azi1 = 256 * raw->blocks[block + 2].rotation_1 + raw->blocks[block + 2].rotation_2;
         azi2 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
       }
       else
@@ -999,7 +1022,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
 
         int arg_horiz_orginal = azimuth_corrected_f;
         int arg_horiz = azimuth_corrected;
-        int arg_vert = ((VERT_ANGLE[dsr])%36000+36000)%36000;
+        int arg_vert = ((VERT_ANGLE[dsr]) % 36000 + 36000) % 36000;
         pcl::PointXYZI point;
 
         if (distance2 > max_distance_ || distance2 < min_distance_ ||
@@ -1014,13 +1037,12 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         }
         else
         {
-
           // If you want to fix the rslidar X aixs to the front side of the cable, please use the two line below
-          point.x = distance2 * this->cos_lookup_table_[arg_vert] * this->cos_lookup_table_[arg_horiz]
-              + R1_ * this->cos_lookup_table_[arg_horiz_orginal];
-          point.y = -distance2 * this->cos_lookup_table_[arg_vert] * this->sin_lookup_table_[arg_horiz]
-              - R1_ * this->sin_lookup_table_[arg_horiz_orginal];
-          point.z = distance2 * this->sin_lookup_table_[arg_vert];
+          point.x = distance2 * this->cos_lookup_table_[arg_vert] * this->cos_lookup_table_[arg_horiz] +
+                    Rx_ * this->cos_lookup_table_[arg_horiz_orginal];
+          point.y = -distance2 * this->cos_lookup_table_[arg_vert] * this->sin_lookup_table_[arg_horiz] -
+                    Rx_ * this->sin_lookup_table_[arg_horiz_orginal];
+          point.z = distance2 * this->sin_lookup_table_[arg_vert] + Rz_;
           point.intensity = intensity;
           pointcloud->at(this->block_num, dsr) = point;
         }
@@ -1078,7 +1100,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
 
         int arg_horiz_orginal = azimuth_corrected_f;
         int arg_horiz = azimuth_corrected;
-        int arg_vert = ((VERT_ANGLE[dsr])%36000+36000)%36000;
+        int arg_vert = ((VERT_ANGLE[dsr]) % 36000 + 36000) % 36000;
 
         pcl::PointXYZI point;
 
@@ -1095,11 +1117,11 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         else
         {
           // If you want to fix the rslidar X aixs to the front side of the cable, please use the two line below
-          point.x = distance2 * this->cos_lookup_table_[arg_vert] * this->cos_lookup_table_[arg_horiz]
-              + R1_ * this->cos_lookup_table_[arg_horiz_orginal];
-          point.y = -distance2 * this->cos_lookup_table_[arg_vert] * this->sin_lookup_table_[arg_horiz]
-              - R1_ * this->sin_lookup_table_[arg_horiz_orginal];
-          point.z = distance2 * this->sin_lookup_table_[arg_vert];
+          point.x = distance2 * this->cos_lookup_table_[arg_vert] * this->cos_lookup_table_[arg_horiz] +
+                    Rx_ * this->cos_lookup_table_[arg_horiz_orginal];
+          point.y = -distance2 * this->cos_lookup_table_[arg_vert] * this->sin_lookup_table_[arg_horiz] -
+                    Rx_ * this->sin_lookup_table_[arg_horiz_orginal];
+          point.z = distance2 * this->sin_lookup_table_[arg_vert] + Rz_;
           point.intensity = intensity;
           pointcloud->at(this->block_num, dsr) = point;
         }
@@ -1108,4 +1130,4 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
   }
 }
 
-}  // namespace rs_pointcloud
+}  // namespace rslidar_rawdata

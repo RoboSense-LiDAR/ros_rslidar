@@ -68,7 +68,7 @@ static const float RL32_FIRING_TOFFSET = 50.0f;   // [µs]
 
 static const int TEMPERATURE_MIN = 31;
 
-#define RS_TO_RADS(x)         ((x)*(M_PI)/180)
+#define RS_TO_RADS(x) ((x) * (M_PI) / 180)
 /** \brief Raw rslidar data block.
  *
  *  Each block contains data from either the upper or lower laser
@@ -170,7 +170,9 @@ public:
   int intensityFactor;
 
 private:
-  float R1_;
+  float Rx_;  // the optical center position in the lidar coordination in x direction
+  float Ry_;  // the optical center position in the lidar coordination in y direction, for now not used
+  float Rz_;  // the optical center position in the lidar coordination in z direction
   bool angle_flag_;
   int start_angle_;
   int end_angle_;

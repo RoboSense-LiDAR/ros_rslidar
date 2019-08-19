@@ -1020,7 +1020,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         float distance2 = pixelToDistance(distance, dsr);
         distance2 = distance2 * DISTANCE_RESOLUTION_NEW;
 
-        int arg_horiz_orginal = azimuth_corrected_f;
+        int arg_horiz_orginal = (int)azimuth_corrected_f % 36000;
         int arg_horiz = azimuth_corrected;
         int arg_vert = ((VERT_ANGLE[dsr]) % 36000 + 36000) % 36000;
         pcl::PointXYZI point;
@@ -1098,7 +1098,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         float distance2 = pixelToDistance(distance, dsr);
         distance2 = distance2 * DISTANCE_RESOLUTION;
 
-        int arg_horiz_orginal = azimuth_corrected_f;
+        int arg_horiz_orginal = (int)azimuth_corrected_f % 36000;
         int arg_horiz = azimuth_corrected;
         int arg_vert = ((VERT_ANGLE[dsr]) % 36000 + 36000) % 36000;
 

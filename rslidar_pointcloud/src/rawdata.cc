@@ -222,6 +222,12 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
       VERT_ANGLE[loopn] = b[loopn] * 100;
       HORI_ANGLE[loopn] = d[loopn] * 100;
     }
+
+    if (numOfLasers == 16)
+    {
+      memset(HORI_ANGLE, 0, sizeof(HORI_ANGLE));
+    }
+
     fclose(f_angle);
   }
 

@@ -25,4 +25,9 @@ include_directories(${catkin_INCLUDE_DIRS}
 )
 
 generate_dynamic_reconfigure_options(cfg/CloudNode.cfg)
+
+catkin_package(
+        CATKIN_DEPENDS ${${PROJECT_NAME}_CATKIN_DEPS}
+)
+
 add_subdirectory(src)

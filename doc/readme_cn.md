@@ -60,18 +60,18 @@ roslaunch rslidar_pointcloud cloud_nodelet.launch
 
 ### 3.参数说明
 雷达有一些参数需要设置，需要通过launch文件进行传递。
-* model: 指定雷达类型。目前两个选项 RS32 和 RS16 分别指32线和16线雷达
+* model: 指定雷达类型。目前三个选项 RS32、RS16 和RSBPEARL，分别指32线、16线、补盲雷达
 * device_ip：雷达ip
 * msop_port：MSOP数据包接收端口
 * difop_port：DIFOP数据包接收端口
-* lidar_param_path：雷达静态量文件存放位置
+* lidar_param_path：雷达标定参数文件存放位置
 * pcap：要解析的pcap包存放路径。注意指定此参数，则驱动就不会接收从雷达发出的数据
-* curves_path：指定静态文件curves.csv完整路径
-* angle_path：指定静态文件angle.csv完整路径
-* channel_path：指定静态文件ChannelNum.csv完整路径
-* curves_rate_path：指定静态文件CurveRate.csv完整路径
+* curves_path：指定反射率标定文件curves.csv完整路径。针对intensity_mode为1和2。
+* angle_path：指定角度标定文件angle.csv完整路径
+* channel_path：指定距离补偿文件ChannelNum.csv完整路径。一般使用默认全0参数即可。
+* curves_rate_path：指定反射率洗漱标定文件CurveRate.csv完整路径。一般不需要
 * max_distance：指定点云距离上限
 * min_distance：指定点云距离下限
-* resolution_type：指定雷达精度类型，"0.5cm" 和 "1cm" 二选一
+* resolution_type：指定雷达距离解析分辨类型，"0.5cm" 和 "1cm" 二选一
 * intensity_mode：指定雷达反射率模式，分别为1,2,3 三选一
 * cut_angle：采用角度分帧方式

@@ -35,7 +35,6 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   std::string sub_model;
   std::string resolution_param;
   private_nh.param("model", model, std::string("RS16"));
-  private_nh.param("sub_model", sub_model, std::string(""));
   private_nh.param("curves_path", curvesPath, std::string(""));
   private_nh.param("angle_path", anglePath, std::string(""));
   private_nh.param("channel_path", channelPath, std::string(""));
@@ -73,7 +72,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   ROS_INFO_STREAM("[cloud][rawdata] distance threshlod, max: " << max_distance_ << " m, min: " << min_distance_
                                                                << " m");
 
-  intensity_mode_ = 1;
+  intensity_mode_ = 3;
   info_print_flag_ = false;
   private_nh.param("resolution_type", resolution_param, std::string("0.5cm"));
   private_nh.param("intensity_mode", intensity_mode_, 1);
@@ -101,18 +100,17 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
   {
     numOfLasers = 32;
     TEMPERATURE_RANGE = 50;
-    if (sub_model == "yitian")
-    {
-      Rx_ = 0.01697;
-      Ry_ = -0.0085;
-      Rz_ = 0.12644;
-    }
-    else
-    {
-      Rx_ = 0.03997;
-      Ry_ = -0.01087;
-      Rz_ = 0;
-    }
+    Rx_ = 0.03997;
+    Ry_ = -0.01087;
+    Rz_ = 0;
+  }
+  else if(model == "RSBPEARL")
+  {
+    numOfLasers = 32;
+    TEMPERATURE_RANGE = 50;
+    Rx_ = 0.01697;
+    Ry_ = -0.0085;
+    Rz_ = 0.12644;
   }
   else
   {

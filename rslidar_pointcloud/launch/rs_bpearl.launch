@@ -1,0 +1,30 @@
+<launch>
+  <arg name="model" default="RSBPEARL" />
+  <arg name="device_ip" default="192.168.1.200" />
+  <arg name="msop_port" default="6699" />
+  <arg name="difop_port" default="7788" />
+  <arg name="cut_angle" default="0" doc="If set at [0, 360), cut at specific angle feature activated, otherwise use the fixed packets number mode."/>
+  <arg name="lidar_param_path" default="$(find rslidar_pointcloud)/data/rs_bpearl/"/>
+
+  <node  name="rslidar_node" pkg="rslidar_driver" type="rslidar_node" output="screen" >
+    <param name="model" value="$(arg model)"/>
+    <param name="device_ip" value="$(arg device_ip)" />
+    <param name="msop_port" value="$(arg msop_port)" />
+    <param name="difop_port" value="$(arg difop_port)"/>
+    <param name="cut_angle" value="$(arg cut_angle)"/>
+    <!--param name="pcap" value="path_to_pcap"/-->
+  </node>
+
+  <node  name="cloud_node" pkg="rslidar_pointcloud" type="cloud_node" output="screen" >
+    <param name="model" value="$(arg model)"/>
+    <param name="angle_path" value="$(arg lidar_param_path)/angle.csv" />
+    <param name="channel_path" value="$(arg lidar_param_path)/ChannelNum.csv" />
+    <param name="max_distance" value="150"/>
+    <param name="min_distance" value="0.1"/>
+    <param name="resolution_type" value="0.5cm"/>
+    <param name="intensity_mode" value="3"/>
+  </node>
+
+  <node name="rviz" pkg="rviz" type="rviz"  args="-d $(find rslidar_pointcloud)/rviz_cfg/rslidar.rviz" />
+
+</launch>

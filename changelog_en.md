@@ -37,4 +37,13 @@ first release for mutil node version
 * 10.Normalize the code
 * 11.Add the horizontal angle framing code
 
+### V4.1.0(2019-09-11)
+---
+* 1.Fix bug: fix the packet_rate calculation bug for different return mode.
+* 2.Add the function for reading the calibrated angle from difop of RS32.
+* 3.Update the log format to make it more clear to know the source of the information.
+* 4.Change the trigonometric function calculation to look-up table, this can improve the code performance efficiency.
+* 5.Change the coordinate transformation compensation for different lidars.
+* 6.Change the scan split way to angle by default. Change the packet_rate value corresponding to 18K sampling rate.
+* 7.Add RSBPEARL configuration support.
 

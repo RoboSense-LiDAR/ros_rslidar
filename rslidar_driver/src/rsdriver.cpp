@@ -17,7 +17,7 @@
 
 namespace rslidar_driver
 {
-  static const unsigned int POINTS_ONE_CHANNEL_PER_SECOND = 20000;
+  static const unsigned int POINTS_ONE_CHANNEL_PER_SECOND = 18000;
   static const unsigned int BLOCKS_ONE_CHANNEL_PER_PKT = 12;
 
 rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
@@ -51,6 +51,11 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
     //for 0.2 degree horizontal angle resolution
     packet_rate = 1500;
     model_full_name = "RS-LiDAR-32";
+  }
+  else if (config_.model == "RSBPEARL")
+  {
+    packet_rate = 1500;
+    model_full_name = "RSBPEARL";
   }
   else
   {
@@ -209,7 +214,7 @@ bool rslidarDriver::poll(void)
       {
         packets_rate = ceil(packets_rate/2);
       }
-      else if (config_.model == "RS32" && (mode == 0))
+      else if ((config_.model == "RS32" || config_.model == "RSBPEARL") && (mode == 0))
       {
         packets_rate = packets_rate*2;
       }

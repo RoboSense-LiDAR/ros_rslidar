@@ -63,7 +63,7 @@ void Convert::processScan(const rslidar_msgs::rslidarScan::ConstPtr& scanMsg)
     outPoints->is_dense = false;
     outPoints->resize(outPoints->height * outPoints->width);
   }
-  else if (model == "RS32")
+  else if (model == "RS32" || model == "RSBPEARL")
   {
     outPoints->height = 32;
     outPoints->width = 12 * (int)scanMsg->packets.size();

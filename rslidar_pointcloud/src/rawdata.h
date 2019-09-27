@@ -181,6 +181,7 @@ private:
   int dis_resolution_mode_;
   int return_mode_;
   bool info_print_flag_;
+  bool isBpearlLidar_;
 
   /* cos/sin lookup table */
   std::vector<double> cos_lookup_table_;

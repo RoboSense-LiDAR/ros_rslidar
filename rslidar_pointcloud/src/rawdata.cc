@@ -103,6 +103,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     Rx_ = 0.03997;
     Ry_ = -0.01087;
     Rz_ = 0;
+    isBpearlLidar_ = false;
   }
   else if(model == "RSBPEARL")
   {
@@ -111,6 +112,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     Rx_ = 0.01697;
     Ry_ = -0.0085;
     Rz_ = 0.12644;
+    isBpearlLidar_ = true;
   }
   else
   {
@@ -497,8 +499,10 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
               symbolbit = -1;
             bit2 = static_cast<int>(*(data + 468 + loopn * 3 + 1));
             bit3 = static_cast<int>(*(data + 468 + loopn * 3 + 2));
-            VERT_ANGLE[loopn] = (bit2 * 256 + bit3) * symbolbit * 0.001f * 100;
-
+            if (isBpearlLidar_)
+              VERT_ANGLE[loopn] = (bit2 * 256 + bit3) * symbolbit * 0.01f * 100;
+            else
+              VERT_ANGLE[loopn] = (bit2 * 256 + bit3) * symbolbit * 0.001f * 100;
             // horizontal offset angle
             bit1 = static_cast<int>(*(data + 564 + loopn * 3));
             if (bit1 == 0)

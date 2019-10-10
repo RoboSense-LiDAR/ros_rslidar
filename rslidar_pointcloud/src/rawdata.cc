@@ -114,6 +114,15 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     Rz_ = 0.12644;
     isBpearlLidar_ = true;
   }
+  else if(model == "RSBPEARL_MINI")
+  {
+    numOfLasers = 32;
+    TEMPERATURE_RANGE = 50;
+    Rx_ = 0.01473;
+    Ry_ = 0.0085;
+    Rz_ = 0.09427;
+    isBpearlLidar_ = true;
+  }
   else
   {
     std::cout << "Bad model!" << std::endl;

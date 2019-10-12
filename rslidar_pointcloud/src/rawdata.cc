@@ -114,7 +114,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     Rz_ = 0.12644;
     isBpearlLidar_ = true;
   }
-  else if(model == "RSBPEARL_MINI")
+  else if (model == "RSBPEARL_MINI")
   {
     numOfLasers = 32;
     TEMPERATURE_RANGE = 50;

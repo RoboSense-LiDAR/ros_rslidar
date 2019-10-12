@@ -57,6 +57,11 @@ rslidarDriver::rslidarDriver(ros::NodeHandle node, ros::NodeHandle private_nh)
     packet_rate = 1500;
     model_full_name = "RSBPEARL";
   }
+  else if (config_.model == "RSBPEARL_MINI")
+  {
+    packet_rate = 1500;
+    model_full_name = "RSBPEARL_MINI";
+  }
   else
   {
     ROS_ERROR_STREAM("[driver] unknown LIDAR model: " << config_.model);
@@ -214,7 +219,7 @@ bool rslidarDriver::poll(void)
       {
         packets_rate = ceil(packets_rate/2);
       }
-      else if ((config_.model == "RS32" || config_.model == "RSBPEARL") && (mode == 0))
+      else if ((config_.model == "RS32" || config_.model == "RSBPEARL" || config_.model == "RSBPEARL_MINI") && (mode == 0))
       {
         packets_rate = packets_rate*2;
       }

@@ -95,6 +95,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     Rx_ = 0.03825;
     Ry_ = -0.01088;
     Rz_ = 0;
+    azimuth_diff_max_ = 36;
   }
   else if (model == "RS32")
   {
@@ -104,6 +105,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     Ry_ = -0.01087;
     Rz_ = 0;
     isBpearlLidar_ = false;
+    azimuth_diff_max_ = 18;
   }
   else if(model == "RSBPEARL")
   {
@@ -113,6 +115,7 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     Ry_ = -0.0085;
     Rz_ = 0.12644;
     isBpearlLidar_ = true;
+    azimuth_diff_max_ = 20;
   }
   else if (model == "RSBPEARL_MINI")
   {
@@ -122,11 +125,14 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     Ry_ = 0.0085;
     Rz_ = 0.09427;
     isBpearlLidar_ = true;
+    azimuth_diff_max_ = 20;
   }
   else
   {
     std::cout << "Bad model!" << std::endl;
   }
+
+  rpm_ = 600;
 
   intensityFactor = 51;
 
@@ -331,6 +337,14 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
     return;
   }
 
+  uint16_t save_rpm = rpm_;
+  rpm_ = data[8]*256+data[9];
+  if (save_rpm != rpm_)
+  {
+    azimuth_diff_max_ = azimuth_diff_max_*rpm_/save_rpm;
+  }
+
+  // uint8_t save_return_mode = return_mode_;
   // return mode check
   if ((data[45] == 0x08 && data[46] == 0x02 && data[47] >= 0x09) || (data[45] > 0x08) ||
       (data[45] == 0x08 && data[46] > 0x02))
@@ -445,6 +459,7 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
     {
       intensity_mode_ = 3;  // mode for the top firmware higher than T6R23V9
     }
+    
   }
 
   if (!this->is_init_angle_)
@@ -565,6 +580,8 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
         ROS_INFO_STREAM("[cloud][rawdata] lidar support dual return wave, the current mode is: last");
       }
     }
+
+    ROS_INFO_STREAM("[cloud][rawdata] difop intensity mode: "<<intensity_mode_);
   }
 }
 
@@ -595,7 +612,7 @@ int RawData::correctAzimuth(float azimuth_f, int passageway)
     azimuth_f = azimuth_f + HORI_ANGLE[passageway];
   }
   azimuth = (int)azimuth_f;
-  azimuth %= 36000;
+  azimuth = ((azimuth%36000)+36000)%36000;
 
   return azimuth;
 }
@@ -864,20 +881,27 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
 
     azimuth = (float)(256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2);
 
+    int azi1, azi2;
     if (block < (BLOCKS_PER_PACKET - 1))  // 12
     {
-      int azi1, azi2;
+      // int azi1, azi2;
       azi1 = 256 * raw->blocks[block + 1].rotation_1 + raw->blocks[block + 1].rotation_2;
       azi2 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
       azimuth_diff = (float)((36000 + azi1 - azi2) % 36000);
     }
     else
     {
-      int azi1, azi2;
+      
       azi1 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
       azi2 = 256 * raw->blocks[block - 1].rotation_1 + raw->blocks[block - 1].rotation_2;
-      azimuth_diff = (float)((36000 + azi1 - azi2) % 36000);
+      
     }
+    uint16_t diff = (36000 + azi1 - azi2) % 36000;
+    if (diff > azimuth_diff_max_)
+    {
+      diff = azimuth_diff_max_;
+    }
+    azimuth_diff = (float)(diff);
 
     for (int firing = 0, k = 0; firing < RS16_FIRINGS_PER_BLOCK; firing++)  // 2
     {
@@ -1007,7 +1031,12 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
         azi2 = 256 * raw->blocks[block - 1].rotation_1 + raw->blocks[block - 1].rotation_2;
       }
     }
-    azimuth_diff = (float)((36000 + azi1 - azi2) % 36000);
+    uint16_t diff = (36000 + azi1 - azi2) % 36000;
+    if (diff > azimuth_diff_max_)
+    {
+      diff = azimuth_diff_max_;
+    }
+    azimuth_diff = (float)(diff);
 
     if (dis_resolution_mode_ == 0)  // distance resolution is 0.5cm and delete the AB packet mechanism
     {

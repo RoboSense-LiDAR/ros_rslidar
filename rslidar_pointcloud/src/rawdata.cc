@@ -95,7 +95,6 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     Rx_ = 0.03825;
     Ry_ = -0.01088;
     Rz_ = 0;
-    azimuth_diff_max_ = 36;
   }
   else if (model == "RS32")
   {
@@ -105,7 +104,6 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     Ry_ = -0.01087;
     Rz_ = 0;
     isBpearlLidar_ = false;
-    azimuth_diff_max_ = 18;
   }
   else if(model == "RSBPEARL")
   {
@@ -115,7 +113,6 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     Ry_ = -0.0085;
     Rz_ = 0.12644;
     isBpearlLidar_ = true;
-    azimuth_diff_max_ = 20;
   }
   else if (model == "RSBPEARL_MINI")
   {
@@ -125,14 +122,11 @@ void RawData::loadConfigFile(ros::NodeHandle node, ros::NodeHandle private_nh)
     Ry_ = 0.0085;
     Rz_ = 0.09427;
     isBpearlLidar_ = true;
-    azimuth_diff_max_ = 20;
   }
   else
   {
     std::cout << "Bad model!" << std::endl;
   }
-
-  rpm_ = 600;
 
   intensityFactor = 51;
 
@@ -335,13 +329,6 @@ void RawData::processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_ms
   if (data[0] != 0xa5 || data[1] != 0xff || data[2] != 0x00 || data[3] != 0x5a)
   {
     return;
-  }
-
-  uint16_t save_rpm = rpm_;
-  rpm_ = data[8]*256+data[9];
-  if (save_rpm != rpm_)
-  {
-    azimuth_diff_max_ = azimuth_diff_max_*rpm_/save_rpm;
   }
 
   // uint8_t save_return_mode = return_mode_;
@@ -887,7 +874,6 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
       // int azi1, azi2;
       azi1 = 256 * raw->blocks[block + 1].rotation_1 + raw->blocks[block + 1].rotation_2;
       azi2 = 256 * raw->blocks[block].rotation_1 + raw->blocks[block].rotation_2;
-      azimuth_diff = (float)((36000 + azi1 - azi2) % 36000);
     }
     else
     {
@@ -897,9 +883,9 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
       
     }
     uint16_t diff = (36000 + azi1 - azi2) % 36000;
-    if (diff > azimuth_diff_max_)
+    if (diff > 100)  //to avoid when the lidar is set to specific FOV that cause the big difference between angle
     {
-      diff = azimuth_diff_max_;
+      diff = 0;
     }
     azimuth_diff = (float)(diff);
 
@@ -1032,9 +1018,9 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
       }
     }
     uint16_t diff = (36000 + azi1 - azi2) % 36000;
-    if (diff > azimuth_diff_max_)
+    if (diff > 100)  //to avoid when the lidar is set to specific FOV that cause the big difference between angle
     {
-      diff = azimuth_diff_max_;
+      diff = 0;
     }
     azimuth_diff = (float)(diff);
 

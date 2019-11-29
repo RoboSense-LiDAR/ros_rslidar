@@ -47,3 +47,7 @@ first release for mutil node version
 * 6.Change the scan split way to angle by default. Change the packet_rate value corresponding to 18K sampling rate.
 * 7.Add RSBPEARL configuration support.
 
+### V4.1.1(2019-11-29)
+---
+* 1. Fix bug: fix the angle parsing bug for BPearl
+* 2. Fix bug: fix the angle difference error when we set the specific FOV of LiDAR

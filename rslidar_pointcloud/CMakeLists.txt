@@ -31,3 +31,6 @@ catkin_package(
 )
 
 add_subdirectory(src)
+
+install(DIRECTORY launch data rviz_cfg
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

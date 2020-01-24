@@ -15,16 +15,31 @@
 */
 #include "convert.h"
 #include <pcl_conversions/pcl_conversions.h>
+#include <eigen_conversions/eigen_msg.h>
 
 namespace rslidar_pointcloud
 {
 std::string model;
 
 /** @brief Constructor. */
-Convert::Convert(ros::NodeHandle node, ros::NodeHandle private_nh) : data_(new rslidar_rawdata::RawData())
+Convert::Convert(ros::NodeHandle node, ros::NodeHandle private_nh) :
+    data_(new rslidar_rawdata::RawData()),
+    tf_buffer_(),
+    tf_listener_(tf_buffer_)
 {
   data_->loadConfigFile(node, private_nh);  // load lidar parameters
   private_nh.param("model", model, std::string("RS16"));
+  private_nh.param("compensate_motion", compensate_motion_, false);
+  private_nh.param("fixed_frame", fixed_frame_, std::string(""));
+
+  ROS_INFO_STREAM("[cloud][convert] compensate motion: " << compensate_motion_);
+  if (compensate_motion_) {
+    if (fixed_frame_.empty()) {
+      ROS_ERROR_STREAM("[cloud][convert] Motion compensation enabled but got empty fixed frame id");
+    } else {
+      ROS_INFO_STREAM("[cloud][convert] fixed frame: " << fixed_frame_);
+    }
+  }
 
   // advertise output point cloud (before subscribing to input data)
   std::string output_points_topic;
@@ -74,9 +89,30 @@ void Convert::processScan(const rslidar_msgs::rslidarScan::ConstPtr& scanMsg)
   // process each packet provided by the driver
 
   data_->block_num = 0;
+  geometry_msgs::TransformStamped tf_comp_stamped;
+  Eigen::Affine3d tf_comp_eigen;
   for (size_t i = 0; i < scanMsg->packets.size(); ++i)
   {
-    data_->unpack(scanMsg->packets[i], outPoints);
+    if (compensate_motion_) {
+      // Set transform to identity, in case transform lookup fails.
+      tf_comp_eigen.setIdentity();
+      try{
+        tf_comp_stamped = tf_buffer_.lookupTransform(scanMsg->header.frame_id, // Target frame.
+                                                scanMsg->header.stamp,  // Target time.
+                                                scanMsg->header.frame_id, // Source frame.
+                                                scanMsg->packets[i].stamp,  // Source time.
+                                                fixed_frame_);  // Fixed frame.
+        ROS_INFO_STREAM(tf_comp_stamped);
+        tf::transformMsgToEigen(tf_comp_stamped.transform, tf_comp_eigen);
+      }
+      catch (tf2::TransformException &ex) {
+        ROS_WARN("%s",ex.what());
+      }
+      data_->unpack(scanMsg->packets[i], outPoints, tf_comp_eigen.cast<float>());
+    } else {
+      data_->unpack(scanMsg->packets[i], outPoints);
+    }
+
   }
   sensor_msgs::PointCloud2 outMsg;
   pcl::toROSMsg(*outPoints, outMsg);

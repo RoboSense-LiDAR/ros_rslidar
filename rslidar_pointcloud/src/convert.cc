@@ -101,8 +101,9 @@ void Convert::processScan(const rslidar_msgs::rslidarScan::ConstPtr& scanMsg)
                                                 scanMsg->header.stamp,  // Target time.
                                                 scanMsg->header.frame_id, // Source frame.
                                                 scanMsg->packets[i].stamp,  // Source time.
-                                                fixed_frame_);  // Fixed frame.
-        ROS_INFO_STREAM(tf_comp_stamped);
+                                                fixed_frame_, // Fixed frame.
+                                                ros::Duration(0.02));  // Wait time for transform.
+        ROS_DEBUG_STREAM(tf_comp_stamped);
         tf::transformMsgToEigen(tf_comp_stamped.transform, tf_comp_eigen);
       }
       catch (tf2::TransformException &ex) {

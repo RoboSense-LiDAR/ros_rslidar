@@ -98,11 +98,11 @@ void Convert::processScan(const rslidar_msgs::rslidarScan::ConstPtr& scanMsg)
       tf_comp_eigen.setIdentity();
       try{
         tf_comp_stamped = tf_buffer_.lookupTransform(scanMsg->header.frame_id, // Target frame.
-                                                scanMsg->header.stamp,  // Target time.
-                                                scanMsg->header.frame_id, // Source frame.
-                                                scanMsg->packets[i].stamp,  // Source time.
-                                                fixed_frame_, // Fixed frame.
-                                                ros::Duration(0.02));  // Wait time for transform.
+                                                     scanMsg->header.stamp,  // Target time.
+                                                     scanMsg->header.frame_id, // Source frame.
+                                                     scanMsg->packets[i].stamp,  // Source time.
+                                                     fixed_frame_, // Fixed frame.
+                                                     ros::Duration(0.02));  // Wait time for transform.
         ROS_DEBUG_STREAM(tf_comp_stamped);
         tf::transformMsgToEigen(tf_comp_stamped.transform, tf_comp_eigen);
       }

@@ -50,6 +50,7 @@ private:
   tf2_ros::TransformListener tf_listener_;
   bool compensate_motion_;
   std::string fixed_frame_;
+  double tf_wait_time_;
 };
 
 }  // namespace rslidar_pointcloud

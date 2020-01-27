@@ -31,6 +31,7 @@ Convert::Convert(ros::NodeHandle node, ros::NodeHandle private_nh) :
   private_nh.param("model", model, std::string("RS16"));
   private_nh.param("compensate_motion", compensate_motion_, false);
   private_nh.param("fixed_frame", fixed_frame_, std::string(""));
+  private_nh.param("tf_wait_time", tf_wait_time_, 0.02);
 
   ROS_INFO_STREAM("[cloud][convert] compensate motion: " << compensate_motion_);
   if (compensate_motion_) {
@@ -38,6 +39,7 @@ Convert::Convert(ros::NodeHandle node, ros::NodeHandle private_nh) :
       ROS_ERROR_STREAM("[cloud][convert] Motion compensation enabled but got empty fixed frame id");
     } else {
       ROS_INFO_STREAM("[cloud][convert] fixed frame: " << fixed_frame_);
+      ROS_INFO_STREAM("[cloud][convert] Tf wait time: " << tf_wait_time_);
     }
   }
 
@@ -102,7 +104,7 @@ void Convert::processScan(const rslidar_msgs::rslidarScan::ConstPtr& scanMsg)
                                                      scanMsg->header.frame_id, // Source frame.
                                                      scanMsg->packets[i].stamp,  // Source time.
                                                      fixed_frame_, // Fixed frame.
-                                                     ros::Duration(0.02));  // Wait time for transform.
+                                                     ros::Duration(tf_wait_time_));  // Wait time for transform.
         ROS_DEBUG_STREAM(tf_comp_stamped);
         tf::transformMsgToEigen(tf_comp_stamped.transform, tf_comp_eigen);
       }

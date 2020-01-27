@@ -25,6 +25,7 @@
     <param name="intensity_mode" value="3"/>
     <param name="compensate_motion" value="false"/>
     <param name="fixed_frame" value="odom"/>
+    <param name="tf_wait_time" value="0.02"/>
   </node>
 
   <node name="rviz" pkg="rviz" type="rviz"  args="-d $(find rslidar_pointcloud)/rviz_cfg/rslidar.rviz" />

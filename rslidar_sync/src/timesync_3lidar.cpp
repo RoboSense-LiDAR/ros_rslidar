@@ -1,3 +1,10 @@
+/*
+ *	Copyright (C) 2018-2020 Robosense Authors
+ *  License: Modified BSD Software License Agreement
+ *
+ *  $Id$
+ */
+
 #include <ros/ros.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/String.h>

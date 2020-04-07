@@ -1,7 +1,5 @@
 /*
- *  Copyright (C) 2012 Austin Robot Technology, Jack O'Quin
- *	Copyright (C) 2017 Robosense, Tony Zhang
- *
+ *	Copyright (C) 2018-2020 Robosense Authors
  *  License: Modified BSD Software License Agreement
  *
  *  $Id$

@@ -7,7 +7,7 @@
 
 /** @file
 
-    This class converts raw RSLIDAR 3D LIDAR packets to PointCloud2.
+    This class converts raw Robosense 3D LIDAR packets to PointCloud2.
 
 */
 #include "convert.h"

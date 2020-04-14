@@ -7,7 +7,7 @@
 
 /** \file
 
-    This ROS node converts raw RSLIDAR LIDAR packets to PointCloud2.
+    This ROS node converts raw Robosense 3D LIDAR packets to PointCloud2.
 
 */
 #include "convert.h"

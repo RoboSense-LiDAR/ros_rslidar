@@ -7,7 +7,7 @@
 
 /** \file
  *
- *  Input classes for the RSLIDAR RS-16 3D LIDAR:
+ *  Input classes for the Robosense LIDAR:
  *
  *     Input -- base class used to access the data independently of
  *              its source

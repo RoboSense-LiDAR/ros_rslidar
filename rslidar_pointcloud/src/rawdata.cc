@@ -10,7 +10,7 @@
  *
  *  RSLIDAR 3D LIDAR data accessor class implementation.
  *
- *  Class for unpacking raw RSLIDAR LIDAR packets into useful
+ *  Class for unpacking raw Robosense 3D LIDAR packets into useful
  *  formats.
  *
  */

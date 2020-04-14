@@ -7,7 +7,7 @@
 
 /** \file
  *
- *  ROS driver interface for the RSLIDAR 3D LIDARs
+ *  ROS driver interface for the Robosense 3D LIDARs
  */
 #ifndef _RSDRIVER_H_
 #define _RSDRIVER_H_

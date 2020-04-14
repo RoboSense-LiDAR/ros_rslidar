@@ -7,7 +7,7 @@
 
 /** \file
  *
- *  ROS driver nodelet for the RSLIDAR 3D LIDARs
+ *  ROS driver nodelet for the Robosense 3D LIDARs
  */
 
 #include <string>

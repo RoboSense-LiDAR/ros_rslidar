@@ -7,7 +7,7 @@
 
 /** \file
  *
- *  ROS driver implementation for the RILIDAR 3D LIDARs
+ *  ROS driver implementation for the Robosense 3D LIDARs
  */
 #include "rsdriver.h"
 #include <rslidar_msgs/rslidarScan.h>

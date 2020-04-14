@@ -9,10 +9,6 @@
  *
  *  @brief Interfaces for interpreting raw packets from the Robosense 3D LIDAR.
  *
- *  @author Yaxin Liu
- *  @author Patrick Beeson
- *  @author Jack O'Quin
- *  @author Tony Zhang
  */
 
 #ifndef _RAWDATA_H

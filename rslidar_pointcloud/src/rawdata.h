@@ -19,6 +19,7 @@
 #include <rslidar_msgs/rslidarPacket.h>
 #include <rslidar_msgs/rslidarScan.h>
 #include "std_msgs/String.h"
+#include <std_msgs/Float32.h>
 #include <pcl/point_types.h>
 #include <pcl_ros/point_cloud.h>
 #include <pcl_ros/impl/transforms.hpp>
@@ -154,6 +155,7 @@ public:
 
   void processDifop(const rslidar_msgs::rslidarPacket::ConstPtr& difop_msg);
   ros::Subscriber difop_sub_;
+  ros::Publisher temperature_pub_;
   bool is_init_curve_;
   bool is_init_angle_;
   bool is_init_top_fw_;

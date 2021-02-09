@@ -40,6 +40,13 @@ private:
   boost::shared_ptr<rslidar_rawdata::RawData> data_;
   ros::Subscriber rslidar_scan_;
   ros::Publisher output_;
+
+  // Motion compensation.
+  tf2_ros::Buffer tf_buffer_;
+  tf2_ros::TransformListener tf_listener_;
+  bool compensate_motion_;
+  std::string fixed_frame_;
+  double tf_wait_time_;
 };
 
 }  // namespace rslidar_pointcloud

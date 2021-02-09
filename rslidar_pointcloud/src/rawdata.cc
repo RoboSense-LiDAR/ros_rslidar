@@ -828,7 +828,9 @@ int RawData::estimateTemperature(float Temper)
  *  @param pkt raw packet to unpack
  *  @param pc shared pointer to point cloud (points are appended)
  */
-void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud)
+void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt,
+                     pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,
+                     const Eigen::Affine3f& tf_comp)
 {
   // check pkt header
   if (pkt.data[0] != 0x55 || pkt.data[1] != 0xAA || pkt.data[2] != 0x05 || pkt.data[3] != 0x0A)
@@ -838,7 +840,7 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
 
   if (numOfLasers == 32)
   {
-    unpack_RS32(pkt, pointcloud);
+    unpack_RS32(pkt, pointcloud, tf_comp);
     return;
   }
   float azimuth;  // 0.01 dgree
@@ -957,6 +959,7 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
                     Rx_ * this->sin_lookup_table_[arg_horiz_orginal];
           point.z = distance2 * this->sin_lookup_table_[arg_vert] + Rz_;
           point.intensity = intensity;
+          point = pcl::transformPoint(point, tf_comp);
           pointcloud->at(2 * this->block_num + firing, dsr) = point;
         }
       }
@@ -964,7 +967,9 @@ void RawData::unpack(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl
   }
 }
 
-void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud)
+void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt,
+                          pcl::PointCloud<pcl::PointXYZI>::Ptr pointcloud,
+                          const Eigen::Affine3f& tf_comp)
 {
   float azimuth;  // 0.01 dgree
   float intensity;
@@ -1083,6 +1088,7 @@ void RawData::unpack_RS32(const rslidar_msgs::rslidarPacket& pkt, pcl::PointClou
                     Rx_ * this->sin_lookup_table_[arg_horiz_orginal];
           point.z = distance2 * this->sin_lookup_table_[arg_vert] + Rz_;
           point.intensity = intensity;
+          point = pcl::transformPoint(point, tf_comp);
           pointcloud->at(this->block_num, dsr) = point;
         }
       }

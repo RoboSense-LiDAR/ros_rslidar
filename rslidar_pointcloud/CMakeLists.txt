@@ -5,6 +5,7 @@ add_compile_options(-std=c++11)
 set(CMAKE_BUILD_TYPE Release)#RelWithDebInfo
 set(${PROJECT_NAME}_CATKIN_DEPS
     angles
+    eigen_conversions
     nodelet
     pcl_ros
     roscpp

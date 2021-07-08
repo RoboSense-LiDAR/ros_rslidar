@@ -38,6 +38,7 @@ Convert::Convert(ros::NodeHandle node, ros::NodeHandle private_nh) : data_(new r
   private_nh.param("input_packets_topic", input_packets_topic, std::string("rslidar_packets"));
   rslidar_scan_ = node.subscribe(input_packets_topic, 10, &Convert::processScan, (Convert*)this,
                                  ros::TransportHints().tcpNoDelay(true));
+  out_points_.reset(new pcl::PointCloud<pcl::PointXYZI>);
 }
 
 void Convert::callback(rslidar_pointcloud::CloudNodeConfig& config, uint32_t level)
@@ -49,23 +50,22 @@ void Convert::callback(rslidar_pointcloud::CloudNodeConfig& config, uint32_t lev
 /** @brief Callback for raw scan messages. */
 void Convert::processScan(const rslidar_msgs::rslidarScan::ConstPtr& scanMsg)
 {
-  pcl::PointCloud<pcl::PointXYZI>::Ptr outPoints(new pcl::PointCloud<pcl::PointXYZI>);
-  outPoints->header.stamp = pcl_conversions::toPCL(scanMsg->header).stamp;
-  outPoints->header.frame_id = scanMsg->header.frame_id;
-  outPoints->clear();
+  out_points_->header.stamp = pcl_conversions::toPCL(scanMsg->header).stamp;
+  out_points_->header.frame_id = scanMsg->header.frame_id;
+  out_points_->clear();
   if (model == "RS16")
   {
-    outPoints->height = 16;
-    outPoints->width = 24 * (int)scanMsg->packets.size();
-    outPoints->is_dense = false;
-    outPoints->resize(outPoints->height * outPoints->width);
+    out_points_->height = 16;
+    out_points_->width = 24 * (int)scanMsg->packets.size();
+    out_points_->is_dense = false;
+    out_points_->resize(out_points_->height * out_points_->width);
   }
   else if (model == "RS32" || model == "RSBPEARL" || model == "RSBPEARL_MINI")
   {
-    outPoints->height = 32;
-    outPoints->width = 12 * (int)scanMsg->packets.size();
-    outPoints->is_dense = false;
-    outPoints->resize(outPoints->height * outPoints->width);
+    out_points_->height = 32;
+    out_points_->width = 12 * (int)scanMsg->packets.size();
+    out_points_->is_dense = false;
+    out_points_->resize(out_points_->height * out_points_->width);
   }
 
   // process each packet provided by the driver
@@ -73,11 +73,11 @@ void Convert::processScan(const rslidar_msgs::rslidarScan::ConstPtr& scanMsg)
   data_->block_num = 0;
   for (size_t i = 0; i < scanMsg->packets.size(); ++i)
   {
-    data_->unpack(scanMsg->packets[i], outPoints);
+    data_->unpack(scanMsg->packets[i], out_points_);
   }
-  sensor_msgs::PointCloud2 outMsg;
-  pcl::toROSMsg(*outPoints, outMsg);
 
-  output_.publish(outMsg);
+  pcl::toROSMsg(*out_points_, out_msg_);
+
+  output_.publish(out_msg_);
 }
 }  // namespace rslidar_pointcloud
